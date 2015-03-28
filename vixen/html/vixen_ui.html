@@ -1,0 +1,76 @@
+<html>
+    <head>
+        <!-- Load the jigna script. -->
+        <script type='text/javascript' src='/jigna/jigna.js'></script>
+
+        <!-- Once jigna is loaded, initialize it. -->
+        <script type='text/javascript'>
+            jigna.initialize({async: true});
+        </script>
+    </head>
+
+<body ng-app='jigna'>
+<h1>Welcome to ViXeN</h1>
+
+<div>
+    Videos from: {{vixen.root}}
+    <br/>
+
+    <br/>
+
+    Selected video:
+    <div ng-if="vixen.selected.ready">
+
+        <div style="float:left; padding: 5px 5px 5px 5px">
+        Grid: {{vixen.selected.grid}}
+        <br/>
+        Camera: {{vixen.selected.camera}}
+        <br/>
+        Grid date: {{vixen.selected.grid_date}}
+        <br/>
+        File date: {{vixen.selected.file_date}} {{vixen.selected.file_time}}
+        <br/>
+        Species: <input ng-model="vixen.selected.species"/>
+        <br/>
+        Number: <input type="number" ng-model="vixen.selected.number"/>
+        <br/>
+        Sex: <br/>
+            <input type="radio" ng-model="vixen.selected.sex" value="unknown"/> Unknown <br/>
+            <input type="radio" ng-model="vixen.selected.sex" value="male"/> Male <br/>
+            <input type="radio" ng-model="vixen.selected.sex" value="female"/> Female <br/>
+        <br/>
+        Age: <input ng-model="vixen.selected.age"/>
+        <br/>
+        Temperature:
+        <br/>
+        Remarks: <input ng-model="vixen.selected.remarks"/>
+        </div>
+
+        <div style="padding: 5px 5px 5px 5px">
+        <video controls src="{{vixen.selected.webm_video}}" >
+        <source src="{{vixen.selected.webm_video}}" type="video/webm"/>
+        </video>
+        </div>
+
+    </div>
+    <div ng-if="!vixen.selected.ready">
+    Video is still being processed.  Please wait.
+    </div>
+
+    <br/>
+
+    <div style="height:200px; overflow:scroll; border:1px solid black">
+    <div ng-repeat="video in vixen.videos"
+         ng-click="vixen.selected = video">
+        Grid: {{video.grid}}, Camera: {{video.camera}} on {{video.file_date}}
+        at {{video.file_time}}
+        <br/>
+    </div>
+    </div>
+    <br/>
+</div>
+
+</body>
+
+
+</html>
