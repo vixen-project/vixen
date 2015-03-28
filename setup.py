@@ -14,6 +14,6 @@ setup(
     include_package_data=True,
     entry_points="""
         [console_scripts]
-        vixen = vixen.vixen_ui:main
+        vixen = vixen.cli:main
     """
 )

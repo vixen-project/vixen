@@ -1,5 +1,6 @@
 <html>
     <head>
+    <title>ViXen media viewer</title>
         <!-- Load the jigna script. -->
         <script type='text/javascript' src='/jigna/jigna.js'></script>
 
@@ -10,63 +11,58 @@
     </head>
 
 <body ng-app='jigna'>
-<h1>Welcome to ViXeN</h1>
-
 <div>
     Videos from: {{vixen.root}}
     <br/>
 
+    <div style="height:150px; overflow:scroll; border:1px solid black">
+        <div ng-repeat="media in vixen.media"
+            ng-click="vixen.selected = media">
+            Grid: {{media.tags.grid}}, Camera: {{media.tags.camera}} on {{media.date}}
+            at {{media.time}}
+            <br/>
+        </div>
+    </div>
     <br/>
 
-    Selected video:
-    <div ng-if="vixen.selected.ready">
-
+    <div ng-if="vixen.selected" style="padding: 5px 5px 5px 5px; border:1px solid black">
         <div style="float:left; padding: 5px 5px 5px 5px">
-        Grid: {{vixen.selected.grid}}
-        <br/>
-        Camera: {{vixen.selected.camera}}
-        <br/>
-        Grid date: {{vixen.selected.grid_date}}
-        <br/>
-        File date: {{vixen.selected.file_date}} {{vixen.selected.file_time}}
-        <br/>
-        Species: <input ng-model="vixen.selected.species"/>
-        <br/>
-        Number: <input type="number" ng-model="vixen.selected.number"/>
-        <br/>
-        Sex: <br/>
-            <input type="radio" ng-model="vixen.selected.sex" value="unknown"/> Unknown <br/>
-            <input type="radio" ng-model="vixen.selected.sex" value="male"/> Male <br/>
-            <input type="radio" ng-model="vixen.selected.sex" value="female"/> Female <br/>
-        <br/>
-        Age: <input ng-model="vixen.selected.age"/>
-        <br/>
-        Temperature:
-        <br/>
-        Remarks: <input ng-model="vixen.selected.remarks"/>
-        </div>
+            Grid: {{vixen.selected.tags.grid}}
+            <br/>
+            Camera: {{vixen.selected.tags.camera}}
+            <br/>
+            Grid date: {{vixen.selected.tags.grid_date}}
+            <br/>
+            File date: {{vixen.selected.date}} {{vixen.selected.time}}
+            <br/>
+            Jackal: <input type="number" ng-model="vixen.selected.tags.jackal"/>
+            <br/>
+            Indian Fox: <input type="number" ng-model="vixen.selected.tags.indian_fox"/>
+            <br/>
+            Desert Fox: <input type="number" ng-model="vixen.selected.tags.desert_fox"/>
+            <br/>
+            Dog: <input type="number" ng-model="vixen.selected.tags.dog"/>
+            <br/>
+            Temperature: <input ng-model="vixen.selected.tags.temperature"/>
+            <br/>
+            Remarks: <input ng-model="vixen.selected.tags.remarks"/>
+            </div>
 
-        <div style="padding: 5px 5px 5px 5px">
-        <video controls src="{{vixen.selected.webm_video}}" >
-        <source src="{{vixen.selected.webm_video}}" type="video/webm"/>
-        </video>
+            <div style="padding: 5px 5px 5px 5px">
+            <video controls src="{{vixen.selected.view}}" >
+            <source src="{{vixen.selected.view}}" type="video/webm"/>
+            </video>
+            </div>
         </div>
 
     </div>
-    <div ng-if="!vixen.selected.ready">
-    Video is still being processed.  Please wait.
-    </div>
 
+    <div ng-if="vixen.media">
+    <button ng-click="vixen.save()" type="button">Save</button>
+    Last saved at: {{vixen.last_save_time}}
+    </div>
     <br/>
 
-    <div style="height:200px; overflow:scroll; border:1px solid black">
-    <div ng-repeat="video in vixen.videos"
-         ng-click="vixen.selected = video">
-        Grid: {{video.grid}}, Camera: {{video.camera}} on {{video.file_date}}
-        at {{video.file_time}}
-        <br/>
-    </div>
-    </div>
     <br/>
 </div>
 
