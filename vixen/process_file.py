@@ -1,3 +1,4 @@
+import os
 from os.path import abspath, exists, split, splitext
 
 def _parse_path(path):
@@ -11,15 +12,17 @@ def _process_avi(path):
     video = abspath(path)
     webm_video = splitext(video)[0] + '.webm'
     poster = splitext(video)[0] + '.jpg'
+    size = os.stat(video).st_size
 
     import subprocess
-    if not exists(webm_video):
-        command = ["ffmpeg", "-i", video, webm_video]
-        out = subprocess.check_output(command, stderr=subprocess.STDOUT)
-    if not exists(poster):
-        command = ["ffmpeg", "-i", video,
-                    "-ss", "0", "-vframes", "1", poster]
-        out = subprocess.check_output(command, stderr=subprocess.STDOUT)
+    if size > 0:
+        if not exists(webm_video):
+            command = ["ffmpeg", "-i", video, webm_video]
+            out = subprocess.check_output(command, stderr=subprocess.STDOUT)
+        if not exists(poster):
+            command = ["ffmpeg", "-i", video,
+                        "-ss", "0", "-vframes", "1", poster]
+            out = subprocess.check_output(command, stderr=subprocess.STDOUT)
     return webm_video, poster
 
 
