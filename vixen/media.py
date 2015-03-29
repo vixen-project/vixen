@@ -43,7 +43,7 @@ class Media(HasTraits):
 
     @classmethod
     def from_path(cls, path):
-        obj = cls(path=path)
+        obj = cls(path=os.path.abspath(path))
         stat = os.stat(path)
         video_mtime = long(stat.st_mtime)
         obj.size = stat.st_size

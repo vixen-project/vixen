@@ -31,8 +31,11 @@ def view(args):
 
     fp = open(saved)
     from vixen.media_manager import MediaManager
-    vixen = MediaManager()
-    vixen.load(fp)
+    mm = MediaManager()
+    mm.load(fp)
+    from vixen.filtered_view import FilteredView
+    vixen = FilteredView()
+    vixen.manager = mm
     from vixen.vixen_ui import main
     main(vixen)
 

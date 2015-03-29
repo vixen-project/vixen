@@ -4,12 +4,12 @@ from tornado.ioloop import IOLoop
 from tornado import autoreload
 
 
-def main(media_manager):
+def main(vixen):
     html_file = join(dirname(__file__), 'html', 'vixen_ui.html')
     template = Template(html_file=html_file, base_url='/', async=True)
     ioloop = IOLoop.instance()
     app = WebApp(
-        template=template, context={'vixen':media_manager}, port=8000,
+        template=template, context={'vixen':vixen}, port=8000,
         autoreload=True
     )
     autoreload.watch(html_file)

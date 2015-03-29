@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 
-from traits.api import (HasTraits, Instance, Directory, List, Str)
+from traits.api import HasTraits, Directory, List, Str
 
 from .media import Media
 
@@ -27,8 +27,6 @@ class MediaManager(HasTraits):
     root = Directory
 
     media = List(Media)
-
-    selected = Instance(Media)
 
     saved_file = Str
 

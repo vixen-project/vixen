@@ -12,14 +12,16 @@
 
 <body ng-app='jigna'>
 <div>
-    Videos from: {{vixen.root}}
+    <h2>Welcome to ViXeN</h2>
     <br/>
 
+    Grid: <select ng-model="vixen.grid" ng-options="g for g in vixen.available_grids"></select>
+    Camera: <select ng-model="vixen.camera" ng-options="c for c in vixen.available_cameras"></select>
+    <br>
     <div style="height:150px; overflow:scroll; border:1px solid black">
         <div ng-repeat="media in vixen.media"
             ng-click="vixen.selected = media">
-            Grid: {{media.tags.grid}}, Camera: {{media.tags.camera}} on {{media.date}}
-            at {{media.time}}
+            {{media.path}} on {{media.date}} at {{media.time}}
             <br/>
         </div>
     </div>
@@ -60,13 +62,13 @@
     </div>
 
     <div ng-if="vixen.media">
-    <button ng-click="vixen.save()" type="button">Save</button>
-    Last saved at: {{vixen.last_save_time}}
+    <button ng-click="vixen.manager.save()" type="button">Save</button>
+    Last saved at: {{vixen.manager.last_save_time}}
     <br>
     <input id="export_csv" type="text"
            title="Will save the file to the current directory.">
     <button
-        onclick="jigna.models.vixen.export_csv(document.getElementById('export_csv').value);"
+        onclick="jigna.models.vixen.manager.export_csv(document.getElementById('export_csv').value);"
         type="button">
     Export to CSV</button>
     </div>
