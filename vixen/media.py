@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from traits.api import Dict, HasTraits, Long, Str
+from traits.api import Dict, HasTraits, Long, Property, Str
 
 
 class Media(HasTraits):
@@ -24,6 +24,9 @@ class Media(HasTraits):
     tags = Dict
 
     ########## Automatically setup traits. ######
+
+    # The file name.
+    file_name = Property(Str)
 
     # The file path.
     path = Str
@@ -60,3 +63,6 @@ class Media(HasTraits):
         tags = data.pop('tags')
         data.update(tags)
         return data
+
+    def _get_file_name(self):
+        return os.path.basename(self.path)
