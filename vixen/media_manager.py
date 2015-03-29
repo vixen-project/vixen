@@ -2,6 +2,7 @@
 import datetime
 import json
 import os
+import shutil
 import sys
 
 from traits.api import (HasTraits, Instance, Directory, List, Str)
@@ -62,6 +63,50 @@ class MediaManager(HasTraits):
         fp.close()
         if hasattr(fp, 'name'):
             self._update_saved_file_info(fp.name)
+
+    def save_as(self, path):
+        """Save copy to specified path.
+        """
+        self.save()
+        shutil.copy(self.saved_file, path)
+
+    def export_csv(self, path, cols=None):
+        """Export metadata to a csv file.  If `cols` are not specified,
+        it writes out all the useful metadata.
+
+        Parameters
+        -----------
+
+        path: str: a path to the csv file to dump.
+        cols: sequence: a sequence of columns to write.
+        """
+        lines = []
+        data = []
+        all_keys = set()
+        for item in self.media:
+            d = item.flatten()
+            all_keys.update(d.keys())
+            data.append(d)
+        if cols is None:
+            cols = all_keys
+            # Typically we don't want these.
+            cols -= set(('view', 'poster'))
+            cols = list(sorted(cols))
+        # Write the header.
+        lines.append(','.join(cols))
+        # Assemble the lines.
+        for d in data:
+            line = []
+            for key in cols:
+                elem = d[key]
+                elem = str(elem) if elem is not None else ""
+                line.append(elem)
+            lines.append(','.join(line))
+
+        # Write it out.
+        with open(path, 'w') as of:
+            for line in lines:
+                of.write(line +'\n')
 
     def load(self, fp):
         """Load media info from opened file object.
