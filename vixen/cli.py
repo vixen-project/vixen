@@ -9,7 +9,10 @@ def process(args):
     from vixen.media_processor import MediaProcessor
     from vixen.media_manager import MediaManager
     from vixen.process_file import process_file
-    mp = MediaProcessor()
+    if args.n is not None:
+        mp = MediaProcessor(number_of_processes=args.n)
+    else:
+        mp = MediaProcessor()
     results = mp.process(root, process_file, quiet=quiet)
     vixen = MediaManager(root=root)
     vixen.load_processed_results(results)
@@ -59,6 +62,10 @@ def main():
     process_cmd.add_argument(
         '-o', '--output', type=str, default=None,
         help='Optional output file to save processed data into.'
+        )
+    process_cmd.add_argument(
+        '-n', type=int, default=None,
+        help='Maximum number of parallel processes allowed for processing.'
         )
     process_cmd.add_argument('root', type=str,
         help='Root of directory to process')
