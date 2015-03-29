@@ -3,20 +3,10 @@ import datetime
 import json
 import os
 import shutil
-import sys
 
 from traits.api import HasTraits, Directory, List, Str
 
 from .media import Media
-
-def get_all_files(root):
-    """Given a directory find all the files nested inside.
-    """
-    result = []
-    for root, dirs, files in os.walk(root):
-        for name in files:
-            result.append(os.path.join(root, name))
-    return result
 
 def get_file_saved_time(path):
     dt = datetime.datetime.fromtimestamp(os.stat(path).st_ctime)
@@ -32,20 +22,14 @@ class MediaManager(HasTraits):
 
     last_save_time = Str
 
-    def process(self, processor, quiet=False):
-        """Process all files inside the specified root.
+    def load_processed_results(self, results):
+        """Load data from the results from the Media processor.
         """
-        file_names = get_all_files(self.root)
-        n_files = len(file_names)
         media = []
-        for count, file_name in enumerate(file_names):
-            if not quiet:
-                print "\rProcessing", count, "of", n_files, ":", file_name,
-                sys.stdout.flush()
-            result = processor(file_name)
+        for path, result in results:
             if result is not None:
                 type, view, tags = result
-                m = Media.from_path(file_name)
+                m = Media.from_path(path)
                 m.set(type=type, view=view, tags=tags)
                 media.append(m)
         self.media = media

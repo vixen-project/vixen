@@ -6,10 +6,13 @@ def process(args):
     root = args.root
     output = args.output
     quiet = args.quiet
+    from vixen.media_processor import MediaProcessor
     from vixen.media_manager import MediaManager
     from vixen.process_file import process_file
+    mp = MediaProcessor()
+    results = mp.process(root, process_file, quiet=quiet)
     vixen = MediaManager(root=root)
-    vixen.process(process_file, quiet=quiet)
+    vixen.load_processed_results(results)
 
     if output is None:
         output = join(root, 'info.vxn')
