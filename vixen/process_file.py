@@ -12,7 +12,13 @@ def _process_avi(path):
     video = abspath(path)
     webm_video = splitext(video)[0] + '.webm'
     poster = splitext(video)[0] + '.jpg'
+    lock = video + '.lck'
+    if exists(lock):
+        for f in (webm_video, poster):
+            if exists(f):
+                os.remove(f)
 
+    open(lock, 'w').close()
     import subprocess
     if not exists(webm_video):
         command = ["ffmpeg", "-i", video, webm_video]
@@ -21,6 +27,9 @@ def _process_avi(path):
         command = ["ffmpeg", "-i", video,
                     "-ss", "0", "-vframes", "1", poster]
         out = subprocess.check_output(command, stderr=subprocess.STDOUT)
+
+    os.remove(lock)
+
     return webm_video, poster
 
 
@@ -30,9 +39,11 @@ def process_file(path):
     This converts any AVI files to webm so they can be viewed, parses
     the file path to determine the tags and returns a bunch of tags.
     """
-    size = os.stat(path).st_size
     ext = splitext(path)[1]
-    if (ext not in ['.avi', '.AVI']) or (size == 0):
+    if (ext not in ['.avi', '.AVI']) or not exists(path):
+        return
+    size = os.stat(path).st_size
+    if size == 0:
         return
 
     view, poster = _process_avi(path)
