@@ -1,4 +1,4 @@
-<html>
+<html ng-app='jigna'>
     <head>
     <title>ViXen media viewer</title>
         <!-- Load the jigna script. -->
@@ -10,7 +10,7 @@
         </script>
     </head>
 
-<body ng-app='jigna'>
+<body>
 <div>
     <h2>Welcome to ViXeN</h2>
     <br/>
@@ -53,8 +53,7 @@
             </div>
 
             <div style="padding: 5px 5px 5px 5px">
-            <video controls src="{{vixen.selected.view}}" >
-            <source src="{{vixen.selected.view}}" type="video/webm"/>
+            <video controls ng-src="{{vixen.selected.view}}" >
             </video>
             </div>
         </div>
