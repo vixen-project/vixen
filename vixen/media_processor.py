@@ -76,13 +76,16 @@ class MediaProcessor(HasTraits):
                     print "Processing", count, "of", n_files, ":", job.args[0]
                     sys.stdout.flush()
                 running.append(job)
-
                 job.run()
             else:
                 print "Aborting!"
                 print "Error processing job,", error.args
                 print error.error
                 break
+
+        # Wait for all remaining jobs to complete.
+        for job in running:
+            job.thread.join()
 
         return [(j.args[0], j.result) for j in jobs]
 
