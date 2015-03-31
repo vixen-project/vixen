@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import shutil
+from urllib import quote
 
 from traits.api import HasTraits, Directory, List, Str
 
@@ -30,7 +31,7 @@ class MediaManager(HasTraits):
             if result is not None:
                 type, view, tags = result
                 m = Media.from_path(path)
-                m.set(type=type, view=view, tags=tags)
+                m.set(type=type, view=quote(view), tags=tags)
                 media.append(m)
         self.media = media
 

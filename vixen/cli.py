@@ -6,6 +6,17 @@ def process(args):
     root = args.root
     output = args.output
     quiet = args.quiet
+    if output is None:
+        output = join(root, 'info.vxn')
+        if exists(output):
+            msg = "WARNING: You seem to have already processed this "\
+                  "directory!\nThis will overwrite the current data."
+            print msg
+            ans = raw_input("Are you sure you want to proceed? (y/n): ")
+            if ans not in ('y', 'Y'):
+                print "Aborting."
+                return
+
     from vixen.media_processor import MediaProcessor
     from vixen.media_manager import MediaManager
     from vixen.process_file import process_file
@@ -17,10 +28,9 @@ def process(args):
     vixen = MediaManager(root=root)
     vixen.load_processed_results(results)
 
-    if output is None:
-        output = join(root, 'info.vxn')
     of = open(output, 'w')
     vixen.save(of)
+    print "Done."
 
 def view(args):
     root_or_saved = args.root

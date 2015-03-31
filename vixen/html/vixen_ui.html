@@ -8,6 +8,15 @@
         <script type='text/javascript'>
             jigna.initialize({async: true});
         </script>
+        <style>
+            .resizable {
+                padding: 5px;
+                border: 1px solid;
+                resize: both;
+                overflow: auto;
+                width: 800px;
+            }
+        </style>
     </head>
 
 <body>
@@ -18,7 +27,7 @@
     Grid: <select ng-model="vixen.grid" ng-options="g for g in vixen.available_grids"></select>
     Camera: <select ng-model="vixen.camera" ng-options="c for c in vixen.available_cameras"></select>
     <br>
-    <div style="height:150px; overflow:scroll; border:1px solid black">
+    <div style="height:150px; overflow:scroll;" class="resizable">
         <div ng-repeat="media in vixen.media"
             ng-click="vixen.selected = media">
             {{media.path}} on {{media.date}} at {{media.time}}
@@ -27,10 +36,11 @@
     </div>
     <br/>
 
-    <div ng-if="vixen.selected" style="padding: 5px 5px 5px 5px; border:1px solid black">
-        <div style="float:left; padding: 5px 5px 5px 5px">
-            <div title="{{vixen.selected.path}}">File name: {{vixen.selected.file_name}}</div>
-            <br/>
+    <div ng-if="vixen.selected" style="padding: 5px;">
+        <div style="float:left; padding: 5px">
+            <div title="{{vixen.selected.path}}">
+                File name: {{vixen.selected.file_name}}
+            </div>
             Grid: {{vixen.selected.tags.grid}}
             <br/>
             Camera: {{vixen.selected.tags.camera}}
@@ -50,30 +60,26 @@
             Temperature: <input ng-model="vixen.selected.tags.temperature"/>
             <br/>
             Remarks: <input ng-model="vixen.selected.tags.remarks"/>
-            </div>
-
-            <div style="padding: 5px 5px 5px 5px">
-            <video controls ng-src="{{vixen.selected.view}}" >
-            </video>
-            </div>
         </div>
 
+        <div class="resizable">
+            <video controls ng-src="{{vixen.selected.view}}"
+                  style="width: 100%;"></video>
+        </div>
     </div>
 
-    <div ng-if="vixen.media">
-    <button ng-click="vixen.manager.save()" type="button">Save</button>
-    Last saved at: {{vixen.manager.last_save_time}}
-    <br>
-    <input id="export_csv" type="text"
+    <div ng-if="vixen.media" style="float:bottom;">
+        <button ng-click="vixen.save()" type="button">Save</button>
+        Last saved at: {{vixen.last_save_time}}
+        <br/>
+        <input id="export_csv" type="text"
            title="Will save the file to the current directory.">
-    <button
-        onclick="jigna.models.vixen.manager.export_csv(document.getElementById('export_csv').value);"
-        type="button">
-    Export to CSV</button>
+        <button
+            onclick="jigna.models.vixen.export_csv(document.getElementById('export_csv').value);"
+            type="button">Export to CSV</button>
     </div>
     <br/>
 
-    <br/>
 </div>
 
 </body>

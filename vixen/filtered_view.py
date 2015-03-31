@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from traits.api import HasTraits, List, Instance, Int, Str, Dict
+from traits.api import HasTraits, List, Instance, Int, Str, Dict, DelegatesTo
 
 from .media import Media
 from .media_manager import MediaManager
@@ -21,6 +21,13 @@ class FilteredView(HasTraits):
     available_cameras = List
     available_grids = List
 
+    last_save_time = DelegatesTo('manager')
+
+    def save(self):
+        self.manager.save()
+
+    def export_csv(self, fname):
+        self.manager.export_csv(fname)
 
     def _manager_changed(self, manager):
         grids = defaultdict(lambda: defaultdict(list))
