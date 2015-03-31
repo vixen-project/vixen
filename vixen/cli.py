@@ -28,8 +28,8 @@ def process(args):
     vixen = MediaManager(root=root)
     vixen.load_processed_results(results)
 
-    of = open(output, 'w')
-    vixen.save(of)
+    with open(output, 'w') as of:
+        vixen.save(of)
     print "Done."
 
 def view(args):
@@ -45,10 +45,10 @@ def view(args):
     elif root_or_saved.endswith('.vxn'):
         saved = root_or_saved
 
-    fp = open(saved)
     from vixen.media_manager import MediaManager
     mm = MediaManager()
-    mm.load(fp)
+    with open(saved) as fp:
+        mm.load(fp)
     from vixen.filtered_view import FilteredView
     vixen = FilteredView()
     vixen.manager = mm
