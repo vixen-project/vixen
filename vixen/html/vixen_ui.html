@@ -9,6 +9,9 @@
             jigna.initialize({async: true});
         </script>
         <style>
+            html * {
+                font-family: sans-serif;
+            }
             .resizable {
                 padding: 5px;
                 border: 1px solid;
@@ -19,17 +22,34 @@
             .processed {
                 color: green;
             }
+            .tag-editor label {
+                width: 6rem;
+                display: inline-block;
+                margin: 0.15rem auto;
+            }
+            .media-browser {
+                width: 30%;
+                margin: auto;
+            }
+            select,button {
+                font-size: 1rem;
+            }
         </style>
     </head>
 
 <body>
 <div>
-    <h2>Welcome to ViXeN</h2>
-    <br/>
+    <h2 style="text-align:center">Welcome to ViXeN</h2>
 
-    Grid: <select ng-model="vixen.grid" ng-options="g for g in vixen.available_grids"></select>
-    Camera: <select ng-model="vixen.camera" ng-options="c for c in vixen.available_cameras"></select>
-    <br>
+    <label>Grid</label>
+    <select ng-model="vixen.grid"
+        ng-options="g for g in vixen.available_grids">
+    </select>
+    <label>Camera:</label>
+    <select ng-model="vixen.camera"
+        ng-options="c for c in vixen.available_cameras">
+    </select>
+
     <div style="height:150px; width: 400px; overflow:scroll;" class="resizable">
         <div ng-repeat="media in vixen.media"
             ng-class="{processed:media.tags.processed}"
@@ -38,38 +58,51 @@
             <br/>
         </div>
     </div>
-    <br/>
 
     <div ng-if="vixen.selected" style="padding: 5px;">
-        <div style="float:left; padding: 5px">
+        <div class="tag-editor" style="float:left; padding: 5px">
             <div title="{{vixen.selected.path}}">
-                File name: {{vixen.selected.file_name}}
+            <label>File name</label>
+            {{vixen.selected.file_name}}
             </div>
-            Grid: {{vixen.selected.tags.grid}}
+            <label>Grid</label>
+            {{vixen.selected.tags.grid}}
             <br/>
-            Camera: {{vixen.selected.tags.camera}}
+            <label>Camera</label>
+            {{vixen.selected.tags.camera}}
             <br/>
-            Grid date: {{vixen.selected.tags.grid_date}}
+            <label>Grid date</label>
+            {{vixen.selected.tags.grid_date}}
             <br/>
-            File date: {{vixen.selected.date}} {{vixen.selected.time}}
+            <label>File date</label>
+            {{vixen.selected.date}} {{vixen.selected.time}}
             <br/>
-            Jackal: <input type="number" ng-model="vixen.selected.tags.jackal"/>
+            <label>Jackal</label>
+            <input type="number" ng-model="vixen.selected.tags.jackal"/>
             <br/>
-            Indian Fox: <input type="number" ng-model="vixen.selected.tags.indian_fox"/>
+            <label>Indian Fox</label>
+            <input type="number" ng-model="vixen.selected.tags.indian_fox"/>
             <br/>
-            Desert Fox: <input type="number" ng-model="vixen.selected.tags.desert_fox"/>
+            <label>Desert Fox</label>
+            <input type="number" ng-model="vixen.selected.tags.desert_fox"/>
             <br/>
-            Dog: <input type="number" ng-model="vixen.selected.tags.dog"/>
+            <label>Dog</label>
+            <input type="number" ng-model="vixen.selected.tags.dog"/>
             <br/>
-            Others: <input ng-model="vixen.selected.tags.others"/>
+            <label>Others</label>
+            <input ng-model="vixen.selected.tags.others"/>
             <br/>
-            Temperature: <input ng-model="vixen.selected.tags.temperature"/>
+            <label>Temperature</label>
+            <input ng-model="vixen.selected.tags.temperature"/>
             <br/>
-            Pressure: <input ng-model="vixen.selected.tags.pressure"/>
+            <label>Pressure</label>
+            <input ng-model="vixen.selected.tags.pressure"/>
             <br/>
-            Remarks: <input ng-model="vixen.selected.tags.remarks"/>
+            <label>Remarks</label>
+            <input ng-model="vixen.selected.tags.remarks"/>
             <br/>
-            Processed: <input type="checkbox" ng-model="vixen.selected.tags.processed"/>
+            <label>Processed</label>
+            <input type="checkbox" ng-model="vixen.selected.tags.processed"/>
             <br/>
         </div>
 
@@ -79,17 +112,20 @@
         </div>
     </div>
 
-    <div ng-if="vixen.media" style="float:bottom;">
-        <button ng-click="vixen.save()" type="button">Save</button>
+    <div ng-if="vixen.media">
+        <button style="font-size:larger; margin:0.5rem"
+            ng-click="vixen.save()" type="button">Save</button>
         Last saved at: {{vixen.last_save_time}}
-        <br/>
-        <input id="export_csv" type="text"
+        <div style="float:right">
+            <input id="export_csv" type="text"
            title="Will save the file to the current directory.">
-        <button
+            <button
             onclick="jigna.models.vixen.export_csv(document.getElementById('export_csv').value);"
-            type="button">Export to CSV</button>
+            type="button">Export to CSV
+            </button>
+        </div>
     </div>
-    <br/>
+
 
 </div>
 
