@@ -30,7 +30,7 @@
     <div style="height:150px; overflow:scroll;" class="resizable">
         <div ng-repeat="media in vixen.media"
             ng-click="vixen.selected = media">
-            {{media.path}} on {{media.date}} at {{media.time}}
+            {{media.file_name}} on {{media.date}} at {{media.time}}
             <br/>
         </div>
     </div>
@@ -64,6 +64,9 @@
             Pressure: <input ng-model="vixen.selected.tags.pressure"/>
             <br/>
             Remarks: <input ng-model="vixen.selected.tags.remarks"/>
+            <br/>
+            Processed: <input type="checkbox" ng-model="vixen.selected.tags.processed"/>
+            <br/>
         </div>
 
         <div class="resizable">

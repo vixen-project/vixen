@@ -59,6 +59,6 @@ def process_file(path):
         grid_date=grid_date, jackal=jackal, indian_fox=indian_fox,
         desert_fox=desert_fox, dog=dog,
         others=others, pressure=pressure, temperature=temperature,
-        remarks=remarks
+        remarks=remarks, processed=False
     )
     return type, view, tags
