@@ -16,6 +16,9 @@
                 overflow: auto;
                 width: 800px;
             }
+            .processed {
+                color: green;
+            }
         </style>
     </head>
 
@@ -27,8 +30,9 @@
     Grid: <select ng-model="vixen.grid" ng-options="g for g in vixen.available_grids"></select>
     Camera: <select ng-model="vixen.camera" ng-options="c for c in vixen.available_cameras"></select>
     <br>
-    <div style="height:150px; overflow:scroll;" class="resizable">
+    <div style="height:150px; width: 400px; overflow:scroll;" class="resizable">
         <div ng-repeat="media in vixen.media"
+            ng-class="{processed:media.tags.processed}"
             ng-click="vixen.selected = media">
             {{media.file_name}} on {{media.date}} at {{media.time}}
             <br/>
