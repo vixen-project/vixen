@@ -82,7 +82,10 @@ class MediaManager(HasTraits):
             line = []
             for key in cols:
                 elem = d[key]
-                elem = str(elem) if elem is not None else ""
+                if isinstance(elem, basestring):
+                    elem = '"%s"'%elem
+                else:
+                    elem = str(elem) if elem is not None else ""
                 line.append(elem)
             lines.append(','.join(line))
 

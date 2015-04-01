@@ -51,6 +51,7 @@ def process_file(path):
     camera, grid, grid_date = _parse_path(path)
     jackal, indian_fox, desert_fox, dog = 0, 0, 0, 0
     others = ""
+    capture = ""
     pressure = ""
     temperature = ""
     remarks = ""
@@ -58,7 +59,8 @@ def process_file(path):
         poster=poster, camera=camera, grid=grid,
         grid_date=grid_date, jackal=jackal, indian_fox=indian_fox,
         desert_fox=desert_fox, dog=dog,
-        others=others, pressure=pressure, temperature=temperature,
+        others=others, capture=capture,
+        pressure=pressure, temperature=temperature,
         remarks=remarks, processed=False
     )
     return type, view, tags
