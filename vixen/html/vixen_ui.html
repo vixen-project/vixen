@@ -51,7 +51,7 @@
     </select>
 
     <div style="height:150px; width: 400px; overflow:scroll;" class="resizable">
-        <div ng-repeat="media in vixen.media"
+        <div ng-repeat="media in vixen.media | orderBy: 'file_name'"
             ng-class="{processed:media.tags.processed}"
             ng-click="vixen.selected = media">
             {{media.file_name}} on {{media.date}} at {{media.time}}
