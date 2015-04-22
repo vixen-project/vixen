@@ -45,10 +45,9 @@
     <select ng-model="vixen.grid"
         ng-options="g for g in vixen.available_grids track by g">
     </select>
-    <label>Camera:</label>
-    <select ng-model="vixen.camera">
-    <option ng-repeat="camera in vixen.available_cameras" value="{{camera}}">
-        {{camera}}</option>
+    <label>Camera</label>
+    <select ng-model="vixen.camera"
+        ng-options="c for c in vixen.available_cameras track by c">
     </select>
 
     <div style="height:150px; width: 400px; overflow:scroll;" class="resizable">
