@@ -7,7 +7,7 @@ import shutil
 import unittest
 
 from vixen.tests.test_directory import make_data, create_dummy_file
-from vixen.project import Project
+from vixen.project import Project, TagInfo
 
 
 class TestProject(unittest.TestCase):
@@ -22,11 +22,11 @@ class TestProject(unittest.TestCase):
     def test_simple_project(self):
         # Given, When
         p = Project(name='test', path=self.root)
+        # We do not scan at this point.
+
         # Then
         self.assertEqual(p.name, 'test')
-        self.assertEqual(p.root.name, 'test')
-        self.assertEqual(len(p.root.directories), 2)
-        self.assertEqual(len(p.root.files), 1)
+        self.assertEqual(p.root, None)
         self.assertEqual(len(p.tags), 1)
         self.assertEqual(p.tags[0].name, 'processed')
         self.assertEqual(p.tags[0].type, 'bool')
@@ -55,7 +55,7 @@ class TestProject(unittest.TestCase):
         out = open(out_fname, 'w')
 
         # When
-        p.save(out)
+        p.save_as(out)
         p1 = Project()
         p1.load(out_fname)
 
@@ -125,17 +125,37 @@ class TestProject(unittest.TestCase):
         m = p.media['sub/sub1.txt']
         self.assertEqual(m.tags['processed'], False)
 
-    def test_add_tag_adds_tags_to_existing_media(self):
+    def test_update_tags_updates_existing_media(self):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
         # When
-        p.add_tag('foo', 'string')
-        
+        new_tags = [
+            TagInfo(name='foo', type='string')
+        ]
+        p.update_tags(new_tags)
+
         # Then
+        self.assertEqual(p.tags, new_tags)
         for m in p.media.values():
             self.assertEqual(m.tags['foo'], '')
+            self.assertTrue('processed' not in m.tags)
 
+    def test_update_tags_handles_type_changes_for_existing_tag(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+        p.media.values()[0].tags['processed'] = True
+        # When
+        new_tags = [
+            TagInfo(name='processed', type='string')
+        ]
+        p.update_tags(new_tags)
+
+        # Then
+        self.assertEqual(p.tags, new_tags)
+        for m in p.media.values():
+             self.assertEqual(m.tags['processed'], '')
 
 if __name__ == '__main__':
     unittest.main()

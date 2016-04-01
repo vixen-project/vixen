@@ -1,10 +1,21 @@
 import json
+import os
+from os.path import (abspath, dirname, exists, expanduser, isdir, join,
+                     realpath)
+import re
 
-from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long, 
+from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
                         Property, Str)
 
 from .media import Media
 from .directory import Directory
+
+
+def get_project_dir():
+    d = expanduser(join('~', '.vixen'))
+    if not isdir(d):
+        os.makedirs(d)
+    return d
 
 
 class TagInfo(HasTraits):
@@ -23,6 +34,11 @@ def open_file(fname_or_file, mode='r'):
     else:
         return open(fname_or_file, mode)
 
+def sanitize_name(name):
+    name = name.lower()
+    name = re.sub(r'\s+', '_', name)
+    return re.sub(r'\W+', '', name)
+
 
 class Project(HasTraits):
     name = Str
@@ -33,12 +49,34 @@ class Project(HasTraits):
 
     media = Dict(Str, Media)
 
-    def add_tag(self, name, type):
-        ti = TagInfo(name=name, type=type)
-        self.tags.append(ti)
+    number_of_files = Property(Str, depends_on='media')
+
+    # Path where the project data is saved.
+    save_file = Str
+
+    def update_tags(self, new_tags):
+        old_tags = self.tags
+        new_tag_names = set(tag.name for tag in new_tags)
+        tag_info = dict((tag.name, tag.type) for tag in old_tags)
+        removed = []
+        added = []
+        for tag in new_tags:
+            if tag.name not in tag_info:
+                added.append(tag)
+            elif tag_info[tag.name] != tag.type:
+                removed.append(tag)
+                added.append(tag)
+        for tag in old_tags:
+            if tag.name not in new_tag_names:
+                removed.append(tag)
+        self.tags = new_tags
+
         for m in self.media.values():
-            if name not in m.tags:
-                m.tags[name] = ti.default
+            for tag in removed:
+                del m.tags[tag.name]
+            for tag in added:
+                m.tags[tag.name] = tag.default
+
 
     def export_csv(self, fp, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
@@ -83,10 +121,16 @@ class Project(HasTraits):
             of.write(line +'\n')
         of.close()
 
-    def load(self, fp):
+    def load(self, fp=None):
         """Load media info from opened file object.
         """
-        fp = open_file(fp)
+        if fp is None:
+            if not exists(self.save_file):
+                return
+            fp = open_file(self.save_file)
+        else:
+            fp = open_file(fp)
+
         data = json.load(fp)
         fp.close()
         self.name = data.get('name', '')
@@ -96,10 +140,18 @@ class Project(HasTraits):
         self.media = dict((key, Media(**kw)) for key, kw in data['media'])
         self.scan()
 
-    def save(self, fp=None):
+    def save(self):
         """Save current media info to a file object
         """
-        fp = open_file(fp)
+        if len(self.save_file) > 0:
+            self.save_as(self.save_file)
+        else:
+            raise IOError("No valid save file set.")
+
+    def save_as(self, fp):
+        """Save copy to specified path.
+        """
+        fp = open_file(fp, 'w')
         media = [(key, m.to_dict()) for key, m in self.media.items()]
         tags = [(t.name, t.type) for t in self.tags]
         data = dict(
@@ -109,16 +161,12 @@ class Project(HasTraits):
         json.dump(data, fp)
         fp.close()
 
-    def save_as(self, path):
-        """Save copy to specified path.
-        """
-        self.save(path)
-
     def scan(self, refresh=False):
         """Find all the media recursively inside the root directory.
         This will not clobber existing records but will add any new ones.
         """
         media = self.media
+        self._setup_root()
         default_tags = dict((ti.name, ti.default) for ti in self.tags)
         def _scan(dir):
             for f in dir.files:
@@ -134,15 +182,30 @@ class Project(HasTraits):
 
     def refresh(self):
         self.scan(refresh=True)
- 
+
+    ##### Private protocol ################################################
+
     def _create_media(self, f, default_tags):
         m = Media.from_path(f.path)
         m.tags = dict(default_tags)
         return m
 
-    def _path_changed(self, path):
-        self.root = Directory(path=path)
+    def _setup_root(self):
+        path = abspath(expanduser(self.path))
+        root = self.root
+        if root is None or realpath(root.path) != realpath(path):
+            self.root = Directory(path=path)
 
     def _tags_default(self):
         return [TagInfo(name='processed', type='bool')]
 
+    def _save_file_default(self):
+        if len(self.name) > 0:
+            fname = sanitize_name(self.name) + '.vxn'
+            d = get_project_dir()
+            return join(d, fname)
+        else:
+            return ''
+
+    def _get_number_of_files(self):
+        return len(self.media)

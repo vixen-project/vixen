@@ -35,12 +35,15 @@ class Directory(HasTraits):
     def _path_changed(self, new):
         dirs = []
         files = []
-        for pth in os.listdir(new):
-            full_path = os.path.join(new, pth)
-            if os.path.isdir(full_path):
-                dirs.append(Directory(parent=self, path=full_path))
-            elif os.path.isfile(full_path):
-                files.append(File(path=full_path, parent=self))
+        try:
+            for pth in os.listdir(new):
+                full_path = os.path.join(new, pth)
+                if os.path.isdir(full_path):
+                    dirs.append(Directory(parent=self, path=full_path))
+                elif os.path.isfile(full_path):
+                    files.append(File(path=full_path, parent=self))
+        except IOError:
+            pass
         self.directories = dirs
         self.files = files
 
@@ -52,4 +55,3 @@ class Directory(HasTraits):
 
     def _get_name(self):
         return os.path.basename(self.path)
-

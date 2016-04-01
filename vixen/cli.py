@@ -33,27 +33,11 @@ def process(args):
     print "Done."
 
 def view(args):
-    root_or_saved = args.root
-    if isdir(root_or_saved):
-        saved = join(root_or_saved, 'info.vxn')
-        if not exists(saved):
-            msg = "Error: the root directory seems unprocessed,\n"\
-                  "Please run 'vixen process' on the directory."
-            print msg
-            sys.exit(1)
-
-    elif root_or_saved.endswith('.vxn'):
-        saved = root_or_saved
-
-    from vixen.media_manager import MediaManager
-    mm = MediaManager()
-    with open(saved) as fp:
-        mm.load(fp)
-    from vixen.filtered_view import FilteredView
-    vixen = FilteredView()
-    vixen.manager = mm
-    from vixen.vixen_ui import main
-    main(vixen)
+    from .vixen import VixenUI
+    ui = VixenUI()
+    ui.vixen.load()
+    from .vixen_ui import main
+    main(**ui.get_context())
 
 
 def main():
@@ -82,8 +66,6 @@ def main():
     process_cmd.set_defaults(func=process)
 
     view_cmd = subparsers.add_parser('view')
-    view_cmd.add_argument('root', type=str,
-        help='Root of processed directory to view.')
     view_cmd.set_defaults(func=view)
 
     args = parser.parse_args()

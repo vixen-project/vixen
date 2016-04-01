@@ -1,0 +1,183 @@
+<html ng-app='jigna'>
+  <head>
+    <title>ViXen media viewer</title>
+
+        <!-- Load the jigna script. -->
+        <script type='text/javascript' src='/jigna/jigna-vue.js'></script>
+
+        <!-- Once jigna is loaded, initialize it. -->
+        <script type='text/javascript'>
+            jigna.initialize({async: false});
+        </script>
+
+        <script type="text/javascript"
+                src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.20.1/mediaelement-and-player.min.js">
+        </script>
+
+        <style>
+            html * {
+                font-family: sans-serif;
+            }
+            .resizable {
+                padding: 5px;
+                border: 1px solid;
+                resize: both;
+                overflow: auto;
+                width: 800px;
+            }
+            .processed {
+                color: green;
+            }
+            .tag-editor label {
+                width: 6rem;
+                display: inline-block;
+                margin: 0.15rem auto;
+            }
+            .media-browser {
+                width: 30%;
+                margin: auto;
+            }
+            .error {
+            color: red;
+            }
+            .success {
+            color: green;
+            }
+            select,button {
+                font-size: 1rem;
+            }
+        </style>
+    </head>
+
+    <body>
+  <div>
+  <h3 style="text-align:center">Welcome to ViXeN</h3>
+
+  <template v-if="ui.mode !== 'view'">
+    <h3>Available Projects</h3>
+    <ul>
+      <li v-for="project in vixen.projects" >
+        {{project.name}}
+        <button v-on:click="ui.view(project)">View</button>
+        <button v-on:click="ui.edit(project)">Edit</button>
+      </li>
+    </ul>
+    <button style="font-size:larger; margin:0.5rem"
+            v-on:click="ui.add_project()" type="button">New Project</button>
+  </template>
+
+  <br/>
+
+  <template v-if="ui.mode === 'edit' && editor.project">
+    <h3> Edit Project</h3>
+    <div class="tag-editor" style="float:left; padding: 5px">
+      <label> Name: </label> <input v-model="editor.name"><br>
+      <label>
+        Description: </label> <input v-model="editor.description"><br>
+      <label> Path: </label>
+      <input v-bind:class="editor.valid_path ? 'success' : 'error'"
+             v-model="editor.path" debounce="500">
+        <br>
+      <label> Tags: </label> <br>
+      <div v-for="tag in editor.tags">
+        <label>{{tag.name}}</label>
+        <select v-model="tag.type">
+          <option>string</option>
+          <option>int</option>
+          <option>float</option>
+          <option>bool</option>
+        </select>
+        <button v-on:click="editor.remove_tag($index)">Remove</button>
+      </div>
+      <input v-model="editor.tag_name">
+      <button v-on:click="editor.add_tag(editor.tag_name)">
+        Add tag</button>
+      <br>
+      <br>
+      This project has {{editor.project.number_of_files}} files.
+      <br>
+      The file extensions available are: {{editor.available_exts}}
+      <br>
+      <br>
+
+      <button v-bind:disabled="!editor.valid_path" v-on:click="editor.apply()">Apply changes</button>
+
+    </div>
+  </template>
+
+  <template v-if="ui.mode === 'view' && viewer.project">
+
+    <div v-on:click="ui.home()"><a href="#">Home</a></div>
+    <h3> View Project {{viewer.name}}</h3>
+
+    This project has {{viewer.project.number_of_files}} files.
+    <button v-on:click="viewer.rescan()">Rescan</button>
+    <br>
+
+    Current directory :
+    {{viewer.project.root.name}}/{{viewer.current_dir.relpath}}
+    <br>
+    <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
+    <div style="height:100px; width: 300px; overflow:scroll;"
+         class="resizable">
+      <div v-for="path in viewer.paths">
+        <label v-if="path.directories" style="font-weight: bold;"
+               v-on:click="viewer.view(path)">{{path.name}}/</label>
+        <label v-else v-on:click="viewer.view(path)">{{path.name}}</label>
+      </div>
+    </div>
+
+    <div v-if="viewer.current_file" style="padding:5px;">
+      <div class="tag-editor" style="float:left; padding: 5px">
+        <label> Name: </label>
+        {{viewer.current_file.name}}
+        <br>
+        <div v-for="tag in viewer.project.tags">
+          <label>{{tag.name}}</label>
+          <input v-if="tag.type == 'bool'" v-model="viewer.media.tags[tag.name]"
+                 type="checkbox">
+          <input v-if="tag.type == 'string'"
+                 v-model="viewer.media.tags[tag.name]">
+          <input v-if="tag.type == 'int' || tag.type == 'float'"
+                 v-model="viewer.media.tags[tag.name]" number>
+        </div>
+        <br/>
+        <button v-on:click="viewer.project.save()">Save</button>
+
+      </div>
+      <div v-if="viewer.type == 'image'" class="resizable" style="width: 500px;">
+        <a v-bind:href="viewer.current_file.path">
+          <img v-bind:src="viewer.current_file.path"
+               v-bind:alt="viewer.current_file.name" width="100%">
+        </a>
+      </div>
+      <div v-if="viewer.type == 'unknown'" >
+        <a v-bind:href="viewer.current_file.path">{{viewer.current_file.name}}</a>
+      </div>
+      <div v-if="viewer.type == 'video'" class="resizable"
+           style="width: 500px;">
+        <a v-bind:href="viewer.current_file.path">{{viewer.current_file.name}}</a>
+        <video v-bind:src="viewer.current_file.path" controls
+               preload="auto" style="width:100%;">
+        </video>
+      </div>
+    </div>
+
+  </template>
+
+</div>
+
+<script>
+  var vm = undefined;
+
+  jigna.ready.done(function() {
+      var vm = new Vue({
+          el: "body", // Attach to the body tag.
+          data: jigna.models,
+      });
+  });
+
+</script>
+
+</body>
+</html>
