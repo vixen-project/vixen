@@ -1,4 +1,4 @@
-<html ng-app='jigna'>
+<html>
   <head>
     <title>ViXen media viewer</title>
 
@@ -60,6 +60,7 @@
         {{project.name}}
         <button v-on:click="ui.view(project)">View</button>
         <button v-on:click="ui.edit(project)">Edit</button>
+        <button v-on:click="remove_project(project)">Remove</button>
       </li>
     </ul>
     <button style="font-size:larger; margin:0.5rem"
@@ -113,6 +114,12 @@
     This project has {{viewer.project.number_of_files}} files.
     <button v-on:click="viewer.rescan()">Rescan</button>
     <br>
+    <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
+           v-model="viewer.csv_file.path" debounce="250">
+    <button v-bind:disabled="!viewer.csv_file_valid"
+            v-on:click="viewer.project.export_csv(viewer.csv_file.abspath) ||
+                        window.alert(viewer.csv_file.path + ' created.')">Export CSV</button>
+    <br>
 
     Current directory :
     {{viewer.project.root.name}}/{{viewer.current_dir.relpath}}
@@ -130,7 +137,9 @@
     <div v-if="viewer.current_file" style="padding:5px;">
       <div class="tag-editor" style="float:left; padding: 5px">
         <label> Name: </label>
-        {{viewer.current_file.name}}
+        <label title="Click to open with system viewer" style="color:blue;"
+           v-on:click="viewer.os_open(viewer.current_file.path)">
+          {{viewer.current_file.name}}</label>
         <br>
         <div v-for="tag in viewer.project.tags">
           <label>{{tag.name}}</label>
@@ -143,7 +152,8 @@
         </div>
         <br/>
         <button v-on:click="viewer.project.save()">Save</button>
-
+        <br>
+        Last saved at: {{viewer.project.last_save_time}}
       </div>
       <div v-if="viewer.type == 'image'" class="resizable" style="width: 500px;">
         <a v-bind:href="viewer.current_file.path">
@@ -156,11 +166,17 @@
       </div>
       <div v-if="viewer.type == 'video'" class="resizable"
            style="width: 500px;">
-        <a v-bind:href="viewer.current_file.path">{{viewer.current_file.name}}</a>
         <video v-bind:src="viewer.current_file.path" controls
                preload="auto" style="width:100%;">
         </video>
       </div>
+      <div v-if="viewer.type == 'audio'" class="resizable"
+           style="width: 300px">
+        <audio v-bind:src="viewer.current_file.path" controls>
+        </video>
+      </div>
+
+
     </div>
 
   </template>
@@ -171,9 +187,20 @@
   var vm = undefined;
 
   jigna.ready.done(function() {
+      var data = Object.assign({}, jigna.models);
+      data.window = window;
       var vm = new Vue({
           el: "body", // Attach to the body tag.
-          data: jigna.models,
+          data: data,
+          methods: {
+              remove_project: function(project) {
+                  var m = "This will remove all saved information about this project, are "+
+                          "sure you want to delete it?"
+                  if (confirm(m)) {
+                      this.ui.remove(project);
+                  }
+              }
+          }
       });
   });
 

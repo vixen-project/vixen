@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 from os.path import (abspath, dirname, exists, expanduser, isdir, join,
@@ -16,6 +17,10 @@ def get_project_dir():
     if not isdir(d):
         os.makedirs(d)
     return d
+
+def get_file_saved_time(path):
+    dt = datetime.datetime.fromtimestamp(os.stat(path).st_ctime)
+    return dt.ctime()
 
 
 class TagInfo(HasTraits):
@@ -53,6 +58,8 @@ class Project(HasTraits):
 
     # Path where the project data is saved.
     save_file = Str
+
+    last_save_time = Str
 
     def update_tags(self, new_tags):
         old_tags = self.tags
@@ -145,6 +152,7 @@ class Project(HasTraits):
         """
         if len(self.save_file) > 0:
             self.save_as(self.save_file)
+            self._update_last_save_time()
         else:
             raise IOError("No valid save file set.")
 
@@ -209,3 +217,10 @@ class Project(HasTraits):
 
     def _get_number_of_files(self):
         return len(self.media)
+
+    def _update_last_save_time(self):
+        self.last_save_time = get_file_saved_time(self.save_file)
+
+    def _last_save_time_default(self):
+        if exists(self.save_file):
+            return get_file_saved_time(self.save_file)

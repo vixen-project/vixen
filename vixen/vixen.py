@@ -3,7 +3,12 @@ import copy
 import json
 from os.path import (abspath, dirname, exists, expanduser, join, isdir,
                      splitext)
-from traits.api import Bool, Enum, HasTraits, List, Str, Instance
+import os
+import subprocess
+import sys
+
+from traits.api import (Bool, DelegatesTo, Enum, HasTraits, List, Str,
+                        Instance, Property)
 
 from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
@@ -29,9 +34,35 @@ class Vixen(HasTraits):
             self.projects = [Project(name=x['name'], save_file=x['save_file'])
                              for x in data]
 
+    def remove(self, project):
+        if exists(project.save_file):
+            os.remove(project.save_file)
+        self.projects.remove(project)
+
     def _save_file_default(self):
         return join(get_project_dir(), 'projects.json')
 
+
+class ValidPath(HasTraits):
+    path = Str
+    abspath = Property(Str, depends_on='path')
+    valid = Bool
+    is_file = Bool
+
+    def _path_changed(self, path):
+        if len(path) > 0:
+            if self.is_file:
+                self.valid = isdir(dirname(self.abspath))
+            else:
+                self.valid = isdir(self.abspath)
+        else:
+            self.valid = False
+
+    def _is_file_changed(self, value):
+        self._path_changed(self.path)
+
+    def _get_abspath(self):
+        return abspath(expanduser(self.path))
 
 
 class ProjectEditor(HasTraits):
@@ -94,6 +125,7 @@ class ProjectEditor(HasTraits):
         self.valid_path = isdir(self._get_actual_path(path))
 
 
+
 class ProjectViewer(HasTraits):
 
     project = Instance(Project, allow_none=True)
@@ -112,7 +144,11 @@ class ProjectViewer(HasTraits):
 
     media = Instance(Media)
 
-    type = Enum("unknown", "image", "video")
+    csv_file = Instance(ValidPath)
+
+    csv_file_valid = DelegatesTo('csv_file', prefix='valid')
+
+    type = Enum("unknown", "image", "video", "audio")
 
     def go_to_parent(self):
         if self.parent is not None:
@@ -131,6 +167,16 @@ class ProjectViewer(HasTraits):
             self.current_dir = proj.root
             self._current_dir_changed(proj.root)
 
+    def os_open(self, path):
+        """Ask the OS to open the path with a suitable application.
+        """
+        if sys.platform == 'windows':
+            os.startfile(path)
+        elif sys.platform.startswith('linux'):
+            subprocess.call(['xdg-open', path])
+        elif sys.platform == 'darwin':
+            subprocess.call(['open', path])
+
     def _project_changed(self, proj):
         if proj is not None:
             proj.load()
@@ -147,14 +193,20 @@ class ProjectViewer(HasTraits):
             return
         images = ['.bmp', '.png', '.gif', '.jpg', '.jpeg']
         videos = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
+        audio = ['.mp3', '.wav', '.ogg', '.m4a']
         ext = splitext(file.name)[1].lower()
         if ext in images:
             self.type = "image"
         elif ext in videos:
             self.type = "video"
+        elif ext in audio:
+            self.type = "audio"
         else:
             self.type = "unknown"
         self.media = self.project.media[file.relpath]
+
+    def _csv_file_default(self):
+        return ValidPath(path=join('~', 'Downloads', 'data.csv'), is_file=True)
 
 
 class VixenUI(HasTraits):
@@ -183,6 +235,10 @@ class VixenUI(HasTraits):
     def view(self, project):
         self.viewer.project = project
         self.mode = 'view'
+        self.editor.project = None
+
+    def remove(self, project):
+        self.vixen.remove(project)
         self.editor.project = None
 
     def add_project(self):
