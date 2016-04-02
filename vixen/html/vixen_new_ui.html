@@ -10,10 +10,6 @@
             jigna.initialize({async: false});
         </script>
 
-        <script type="text/javascript"
-                src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.20.1/mediaelement-and-player.min.js">
-        </script>
-
         <style>
             html * {
                 font-family: sans-serif;
@@ -173,9 +169,8 @@
       <div v-if="viewer.type == 'audio'" class="resizable"
            style="width: 300px">
         <audio v-bind:src="viewer.current_file.path" controls>
-        </video>
+        </audio>
       </div>
-
 
     </div>
 
@@ -205,6 +200,7 @@
   });
 
 </script>
+
 
 </body>
 </html>

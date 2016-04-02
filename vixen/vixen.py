@@ -38,6 +38,7 @@ class Vixen(HasTraits):
         if exists(project.save_file):
             os.remove(project.save_file)
         self.projects.remove(project)
+        self.save()
 
     def _save_file_default(self):
         return join(get_project_dir(), 'projects.json')
