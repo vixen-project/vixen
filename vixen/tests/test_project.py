@@ -143,19 +143,27 @@ class TestProject(unittest.TestCase):
 
     def test_update_tags_handles_type_changes_for_existing_tag(self):
         # Given
-        p = Project(name='test', path=self.root)
+        tags = [TagInfo(name='processed', type='bool'),
+                TagInfo(name='foo', type='string')]
+
+        p = Project(name='test', path=self.root, tags=tags)
         p.scan()
         p.media.values()[0].tags['processed'] = True
+        p.media.values()[0].tags['foo'] = 'hello world'
         # When
         new_tags = [
-            TagInfo(name='processed', type='string')
+            TagInfo(name='foo', type='int'),
+            TagInfo(name='processed', type='bool')
         ]
         p.update_tags(new_tags)
 
         # Then
         self.assertEqual(p.tags, new_tags)
+        self.assertEqual(p.media.values()[0].tags['processed'], True)
+        self.assertEqual(p.media.values()[0].tags['foo'], 0)
         for m in p.media.values():
-             self.assertEqual(m.tags['processed'], '')
+             self.assertEqual(type(m.tags['processed']), bool)
+             self.assertEqual(m.tags['foo'], 0)
 
 if __name__ == '__main__':
     unittest.main()

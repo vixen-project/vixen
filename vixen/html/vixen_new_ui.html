@@ -126,7 +126,9 @@
       <div v-for="path in viewer.paths">
         <label v-if="path.directories" style="font-weight: bold;"
                v-on:click="viewer.view(path)">{{path.name}}/</label>
-        <label v-else v-on:click="viewer.view(path)">{{path.name}}</label>
+        <label v-else v-on:click="viewer.view(path)">
+          {{path.name}}
+        </label>
       </div>
     </div>
 
@@ -137,6 +139,13 @@
            v-on:click="viewer.os_open(viewer.current_file.path)">
           {{viewer.current_file.name}}</label>
         <br>
+        <label> Date: </label> {{viewer.media.date}}
+        <br/>
+        <label> Time: </label> {{viewer.media.time}}
+        <br/>
+        <label> Size: </label> {{(viewer.media.size/1024).toFixed(1)}} (KB)
+        <br/>
+
         <div v-for="tag in viewer.project.tags">
           <label>{{tag.name}}</label>
           <input v-if="tag.type == 'bool'" v-model="viewer.media.tags[tag.name]"
