@@ -14,6 +14,22 @@
             html * {
                 font-family: sans-serif;
             }
+            .busy-overlay {
+                height: 100%;
+                width: 100%;
+                position: fixed;
+                z-index: 100;
+            }
+            img.loading {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+            }
+            p.loading {
+                position: absolute;
+                top: 55%;
+                left: 50%;
+            }
             .resizable {
                 padding: 5px;
                 border: 1px solid;
@@ -45,17 +61,23 @@
         </style>
     </head>
 
-    <body>
-  <div>
+<body>
+<div>
+
   <h3 style="text-align:center">Welcome to ViXeN</h3>
+
+  <div v-if="ui.is_busy" class="busy-overlay">
+    <img :src="ui.loading_image" class="loading" alt="loading..."/>
+    <p class="loading">Please wait...</p>
+  </div>
 
   <template v-if="ui.mode !== 'view'">
     <h3>Available Projects</h3>
     <ul>
       <li v-for="project in vixen.projects" >
         {{project.name}}
-        <button v-on:click="ui.view(project)">View</button>
-        <button v-on:click="ui.edit(project)">Edit</button>
+        <button v-on:click="threaded(ui, 'view', project)">View</button>
+        <button v-on:click="threaded(ui, 'edit', project)">Edit</button>
         <button v-on:click="remove_project(project)">Remove</button>
       </li>
     </ul>
@@ -97,7 +119,8 @@
       <br>
       <br>
 
-      <button v-bind:disabled="!editor.valid_path" v-on:click="editor.apply()">Apply changes</button>
+      <button v-bind:disabled="!editor.valid_path"
+      v-on:click="threaded(editor, 'apply')">Apply changes</button>
 
     </div>
   </template>
@@ -156,7 +179,7 @@
                  v-model="viewer.media.tags[tag.name]" number>
         </div>
         <br/>
-        <button v-on:click="viewer.project.save()">Save</button>
+        <button v-on:click="threaded(viewer.project, 'save')">Save</button>
         <br>
         Last saved at: {{viewer.project.last_save_time}}
       </div>
@@ -167,7 +190,8 @@
 
   </template>
 
-  </div>
+</div>
+</body>
 
   <!--  vue.js Components -->
   <script type="text/x-template" id="view-media-template">
@@ -211,6 +235,9 @@
           el: "body", // Attach to the body tag.
           data: data,
           methods: {
+              threaded: function(obj, method_name, args) {
+                  jigna.threaded.apply(jigna, arguments);
+              },
               remove_project: function(project) {
                   var m = "This will remove all saved information about this project, are "+
                           "you sure you want to delete it?"
@@ -220,10 +247,10 @@
               }
           }
       });
+      window.vm = vm;
   });
 
 </script>
 
 
-</body>
 </html>

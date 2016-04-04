@@ -1,4 +1,4 @@
-from collections import Counter
+from contextlib import contextmanager
 import copy
 import json
 from os.path import (abspath, dirname, exists, expanduser, join, isdir,
@@ -89,16 +89,17 @@ class ProjectEditor(HasTraits):
         del self.tags[index]
 
     def apply(self):
-        cp = self.project
-        if cp is not None and self.valid_path:
-            cp.name = self.name
-            cp.description = self.description
-            cp.path = self._get_actual_path(self.path)
-            cp.update_tags(self.tags)
-            cp.save()
-            if self.ui is not None:
-                self.ui.save()
-            self.available_exts = self._get_info()
+        with self.ui.busy():
+            cp = self.project
+            if cp is not None and self.valid_path:
+                cp.name = self.name
+                cp.description = self.description
+                cp.path = self._get_actual_path(self.path)
+                cp.update_tags(self.tags)
+                cp.save()
+                if self.ui is not None:
+                    self.ui.save()
+                self.available_exts = self._get_info()
 
     def _get_actual_path(self, path):
         return abspath(expanduser(path))
@@ -113,18 +114,19 @@ class ProjectEditor(HasTraits):
             )
         return exts
 
-    def _project_changed(self, cp):
-        if cp is not None:
-            cp.load()
-            self.name = cp.name
-            self.description = cp.description
-            self.path = self._get_actual_path(cp.path)
-            self.tags = copy.deepcopy(cp.tags)
+    def _project_changed(self, proj):
+        if proj is not None:
+            if len(proj.media) == 0:
+                with self.ui.busy():
+                    proj.load()
+            self.name = proj.name
+            self.description = proj.description
+            self.path = self._get_actual_path(proj.path)
+            self.tags = copy.deepcopy(proj.tags)
             self.available_exts = self._get_info()
 
     def _path_changed(self, path):
         self.valid_path = isdir(self._get_actual_path(path))
-
 
 
 class ProjectViewer(HasTraits):
@@ -162,11 +164,12 @@ class ProjectViewer(HasTraits):
             self.current_file = path
 
     def rescan(self):
-        proj = self.project
-        if proj is not None:
-            proj.refresh()
-            self.current_dir = proj.root
-            self._current_dir_changed(proj.root)
+        with self.ui.busy():
+            proj = self.project
+            if proj is not None:
+                proj.refresh()
+                self.current_dir = proj.root
+                self._current_dir_changed(proj.root)
 
     def os_open(self, path):
         """Ask the OS to open the path with a suitable application.
@@ -179,11 +182,12 @@ class ProjectViewer(HasTraits):
             subprocess.call(['open', path])
 
     def _project_changed(self, proj):
-        if proj is not None:
-            proj.load()
-            self.name = proj.name
-            self.current_dir = proj.root
-            self.current_file = None
+        with self.ui.busy():
+            if proj is not None:
+                proj.load()
+                self.name = proj.name
+                self.current_dir = proj.root
+                self.current_file = None
 
     def _current_dir_changed(self, d):
         self.parent = d.parent
@@ -208,6 +212,9 @@ class VixenUI(HasTraits):
 
     viewer = Instance(ProjectViewer)
 
+    is_busy = Bool(False)
+
+    loading_image = Str
 
     def get_context(self):
         return dict(
@@ -231,7 +238,6 @@ class VixenUI(HasTraits):
         self.editor.project = None
 
     def add_project(self):
-        print "Adding new project"
         projects = self.vixen.projects
         name = 'Project%d'%(len(projects) + 1)
         p = Project(name=name)
@@ -239,9 +245,18 @@ class VixenUI(HasTraits):
         self.editor.project = p
 
     def save(self):
-        if self.editor.project is not None:
-            self.editor.project.save()
-        self.vixen.save()
+        with self.busy():
+            if self.editor.project is not None:
+                self.editor.project.save()
+            self.vixen.save()
+
+    @contextmanager
+    def busy(self):
+        self.is_busy = True
+        try:
+            yield
+        finally:
+            self.is_busy = False
 
     def _vixen_default(self):
         v = Vixen()
@@ -253,3 +268,6 @@ class VixenUI(HasTraits):
 
     def _viewer_default(self):
         return ProjectViewer(ui=self)
+
+    def _loading_image_default(self):
+        return join(dirname(__file__), 'html', 'loading.gif')
