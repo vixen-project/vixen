@@ -1,13 +1,13 @@
 import csv
 import os
-from os.path import basename, dirname, join
+from os.path import basename, dirname, join, exists
 import tempfile
 import shutil
 
 import unittest
 
 from vixen.tests.test_directory import make_data, create_dummy_file
-from vixen.project import Project, TagInfo
+from vixen.project import Project, TagInfo, get_non_existing_filename
 
 
 class TestProject(unittest.TestCase):
@@ -164,6 +164,32 @@ class TestProject(unittest.TestCase):
         for m in p.media.values():
              self.assertEqual(type(m.tags['processed']), bool)
              self.assertEqual(m.tags['foo'], 0)
+
+    def test_get_non_existing_filename(self):
+        # Given
+        f = join(self.root, 'root.txt')
+
+        # When
+        fname = get_non_existing_filename(f)
+
+        # Then
+        self.assertEqual(fname, join(self.root, 'root_a.txt'))
+
+    def test_changing_name_updates_save_file(self):
+        # Given
+        save_file = join(self.root, 'test_save.vxn')
+        p = Project(name='test', path=self.root, save_file=save_file)
+        p.scan()
+        p.save()
+
+        # When
+        p.name = 'new name'
+
+        # Then
+        new_save_file = join(self.root, 'new_name.vxn')
+        self.assertEqual(p.save_file, new_save_file)
+        self.assertTrue(exists(p.save_file))
+
 
 if __name__ == '__main__':
     unittest.main()

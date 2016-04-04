@@ -178,9 +178,6 @@
                v-bind:alt="viewer.current_file.name" width="100%">
         </a>
       </div>
-      <div v-if="viewer.type == 'unknown'" >
-        <a v-bind:href="viewer.current_file.path">{{viewer.current_file.name}}</a>
-      </div>
       <div v-if="viewer.type == 'video'" class="resizable"
            style="width: 500px;">
         <video v-bind:src="viewer.current_file.path" controls
@@ -191,6 +188,9 @@
            style="width: 300px">
         <audio v-bind:src="viewer.current_file.path" controls>
         </audio>
+      </div>
+      <div v-if="viewer.type == 'unknown'" >
+        <a v-bind:href="viewer.current_file.path">{{viewer.current_file.name}}</a>
       </div>
     </div>
   </script>

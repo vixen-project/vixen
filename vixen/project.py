@@ -1,9 +1,10 @@
 import datetime
 import json
 import os
-from os.path import (abspath, dirname, exists, expanduser, isdir, join,
-                     realpath)
+from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
+                     join, realpath, splitext)
 import re
+import shutil
 
 from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
                         Property, Str)
@@ -43,6 +44,13 @@ def sanitize_name(name):
     name = name.lower()
     name = re.sub(r'\s+', '_', name)
     return re.sub(r'\W+', '', name)
+
+def get_non_existing_filename(fname):
+    if exists(fname):
+        base, ext = splitext(basename(fname))
+        return join(dirname(fname), base +'_a' + ext)
+    else:
+        return fname
 
 
 class Project(HasTraits):
@@ -211,7 +219,7 @@ class Project(HasTraits):
         if len(self.name) > 0:
             fname = sanitize_name(self.name) + '.vxn'
             d = get_project_dir()
-            return join(d, fname)
+            return get_non_existing_filename(join(d, fname))
         else:
             return ''
 
@@ -224,3 +232,11 @@ class Project(HasTraits):
     def _last_save_time_default(self):
         if exists(self.save_file):
             return get_file_saved_time(self.save_file)
+
+    def _name_changed(self, name):
+        if len(name) > 0:
+            old_save_file = self.save_file
+            old_dir = dirname(old_save_file)
+            self.save_file = join(old_dir, sanitize_name(name) + '.vxn')
+            if exists(old_save_file):
+                shutil.move(old_save_file, self.save_file)
