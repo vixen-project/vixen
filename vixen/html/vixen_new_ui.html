@@ -131,7 +131,7 @@
     <h3> View Project {{viewer.name}}</h3>
 
     This project has {{viewer.project.number_of_files}} files.
-    <button v-on:click="viewer.rescan()">Rescan</button>
+    <button v-on:click="threaded(viewer, 'rescan')">Rescan</button>
     <br>
     <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
            v-model="viewer.csv_file.path" debounce="250">
