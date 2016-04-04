@@ -192,19 +192,7 @@ class ProjectViewer(HasTraits):
     def _current_file_changed(self, file):
         if file is None:
             return
-        images = ['.bmp', '.png', '.gif', '.jpg', '.jpeg']
-        videos = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
-        audio = ['.mp3', '.wav', '.ogg', '.m4a']
-        ext = splitext(file.name)[1].lower()
-        if ext in images:
-            self.type = "image"
-        elif ext in videos:
-            self.type = "video"
-        elif ext in audio:
-            self.type = "audio"
-        else:
-            self.type = "unknown"
-        self.media = self.project.media[file.relpath]
+        self.media = file.media
 
     def _csv_file_default(self):
         return ValidPath(path=join('~', 'Downloads', 'data.csv'), is_file=True)

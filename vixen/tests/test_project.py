@@ -93,7 +93,7 @@ class TestProject(unittest.TestCase):
         # Then
         reader = csv.reader(open(out_fname))
         cols = reader.next()
-        expected = ['date', 'path', 'processed', 'size', 'time']
+        expected = ['date', 'path', 'processed', 'size', 'time', 'type']
         self.assertEqual(cols, expected)
         row = reader.next()
         self.assertEqual(basename(row[1]), 'root.txt')

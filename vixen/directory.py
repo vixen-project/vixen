@@ -2,11 +2,15 @@ import os
 
 from traits.api import HasTraits, Instance, List, Property, Str
 
+from .media import Media
+
 class File(HasTraits):
     path = Str
     parent = Instance('Directory')
     name = Property(Str)
     relpath = Property(Str)
+
+    media = Instance(Media)
 
     def __repr__(self):
         return self.name

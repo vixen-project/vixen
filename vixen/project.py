@@ -113,8 +113,6 @@ class Project(HasTraits):
             data.append(d)
         if cols is None:
             cols = all_keys
-            # Typically we don't want these.
-            cols -= set(('view', 'poster'))
             cols = list(sorted(cols))
         # Write the header.
         lines.append(','.join(cols))
@@ -186,8 +184,11 @@ class Project(HasTraits):
         default_tags = dict((ti.name, ti.default) for ti in self.tags)
         def _scan(dir):
             for f in dir.files:
-                if f.relpath not in media:
-                    media[f.relpath] = self._create_media(f, default_tags)
+                m = media.get(f.relpath)
+                if m is None:
+                    m = self._create_media(f, default_tags)
+                    media[f.relpath] = m
+                f.media = m
             for d in dir.directories:
                 if refresh:
                     d.refresh()
@@ -237,6 +238,8 @@ class Project(HasTraits):
         if len(name) > 0:
             old_save_file = self.save_file
             old_dir = dirname(old_save_file)
-            self.save_file = join(old_dir, sanitize_name(name) + '.vxn')
-            if exists(old_save_file):
-                shutil.move(old_save_file, self.save_file)
+            new_save_file = join(old_dir, sanitize_name(name) + '.vxn')
+            if new_save_file != old_save_file:
+                self.save_file = new_save_file
+                if exists(old_save_file):
+                    shutil.move(old_save_file, self.save_file)

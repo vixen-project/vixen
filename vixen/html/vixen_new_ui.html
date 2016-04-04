@@ -161,7 +161,7 @@
         Last saved at: {{viewer.project.last_save_time}}
       </div>
 
-      <view-media :viewer="viewer"></view-media>
+      <view-media :media="viewer.media"></view-media>
 
     </div>
 
@@ -172,25 +172,25 @@
   <!--  vue.js Components -->
   <script type="text/x-template" id="view-media-template">
     <div style="display: inline-block;">
-      <div v-if="viewer.type == 'image'" class="resizable" style="width: 500px;">
-        <a v-bind:href="viewer.current_file.path">
-          <img v-bind:src="viewer.current_file.path"
-               v-bind:alt="viewer.current_file.name" width="100%">
+      <div v-if="media.type == 'image'" class="resizable" style="width: 500px;">
+        <a v-bind:href="media.path">
+          <img v-bind:src="media.path"
+               v-bind:alt="media.file_name" width="100%">
         </a>
       </div>
-      <div v-if="viewer.type == 'video'" class="resizable"
+      <div v-if="media.type == 'video'" class="resizable"
            style="width: 500px;">
-        <video v-bind:src="viewer.current_file.path" controls
+        <video v-bind:src="media.path" controls
                preload="auto" style="width:100%;">
         </video>
       </div>
-      <div v-if="viewer.type == 'audio'" class="resizable"
+      <div v-if="media.type == 'audio'" class="resizable"
            style="width: 300px">
-        <audio v-bind:src="viewer.current_file.path" controls>
+        <audio v-bind:src="media.path" controls>
         </audio>
       </div>
-      <div v-if="viewer.type == 'unknown'" >
-        <a v-bind:href="viewer.current_file.path">{{viewer.current_file.name}}</a>
+      <div v-if="media.type == 'unknown'" >
+        <a v-bind:href="media.path">{{media.file_name}}</a>
       </div>
     </div>
   </script>
@@ -204,7 +204,7 @@
       data.window = window;
       Vue.component('view-media', {
           template: "#view-media-template",
-          props: ['viewer']
+          props: ['media']
       });
 
       var vm = new Vue({
