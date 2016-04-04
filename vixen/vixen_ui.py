@@ -6,12 +6,13 @@ from tornado import autoreload
 
 
 def main(**context):
+    async = False
     html_file = join(dirname(__file__), 'html', 'vixen_new_ui.html')
-    template = VueTemplate(html_file=html_file, base_url='/', async=False)
+    template = VueTemplate(html_file=html_file, base_url='/', async=async)
     ioloop = IOLoop.instance()
     app = WebApp(
         template=template, context=context,
-        port=8000, async=False,
+        port=8000, async=async,
         autoreload=True
     )
     autoreload.watch(html_file)

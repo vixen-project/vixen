@@ -62,7 +62,7 @@ class Project(HasTraits):
 
     media = Dict(Str, Media)
 
-    number_of_files = Property(Str, depends_on='media')
+    number_of_files = Long
 
     # Path where the project data is saved.
     save_file = Str
@@ -91,7 +91,6 @@ class Project(HasTraits):
                 del m.tags[tag.name]
             for tag in added:
                 m.tags[tag.name] = tag.default
-
 
     def export_csv(self, fp, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
@@ -151,6 +150,7 @@ class Project(HasTraits):
         self.path = data.get('path')
         self.tags = [TagInfo(name=x[0], type=x[1]) for x in data['tags']]
         self.media = dict((key, Media(**kw)) for key, kw in data['media'])
+        self.number_of_files = len(self.media)
         self.scan()
 
     def save(self):
@@ -180,6 +180,7 @@ class Project(HasTraits):
         This will not clobber existing records but will add any new ones.
         """
         media = self.media
+        new_media = {}
         self._setup_root()
         default_tags = dict((ti.name, ti.default) for ti in self.tags)
         def _scan(dir):
@@ -187,7 +188,7 @@ class Project(HasTraits):
                 m = media.get(f.relpath)
                 if m is None:
                     m = self._create_media(f, default_tags)
-                    media[f.relpath] = m
+                    new_media[f.relpath] = m
                 f.media = m
             for d in dir.directories:
                 if refresh:
@@ -196,6 +197,15 @@ class Project(HasTraits):
         if refresh:
             self.root.refresh()
         _scan(self.root)
+        if len(new_media) > 0:
+            # This is done because if media is changed, a trait change notify
+            # will be sent to listeners with a very large amount of data
+            # potentially.  The jigna webserver will marshal all the keys
+            # and not be able to send the information.
+            media_copy = dict(media)
+            media_copy.update(new_media)
+            self.trait_setq(media=media_copy)
+            self.number_of_files = len(self.media)
 
     def refresh(self):
         self.scan(refresh=True)
@@ -223,9 +233,6 @@ class Project(HasTraits):
             return get_non_existing_filename(join(d, fname))
         else:
             return ''
-
-    def _get_number_of_files(self):
-        return len(self.media)
 
     def _update_last_save_time(self):
         self.last_save_time = get_file_saved_time(self.save_file)
