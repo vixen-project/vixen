@@ -160,6 +160,18 @@
         <br>
         Last saved at: {{viewer.project.last_save_time}}
       </div>
+
+      <view-media :viewer="viewer"></view-media>
+
+    </div>
+
+  </template>
+
+  </div>
+
+  <!--  vue.js Components -->
+  <script type="text/x-template" id="view-media-template">
+    <div style="display: inline-block;">
       <div v-if="viewer.type == 'image'" class="resizable" style="width: 500px;">
         <a v-bind:href="viewer.current_file.path">
           <img v-bind:src="viewer.current_file.path"
@@ -180,26 +192,28 @@
         <audio v-bind:src="viewer.current_file.path" controls>
         </audio>
       </div>
-
     </div>
+  </script>
 
-  </template>
-
-</div>
-
-<script>
+  <!-- Setting up vue.js -->
+  <script>
   var vm = undefined;
 
   jigna.ready.done(function() {
       var data = Object.assign({}, jigna.models);
       data.window = window;
+      Vue.component('view-media', {
+          template: "#view-media-template",
+          props: ['viewer']
+      });
+
       var vm = new Vue({
           el: "body", // Attach to the body tag.
           data: data,
           methods: {
               remove_project: function(project) {
                   var m = "This will remove all saved information about this project, are "+
-                          "sure you want to delete it?"
+                          "you sure you want to delete it?"
                   if (confirm(m)) {
                       this.ui.remove(project);
                   }
