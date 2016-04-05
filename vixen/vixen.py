@@ -96,6 +96,7 @@ class ProjectEditor(HasTraits):
                 cp.description = self.description
                 cp.path = self._get_actual_path(self.path)
                 cp.update_tags(self.tags)
+                cp.scan()
                 cp.save()
                 if self.ui is not None:
                     self.ui.save()
@@ -186,7 +187,6 @@ class ProjectViewer(HasTraits):
             if proj is not None:
                 if len(proj.media) == 0:
                     proj.load()
-                    proj.save()
                 self.name = proj.name
                 self.current_dir = proj.root
                 self.current_file = None

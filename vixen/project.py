@@ -150,7 +150,12 @@ class Project(HasTraits):
         self.path = data.get('path')
         self.tags = [TagInfo(name=x[0], type=x[1]) for x in data['tags']]
         self.media = dict((key, Media(**kw)) for key, kw in data['media'])
+        root = Directory()
+        root.__setstate__(data.get('root'))
+        self.root = root
         self.number_of_files = len(self.media)
+        # This is needed as this is what makes the association from the media
+        # to the file.
         self.scan()
 
     def save(self):
@@ -168,9 +173,11 @@ class Project(HasTraits):
         fp = open_file(fp, 'w')
         media = [(key, m.to_dict()) for key, m in self.media.items()]
         tags = [(t.name, t.type) for t in self.tags]
+        root = self.root.__getstate__()
         data = dict(
             version=1, path=self.path, name=self.name,
-            description=self.description, tags=tags, media=media
+            description=self.description, tags=tags, media=media,
+            root=root
         )
         json.dump(data, fp)
         fp.close()

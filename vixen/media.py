@@ -4,7 +4,7 @@ import os
 from traits.api import Dict, HasTraits, Long, Property, Str
 
 # Some pre-defined file extensions.
-IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg']
+IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
 VIDEO = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
 AUDIO = ['.mp3', '.wav', '.ogg', '.m4a']
 

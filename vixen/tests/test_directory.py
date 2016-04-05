@@ -1,5 +1,7 @@
 import os
 from os.path import basename, dirname, join
+import pickle
+import mock
 import tempfile
 import shutil
 
@@ -30,12 +32,7 @@ class TestDirectory(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self._temp)
 
-    def test_simple_directory(self):
-        # Given
-        # when
-        d = Directory(path=self.root)
-
-        # Then
+    def check_root(self, d):
         self.assertEqual(d.name, 'test')
         self.assertEqual(d.parent, None)
         self.assertEqual(d.relpath, '')
@@ -58,6 +55,28 @@ class TestDirectory(unittest.TestCase):
         self.assertEqual(len(sub_dir.directories), 1)
         subsub_dir = sub_dir.directories[0]
         self.assertEqual(subsub_dir.relpath, join('sub', subsub_dir.name))
+
+    def test_simple_directory(self):
+        # Given
+        # when
+        d = Directory(path=self.root)
+
+        # Then
+        self.check_root(d)
+
+    def test_persistence_of_directory(self):
+        # Given.
+        d = Directory(path=self.root)
+        s = pickle.dumps(d)
+
+        # When
+        with mock.patch('os.listdir', mock.Mock()):
+            d1 = pickle.loads(s)
+            n_listdir_calls = os.listdir.call_count
+
+        # Then.
+        self.check_root(d1)
+        self.assertEqual(n_listdir_calls, 0)
 
 
 if __name__ == '__main__':

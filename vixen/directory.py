@@ -30,6 +30,22 @@ class Directory(HasTraits):
     directories = List(Instance('Directory'))
     files = List(Instance(File))
 
+    def __getstate__(self):
+        files = [x.path for x in self.files]
+        dirs = [d.__getstate__() for d in self.directories]
+        d = dict(path=self.path, files=files, directories=dirs)
+        return d
+
+    def __setstate__(self, state):
+        self.trait_setq(path=state['path'])
+        self.files = [File(path=x, parent=self) for x in state['files']]
+        dirs = []
+        for dir_state in state['directories']:
+            d = Directory(parent=self)
+            d.__setstate__(dir_state)
+            dirs.append(d)
+        self.directories = dirs
+
     def __repr__(self):
         return 'Directory(path=%r)'%self.path
 
