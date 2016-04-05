@@ -115,15 +115,15 @@ class ProjectEditor(HasTraits):
         return exts
 
     def _project_changed(self, proj):
-        if proj is not None:
-            if len(proj.media) == 0:
-                with self.ui.busy():
+        with self.ui.busy():
+            if proj is not None:
+                if len(proj.media) == 0:
                     proj.load()
-            self.name = proj.name
-            self.description = proj.description
-            self.path = self._get_actual_path(proj.path)
-            self.tags = copy.deepcopy(proj.tags)
-            self.available_exts = self._get_info()
+                self.name = proj.name
+                self.description = proj.description
+                self.path = self._get_actual_path(proj.path)
+                self.tags = copy.deepcopy(proj.tags)
+                self.available_exts = self._get_info()
 
     def _path_changed(self, path):
         self.valid_path = isdir(self._get_actual_path(path))
@@ -184,7 +184,9 @@ class ProjectViewer(HasTraits):
     def _project_changed(self, proj):
         with self.ui.busy():
             if proj is not None:
-                proj.load()
+                if len(proj.media) == 0:
+                    proj.load()
+                    proj.save()
                 self.name = proj.name
                 self.current_dir = proj.root
                 self.current_file = None
