@@ -133,33 +133,14 @@
     This project has {{viewer.project.number_of_files}} files.
     <button v-on:click="threaded(viewer, 'rescan')">Rescan</button>
     <br>
-    <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
-           v-model="viewer.csv_file.path" debounce="250">
-    <button v-bind:disabled="!viewer.csv_file_valid"
-            v-on:click="viewer.project.export_csv(viewer.csv_file.abspath) ||
-                        window.alert(viewer.csv_file.path + ' created.')">Export CSV</button>
-    <br>
 
-    Current directory :
-    {{viewer.project.root.name}}/{{viewer.current_dir.relpath}}
-    <br>
-    <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
-    <div style="height:100px; width: 300px; overflow:scroll;"
-         class="resizable">
-      <div v-for="path in viewer.paths">
-        <label v-if="path.directories" style="font-weight: bold;"
-               v-on:click="viewer.view(path)">{{path.name}}/</label>
-        <label v-else v-on:click="viewer.view(path)">
-          {{path.name}}
-        </label>
-      </div>
-    </div>
+    <view-directory :viewer="viewer"></view-directory>
 
     <div v-if="viewer.current_file" style="padding:5px;">
       <div class="tag-editor" style="float:left; padding: 5px">
         <label> Name: </label>
         <label title="Click to open with system viewer" style="color:blue;"
-           v-on:click="viewer.os_open(viewer.current_file.path)">
+               v-on:click="viewer.os_open(viewer.current_file.path)">
           {{viewer.current_file.name}}</label>
         <br>
         <label> Date: </label> {{viewer.media.date}}
@@ -178,14 +159,23 @@
           <input v-if="tag.type == 'int' || tag.type == 'float'"
                  v-model="viewer.media.tags[tag.name]" number>
         </div>
-        <br/>
-        <button v-on:click="threaded(viewer.project, 'save')">Save</button>
-        <br>
-        Last saved at: {{viewer.project.last_save_time}}
       </div>
 
       <view-media :media="viewer.media"></view-media>
+    </div>
+    <div style="position: bottom; bottom: 5px;">
+      <hr/>
 
+      <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
+             v-model="viewer.csv_file.path" debounce="250">
+      <button v-bind:disabled="!viewer.csv_file_valid"
+              v-on:click="viewer.project.export_csv(viewer.csv_file.abspath) ||
+                          window.alert(viewer.csv_file.path + '
+                          created.')">Export CSV</button>
+      <br/>
+      <button v-on:click="threaded(viewer.project, 'save')">Save</button>
+      <br/>
+      Last saved at: {{viewer.project.last_save_time}}
     </div>
 
   </template>
@@ -193,7 +183,30 @@
 </div>
 </body>
 
-  <!--  vue.js Components -->
+<!--  vue.js Components -->
+  <script type="text/x-template" id="view-directory-template">
+    <div>
+      Current directory:
+      {{viewer.project.root.name}}/{{viewer.current_dir.relpath}}
+      <br>
+      <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
+      <div style="height:100px; width: 300px; overflow:scroll;"
+           class="resizable">
+        <div v-for="path in viewer.paths | limitBy 20 (page-1)*20">
+        <label v-if="path.directories" style="font-weight: bold;"
+               v-on:click="viewer.view(path)">{{path.name}}/</label>
+        <label v-else v-on:click="viewer.view(path)">
+          {{path.name}}
+        </label>
+        </div>
+      </div>
+      {{viewer.current_dir.files.length}} files
+      <button v-bind:disabled="page < 2" v-on:click="prev()">Prev</button>
+      Page <input v-model="page" number> of {{total()}}
+      <button v-bind:disabled="page >= total()" v-on:click="next()">Next</button>
+    </div>
+  </script>
+
   <script type="text/x-template" id="view-media-template">
     <div style="display: inline-block;">
       <div v-if="media.type == 'image'" class="resizable" style="width: 500px;">
@@ -228,7 +241,41 @@
       data.window = window;
       Vue.component('view-media', {
           template: "#view-media-template",
-          props: ['media']
+          props: ['media'],
+      });
+      Vue.component('view-directory', {
+          template: "#view-directory-template",
+          props: ['viewer'],
+          computed: {
+              page: {
+                  get: function() {
+                      if (this.my_page < 1) {
+                          this.my_page = 1;
+                      }
+                      else if (this.my_page > this.total()) {
+                          this.my_page = this.total();
+                      }
+                      return this.my_page;
+                  },
+                  set: function(value) {
+                      this.my_page = Math.min(Math.max(1, value), this.total());
+                  }
+              }
+          },
+          data: function() {
+              return {my_page: 1};
+          },
+          methods: {
+              total : function() {
+                  return Math.round(this.viewer.paths.length/20 + 0.5);
+              },
+              next : function() {
+                  this.page += 1;
+              },
+              prev: function() {
+                  this.page -= 1;
+              },
+          }
       });
 
       var vm = new Vue({
