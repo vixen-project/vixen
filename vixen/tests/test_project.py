@@ -38,7 +38,7 @@ class TestProject(unittest.TestCase):
         # When
         p.scan()
         # Then
-        self.assertEqual(len(p.media), 4)
+        self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         self.assertEqual(len(m.tags), 1)
         self.assertIn('processed', m.tags)
@@ -64,12 +64,12 @@ class TestProject(unittest.TestCase):
         self.assertEqual(p.description, 'Test')
         self.assertEqual(p.root.name, 'test')
         self.assertEqual(len(p.root.directories), 2)
-        self.assertEqual(len(p.root.files), 1)
+        self.assertEqual(len(p.root.files), 2)
         self.assertEqual(len(p.tags), 1)
         self.assertEqual(p.tags[0].name, 'processed')
         self.assertEqual(p.tags[0].type, 'bool')
 
-        self.assertEqual(len(p.media), 4)
+        self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         self.assertEqual(len(m.tags), 1)
         self.assertIn('processed', m.tags)
@@ -96,6 +96,9 @@ class TestProject(unittest.TestCase):
         expected = ['date', 'path', 'processed', 'size', 'time', 'type']
         self.assertEqual(cols, expected)
         row = reader.next()
+        self.assertEqual(basename(row[1]), 'hello.py')
+        self.assertEqual(row[2], 'False')
+        row = reader.next()
         self.assertEqual(basename(row[1]), 'root.txt')
         self.assertEqual(row[2], 'True')
         row = reader.next()
@@ -109,7 +112,7 @@ class TestProject(unittest.TestCase):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
-        self.assertEqual(len(p.media), 4)
+        self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         # Change this.
         m.tags['processed'] = True
@@ -121,7 +124,7 @@ class TestProject(unittest.TestCase):
         # Then
         m = p.media['root.txt']
         self.assertEqual(m.tags['processed'], True)
-        self.assertEqual(len(p.media), 5)
+        self.assertEqual(len(p.media), 6)
         m = p.media['sub/sub1.txt']
         self.assertEqual(m.tags['processed'], False)
 
@@ -189,6 +192,17 @@ class TestProject(unittest.TestCase):
         new_save_file = join(self.root, 'new_name.vxn')
         self.assertEqual(p.save_file, new_save_file)
         self.assertTrue(exists(p.save_file))
+
+    def test_setting_root_extensions_limits_files(self):
+        # Given
+        p = Project(name='test', path=self.root, extensions=['.py'])
+
+        # When
+        p.scan()
+
+        # Then
+        self.assertEqual(len(p.media), 1)
+        self.assertEqual(p.media.keys()[0], 'hello.py')
 
 
 if __name__ == '__main__':

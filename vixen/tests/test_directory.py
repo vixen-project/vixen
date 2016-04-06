@@ -18,6 +18,7 @@ def make_data(root):
     os.makedirs(join(base, 'sub', 'subsub'))
     os.makedirs(join(base, 'sub2'))
     create_dummy_file(join(base, 'root.txt'))
+    create_dummy_file(join(base, 'hello.py'))
     create_dummy_file(join(base, 'sub', 'sub.txt'))
     create_dummy_file(join(base, 'sub', 'subsub', 'subsub.txt'))
     create_dummy_file(join(base, 'sub2', 'sub2.txt'))
@@ -36,8 +37,12 @@ class TestDirectory(unittest.TestCase):
         self.assertEqual(d.name, 'test')
         self.assertEqual(d.parent, None)
         self.assertEqual(d.relpath, '')
-        self.assertEqual(len(d.files), 1)
+        self.assertEqual(len(d.files), 2)
         file_obj = d.files[0]
+        self.assertEqual(file_obj.name, 'hello.py')
+        self.assertEqual(file_obj.parent, d)
+        self.assertEqual(file_obj.relpath, 'hello.py')
+        file_obj = d.files[1]
         self.assertEqual(file_obj.name, 'root.txt')
         self.assertEqual(file_obj.parent, d)
         self.assertEqual(file_obj.relpath, 'root.txt')
@@ -76,6 +81,61 @@ class TestDirectory(unittest.TestCase):
 
         # Then.
         self.check_root(d1)
+        self.assertEqual(n_listdir_calls, 0)
+
+    def test_directory_extensions(self):
+        # Given
+        d = Directory(path=self.root)
+
+        # when
+        d.extensions = ['.py']
+
+        # Then
+        self.assertEqual(len(d.files), 1)
+        self.assertEqual(len(d.directories), 2)
+        file_obj = d.files[0]
+        self.assertEqual(file_obj.name, 'hello.py')
+        self.assertEqual(file_obj.parent, d)
+        self.assertEqual(file_obj.relpath, 'hello.py')
+        sub_dir = d.directories[0]
+        self.assertEqual(len(sub_dir.files), 0)
+        self.assertEqual(sub_dir.name, 'sub')
+        self.assertEqual(sub_dir.parent, d)
+        self.assertEqual(len(sub_dir.directories), 1)
+        self.assertEqual(len(sub_dir.directories[0].files), 0)
+
+    def test_directory_extensions_changed(self):
+        # Given
+        d = Directory(path=self.root, extensions=['.py'])
+
+        # when
+        d.extensions = ['.txt']
+
+        # Then
+        self.assertEqual(len(d.files), 1)
+        self.assertEqual(len(d.directories), 2)
+        file_obj = d.files[0]
+        self.assertEqual(file_obj.name, 'root.txt')
+        self.assertEqual(file_obj.parent, d)
+        self.assertEqual(file_obj.relpath, 'root.txt')
+        sub_dir = d.directories[0]
+        self.assertEqual(len(sub_dir.files), 1)
+        self.assertEqual(sub_dir.name, 'sub')
+        self.assertEqual(sub_dir.parent, d)
+        self.assertEqual(len(sub_dir.directories), 1)
+        self.assertEqual(len(sub_dir.directories[0].files), 1)
+
+    def test_extensions_order_change_does_not_rescan(self):
+        # Given.
+        d = Directory(path=self.root, extensions=['.py', '.txt'])
+
+        # When
+        with mock.patch('os.listdir', mock.Mock()):
+            d.extensions = ['.txt', '.py']
+            n_listdir_calls = os.listdir.call_count
+
+        # Then.
+        self.check_root(d)
         self.assertEqual(n_listdir_calls, 0)
 
 

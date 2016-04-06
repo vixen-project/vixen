@@ -113,9 +113,27 @@
         Add tag</button>
       <br>
       <br>
-      This project has {{editor.project.number_of_files}} files.
+      File extensions to index: <b v-if="editor.extensions.length == 0">All files.</b>
+      <ul>
+        <li v-for="ext in editor.extensions">
+          {{ext}}
+          <button v-on:click="editor.remove_extension($index)">
+            Remove
+          </button>
+        </li>
+      </ul>
+      <input v-model="editor.ext_name">
+      <button v-on:click="editor.add_extension(editor.ext_name)">
+        Add extension
+      </button>
       <br>
-      The file extensions available are: {{editor.available_exts}}
+      <br>
+      <div v-if="editor.available_exts">
+        Available extensions are: {{editor.available_exts}}
+      </div>
+      <button v-on:click="threaded(editor, 'find_extensions')">
+        Find available extensions
+      </button>
       <br>
       <br>
 
@@ -163,7 +181,7 @@
 
       <view-media :media="viewer.media"></view-media>
     </div>
-    <div style="position: bottom; bottom: 5px;">
+    <div style="position: relative; bottom: 5px;">
       <hr/>
 
       <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"

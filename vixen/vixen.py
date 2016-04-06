@@ -75,10 +75,13 @@ class ProjectEditor(HasTraits):
     path = Str
     tags = List(TagInfo)
 
+    extensions = List(Str)
+
     available_exts = List(Str)
 
     valid_path = Bool
     tag_name = Str
+    ext_name = Str
 
     ui = Instance('VixenUI')
 
@@ -88,6 +91,19 @@ class ProjectEditor(HasTraits):
     def remove_tag(self, index):
         del self.tags[index]
 
+    def add_extension(self, name):
+        self.extensions.append(name.lower())
+
+    def remove_extension(self, index):
+        del self.extensions[index]
+
+    def find_extensions(self):
+        with self.ui.busy():
+            path = self._get_actual_path(self.path)
+            exts = set(os.path.splitext(x.lower())[1] for r, d, files in os.walk(path)
+                       for x in files)
+            self.available_exts = sorted(exts)
+
     def apply(self):
         with self.ui.busy():
             cp = self.project
@@ -95,25 +111,15 @@ class ProjectEditor(HasTraits):
                 cp.name = self.name
                 cp.description = self.description
                 cp.path = self._get_actual_path(self.path)
+                cp.extensions = self.extensions
                 cp.update_tags(self.tags)
                 cp.scan()
                 cp.save()
                 if self.ui is not None:
                     self.ui.save()
-                self.available_exts = self._get_info()
 
     def _get_actual_path(self, path):
         return abspath(expanduser(path))
-
-    def _get_info(self):
-        cp = self.project
-        exts = []
-        if cp is not None:
-            exts = sorted(
-                set(splitext(x)[1] for x in cp.media),
-                key=lambda x: x.lower()
-            )
-        return exts
 
     def _project_changed(self, proj):
         with self.ui.busy():
@@ -124,7 +130,8 @@ class ProjectEditor(HasTraits):
                 self.description = proj.description
                 self.path = self._get_actual_path(proj.path)
                 self.tags = copy.deepcopy(proj.tags)
-                self.available_exts = self._get_info()
+                self.extensions = list(proj.extensions)
+                self.available_exts = []
 
     def _path_changed(self, path):
         self.valid_path = isdir(self._get_actual_path(path))

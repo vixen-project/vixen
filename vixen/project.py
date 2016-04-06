@@ -62,6 +62,8 @@ class Project(HasTraits):
 
     media = Dict(Str, Media)
 
+    extensions = List(Str)
+
     number_of_files = Long
 
     # Path where the project data is saved.
@@ -149,9 +151,12 @@ class Project(HasTraits):
         self.description = data.get('description', '')
         self.path = data.get('path')
         self.tags = [TagInfo(name=x[0], type=x[1]) for x in data['tags']]
-        self.media = dict((key, Media(**kw)) for key, kw in data['media'])
+        media = dict((key, Media(**kw)) for key, kw in data['media'])
+        # Don't send object change notifications when this large data changes.
+        self.trait_setq(media=media)
         root = Directory()
         root.__setstate__(data.get('root'))
+        self.extensions = root.extensions
         self.root = root
         self.number_of_files = len(self.media)
         # This is needed as this is what makes the association from the media
@@ -228,7 +233,7 @@ class Project(HasTraits):
         path = abspath(expanduser(self.path))
         root = self.root
         if root is None or realpath(root.path) != realpath(path):
-            self.root = Directory(path=path)
+            self.root = Directory(path=path, extensions=self.extensions)
 
     def _tags_default(self):
         return [TagInfo(name='processed', type='bool')]
@@ -257,3 +262,11 @@ class Project(HasTraits):
                 self.save_file = new_save_file
                 if exists(old_save_file):
                     shutil.move(old_save_file, self.save_file)
+
+    def _extensions_changed(self, ext):
+        if self.root is not None:
+            self.root.extensions = ext
+
+    def _extensions_items_changed(self):
+        if self.root is not None:
+            self.root.extensions = self.extensions
