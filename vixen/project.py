@@ -71,6 +71,10 @@ class Project(HasTraits):
 
     last_save_time = Str
 
+    def add_tags(self, tags):
+        tags = list(self.tags) + tags
+        self.update_tags(tags)
+
     def update_tags(self, new_tags):
         old_tags = self.tags
         new_tag_names = set(tag.name for tag in new_tags)

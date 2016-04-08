@@ -179,8 +179,7 @@ class TestPythonFunctionFactory(TestFactoryBase):
         """)
         factory = PythonFunctionFactory(code=code, dest=self.root1)
         p = Project(name='test', path=self.root)
-        tags = list(p.tags) + [TagInfo(name='args', type='string')]
-        p.update_tags(tags)
+        p.add_tags([TagInfo(name='args', type='string')])
         p.scan()
 
         # When
