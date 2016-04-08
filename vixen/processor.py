@@ -225,3 +225,19 @@ class PythonFunctionFactory(FactoryBase):
     def _run(self, relpath, media, dest):
         self._func(relpath, media, dest)
         self._done[media.path] = True
+
+
+def dump(factory):
+    """Dump a factory instance so it can be safely pickled."""
+    name = factory.__class__.__name__
+    data = factory.__getstate__()
+    return name, data
+
+def load(state):
+    """Create and setup the state from pickled data.
+    Returns a factory instance.
+    """
+    name, data = state
+    obj = globals()[name]()
+    obj.__setstate__(data)
+    return obj

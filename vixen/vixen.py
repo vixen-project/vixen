@@ -13,6 +13,8 @@ from traits.api import (Bool, DelegatesTo, Enum, HasTraits, List, Str,
 from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
 from .media import Media
+from .processor import (FactoryBase, CommandFactory, Processor,
+                        PythonFunctionFactory)
 
 
 class Vixen(HasTraits):
@@ -77,6 +79,8 @@ class ProjectEditor(HasTraits):
 
     extensions = List(Str)
 
+    processors = List(FactoryBase)
+
     available_exts = List(Str)
 
     valid_path = Bool
@@ -97,11 +101,20 @@ class ProjectEditor(HasTraits):
     def remove_extension(self, index):
         del self.extensions[index]
 
+    def add_processor(self, name):
+        procs = {'Command': CommandFactory, 'Python': PythonFunctionFactory}
+        self.processors.append(procs[name](dest=path))
+
+    def remove_processor(self, index):
+        del self.processors[index]
+
     def find_extensions(self):
         with self.ui.busy():
             path = self._get_actual_path(self.path)
-            exts = set(os.path.splitext(x.lower())[1] for r, d, files in os.walk(path)
-                       for x in files)
+            exts = set(
+                os.path.splitext(x.lower())[1]
+                for r, d, files in os.walk(path) for x in files
+            )
             self.available_exts = sorted(exts)
 
     def apply(self):
@@ -112,6 +125,7 @@ class ProjectEditor(HasTraits):
                 cp.description = self.description
                 cp.path = self._get_actual_path(self.path)
                 cp.extensions = self.extensions
+                cp.processors = self.processors
                 cp.update_tags(self.tags)
                 cp.scan()
                 cp.save()
@@ -131,6 +145,7 @@ class ProjectEditor(HasTraits):
                 self.path = self._get_actual_path(proj.path)
                 self.tags = copy.deepcopy(proj.tags)
                 self.extensions = list(proj.extensions)
+                self.processors = proj.processors
                 self.available_exts = []
 
     def _path_changed(self, path):
@@ -221,6 +236,8 @@ class VixenUI(HasTraits):
 
     viewer = Instance(ProjectViewer)
 
+    processor = Instance(Processor)
+
     is_busy = Bool(False)
 
     loading_image = Str
@@ -241,6 +258,13 @@ class VixenUI(HasTraits):
         self.viewer.project = project
         self.mode = 'view'
         self.editor.project = None
+
+    def process(self, project):
+        jobs = []
+        for proc in project.processors:
+            jobs.extend(proc.make_jobs(project.media))
+        self.processor.jobs = jobs
+        self.processor.process()
 
     def remove(self, project):
         self.vixen.remove(project)
@@ -280,3 +304,6 @@ class VixenUI(HasTraits):
 
     def _loading_image_default(self):
         return join(dirname(__file__), 'html', 'loading.gif')
+
+    def _processor_default(self):
+        return Processor()

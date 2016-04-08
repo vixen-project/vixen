@@ -11,6 +11,7 @@ from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
 
 from .media import Media
 from .directory import Directory
+from . import processor
 
 
 def get_project_dir():
@@ -63,6 +64,8 @@ class Project(HasTraits):
     media = Dict(Str, Media)
 
     extensions = List(Str)
+
+    processors = List(processor.FactoryBase)
 
     number_of_files = Long
 
@@ -155,6 +158,8 @@ class Project(HasTraits):
         self.description = data.get('description', '')
         self.path = data.get('path')
         self.tags = [TagInfo(name=x[0], type=x[1]) for x in data['tags']]
+        self.processors = [processor.load(x)
+                           for x in data.get('processors', [])]
         media = dict((key, Media(**kw)) for key, kw in data['media'])
         # Don't send object change notifications when this large data changes.
         self.trait_setq(media=media)
@@ -183,10 +188,11 @@ class Project(HasTraits):
         media = [(key, m.to_dict()) for key, m in self.media.items()]
         tags = [(t.name, t.type) for t in self.tags]
         root = self.root.__getstate__()
+        processors = [processor.dump(x) for x in self.processors]
         data = dict(
             version=1, path=self.path, name=self.name,
             description=self.description, tags=tags, media=media,
-            root=root
+            root=root, processors=processors
         )
         json.dump(data, fp)
         fp.close()

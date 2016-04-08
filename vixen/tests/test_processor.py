@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 from vixen.processor import Processor, Job, CommandFactory, \
-    PythonFunctionFactory
+    PythonFunctionFactory, dump, load
 from vixen.tests.test_directory import make_data
 from vixen.project import Project, TagInfo
 
@@ -166,6 +166,15 @@ class TestCommandFactory(TestFactoryBase):
         jobs = cf.make_jobs(p.media)
         self.assertEqual(len(jobs), 0)
 
+        # When.
+        data = dump(cf)
+        cf1 = load(data)
+
+        # Then.
+        for attr in cf.__dict__.keys():
+            self.assertEqual(getattr(cf1, attr), getattr(cf, attr))
+
+
 
 class TestPythonFunctionFactory(TestFactoryBase):
 
@@ -200,6 +209,16 @@ class TestPythonFunctionFactory(TestFactoryBase):
 
         # Then
         self.assertEqual(len(jobs), 0)
+
+        # When.
+        data = dump(factory)
+        f1 = load(data)
+
+        # Then.
+        f = factory
+        for attr in f.__dict__.keys():
+            self.assertEqual(getattr(f1, attr), getattr(f, attr))
+
 
 if __name__ == '__main__':
     unittest.main()
