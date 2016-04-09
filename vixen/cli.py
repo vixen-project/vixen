@@ -3,10 +3,12 @@ from os.path import join, isdir, exists
 import sys
 
 def view(args):
-    from .vixen import VixenUI
+    # We need absolute imports here as PyInstaller does not work with
+    # relative imports in the entry point script.
+    from vixen.vixen import VixenUI
     ui = VixenUI()
     ui.vixen.load()
-    from .vixen_ui import main
+    from vixen.vixen_ui import main
     main(**ui.get_context())
 
 
