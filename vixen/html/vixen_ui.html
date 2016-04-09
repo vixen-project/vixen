@@ -40,6 +40,9 @@
             .processed {
                 color: green;
             }
+            label.selected {
+                background: lightblue;
+            }
             .tag-editor label {
                 width: 10rem;
                 display: inline-block;
@@ -220,11 +223,12 @@
       <div style="height:100px; width: 300px; overflow:scroll;"
            class="resizable">
         <div v-for="path in viewer.paths | limitBy 20 (page-1)*20">
-        <label v-if="path.directories" style="font-weight: bold;"
-               v-on:click="viewer.view(path)">{{path.name}}/</label>
-        <label v-else v-on:click="viewer.view(path)">
-          {{path.name}}
-        </label>
+          <label v-if="path.directories" style="font-weight: bold;"
+                 v-on:click="viewer.view(path)">{{path.name}}/</label>
+          <label v-else v-on:click="viewer.view(path)"
+                 v-bind:class="viewer.current_file == path ? 'selected' : ''">
+            {{path.name}}
+          </label>
         </div>
       </div>
       {{viewer.current_dir.files.length}} files
