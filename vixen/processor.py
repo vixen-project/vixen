@@ -42,8 +42,10 @@ class Job(HasTraits):
         try:
             self.result = self.func(*self.args, **self.kw)
             self.status = 'success'
-        except:
-            self.error = format_exc()
+        except Exception as e:
+            if hasattr(e, 'output'):
+                self.error = 'OUTPUT: %s\n'%e.output
+            self.error += format_exc()
             self.status = 'error'
 
     def _thread_default(self):
@@ -59,6 +61,8 @@ class Processor(HasTraits):
 
     completed = List(Job)
 
+    running = List(Job)
+
     number_of_processes = Int(1)
 
     max_processes = Int
@@ -66,7 +70,8 @@ class Processor(HasTraits):
     status = Enum('none', 'running', 'success', 'error')
 
     def process(self):
-        running = []
+        self.running = []
+        running = self.running
         error = None
         self.status = 'running'
         jobs = [job for job in self.jobs if job.status == 'none']
@@ -95,6 +100,7 @@ class Processor(HasTraits):
         # Wait for all remaining jobs to complete.
         for job in running:
             job.thread.join()
+            running.remove(job)
             if job.status == 'error':
                 self.errored_jobs.append(job)
                 self.status = 'error'
@@ -201,7 +207,7 @@ class PythonFunctionFactory(FactoryBase):
     # directory, this can be empty if not specified.
     code = Str
 
-    _func = Callable
+    _func = Callable(transient=True)
 
     def make_jobs(self, media_dict):
         self._setup_func()
@@ -225,6 +231,9 @@ class PythonFunctionFactory(FactoryBase):
     def _run(self, relpath, media, dest):
         self._func(relpath, media, dest)
         self._done[media.path] = True
+
+    def _code_default(self):
+        return "def process(relpath, media, dest): pass"
 
 
 def dump(factory):

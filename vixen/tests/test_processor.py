@@ -215,10 +215,13 @@ class TestPythonFunctionFactory(TestFactoryBase):
         f1 = load(data)
 
         # Then.
-        f = factory
-        for attr in f.__dict__.keys():
-            self.assertEqual(getattr(f1, attr), getattr(f, attr))
 
+        # The func should not be dumped.
+        self.assertEqual(f1._func, None)
+        self.assertNotIn('_func', data[1])
+        f = factory
+        for attr in ['code', '_done']:
+            self.assertEqual(getattr(f1, attr), getattr(f, attr))
 
 if __name__ == '__main__':
     unittest.main()

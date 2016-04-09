@@ -41,7 +41,7 @@
                 color: green;
             }
             .tag-editor label {
-                width: 6rem;
+                width: 10rem;
                 display: inline-block;
                 margin: 0.15rem auto;
             }
@@ -136,6 +136,8 @@
       </button>
       <br>
       <br>
+      <!-- Processors -->
+      <edit-processor :editor="editor"></edit-processor>
 
       <button v-bind:disabled="!editor.valid_path"
       v-on:click="threaded(editor, 'apply')">Apply changes</button>
@@ -147,6 +149,12 @@
 
     <div v-on:click="ui.home()"><a href="#">Home</a></div>
     <h3> View Project {{viewer.name}}</h3>
+
+    <div v-if="viewer.project.processors.length > 0">
+      <view-processor :ui="ui" :processor="ui.processor"
+                      :project="viewer.project">
+        </view-processor>
+    </div>
 
     This project has {{viewer.project.number_of_files}} files.
     <button v-on:click="threaded(viewer, 'rescan')">Rescan</button>
@@ -202,6 +210,7 @@
 </body>
 
 <!--  vue.js Components -->
+<!-- view-directory template -->
   <script type="text/x-template" id="view-directory-template">
     <div>
       Current directory:
@@ -225,6 +234,7 @@
     </div>
   </script>
 
+  <!-- view-media template -->
   <script type="text/x-template" id="view-media-template">
     <div style="display: inline-block;">
       <div v-if="media.type == 'image'" class="resizable" style="width: 500px;">
@@ -250,17 +260,153 @@
     </div>
   </script>
 
+  <!-- edit-processor template -->
+  <script type="text/x-template" id="edit-processor-template">
+    <div>
+      <label> <b>Processors</b></label><br/>
+      <div v-for="proc in editor.processors">
+
+        <!-- Command factory -->
+        <div v-if="proc.command !== undefined" class="tag-editor">
+          <label>Processor {{$index +1}} </label>
+          <button v-on:click="editor.remove_processor($index)">
+            Remove
+          </button>
+          <br/>
+          Run command:
+          <br/>
+          <label>Destination path</label>
+          <input v-model="proc.dest">
+          <br/>
+          <label>Mirror tree</label>
+          <input v-model="proc.mirror_tree" type="checkbox">
+          <br/>
+          <label>Input extension</label>
+          <input v-model="proc.input_extension">
+          <br/>
+          <label>Output extension</label>
+          <input v-model="proc.output_extension">
+          <br/>
+          <label>Command</label>
+          <input v-model="proc.command"
+                 title="Use $input for input file and $output for output file">
+          <br/>
+        </div>
+
+        <!-- Python factory -->
+        <div v-else class="tag-editor">
+          <label>Processor {{$index +1}} </label>
+          <button v-on:click="editor.remove_processor($index)">
+            Remove
+          </button>
+          <br/>
+          Run Python code:
+          <br/>
+          <label>Destination path</label>
+          <input v-model="proc.dest">
+          <br/>
+          <label>Code</label>
+          <textarea style="width:500px; height:100px" v-model="proc.code"
+                    title="Write a Python function called process taking three"\
+                    "arguments (relpath, media, dest)">
+          </textarea>
+          <br/>
+        </div>
+        <button v-on:click="editor.check_processor(proc)">Test</button>
+        <button v-on:click="editor.clear_test_info($index)">Clear</button>
+        <view-job :job="editor.test_job[$index]"
+                  :job_status="editor.test_job_status[$index]"
+                  :project="editor.project">
+        </view-job>
+        <!-- End of for proc in processors -->
+      </div>
+      <br/>
+      <label>Add processor of type:</label>
+      <select v-model="editor.processor_type">
+        <option selected>command</option>
+        <option>python</option>
+      </select>
+      <button v-on:click="editor.add_processor(editor.processor_type)">
+        Add</button>
+      <br>
+    </div>
+  </script>
+
+  <!-- view-job template -->
+  <script type="text/x-template" id="view-job-template">
+    <div v-if="job && job.info">
+      <label>Info:</label>{{job.info}} <br/>
+      <label>Status:</label> {{job.status}} <br/>
+      <div v-if="job.error.length > 0" class="error">
+        <label>Error:</label>
+        <pre>{{job.error}}</pre>
+        <br/>
+      </div>
+    </div>
+    <div v-else v-if="job_status">
+      <div v-if="project && project.media.length == 0">
+        You need to apply changes once to scan the project before you
+        start processing.  Currently no files are available.
+      </div>
+      <div v-else>
+        Nothing to do!  Check your input extensions.
+      </div>
+    </div>
+  </script>
+
+  <!-- view-processor template -->
+  <script type="text/x-template" id="view-processor-template">
+    <label> Processor status: </label> {{processor.status}}
+    <br/>
+    Completed {{processor.completed.length}} of
+    {{processor.jobs.length}} jobs
+    <ul>
+      <li v-for="job in processor.running">{{job.info}}</li>
+    </ul>
+    <button v-on:click="threaded(ui, 'process', project)"
+            v-bind:disabled="processor.status === 'running'">
+      Run processing</button>
+    <div v-if="processor.status === 'error'">
+      <label>Errors</label>
+      <div v-for="job in processor.errored_jobs"
+           class="error resizable" style="height:150px;">
+        <view-job :job="job"></view-job>
+      </div>
+    </div>
+    <br/>
+  </script>
+
   <!-- Setting up vue.js -->
   <script>
   var vm = undefined;
 
   jigna.ready.done(function() {
-      var data = Object.assign({}, jigna.models);
-      data.window = window;
+      // Components.
       Vue.component('view-media', {
           template: "#view-media-template",
           props: ['media'],
       });
+
+      Vue.component('edit-processor', {
+          template: "#edit-processor-template",
+          props: ['editor'],
+      });
+
+      Vue.component('view-job', {
+          template: "#view-job-template",
+          props: ['job', 'job_status', 'project'],
+      });
+
+      Vue.component('view-processor', {
+          template: "#view-processor-template",
+          props: ['processor', 'ui', 'project'],
+          methods: {
+              threaded: function(obj, method_name, args) {
+                  jigna.threaded.apply(jigna, arguments);
+               },
+         }
+      });
+
       Vue.component('view-directory', {
           template: "#view-directory-template",
           props: ['viewer'],
@@ -295,6 +441,10 @@
               },
           }
       });
+
+      // The Vue instance.
+      var data = Object.assign({}, jigna.models);
+      data.window = window;
 
       var vm = new Vue({
           el: "body", // Attach to the body tag.

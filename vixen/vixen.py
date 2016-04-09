@@ -7,14 +7,14 @@ import os
 import subprocess
 import sys
 
-from traits.api import (Bool, DelegatesTo, Enum, HasTraits, List, Str,
-                        Instance, Property)
+from traits.api import (Bool, DelegatesTo, Dict, Enum, HasTraits, Instance,
+                        Int, List, Property, Str)
 
 from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
 from .media import Media
 from .processor import (FactoryBase, CommandFactory, Processor,
-                        PythonFunctionFactory)
+                        PythonFunctionFactory, Job)
 
 
 class Vixen(HasTraits):
@@ -86,6 +86,10 @@ class ProjectEditor(HasTraits):
     valid_path = Bool
     tag_name = Str
     ext_name = Str
+    processor_type = Str
+
+    test_job = Dict(Int, Job)
+    test_job_status = Dict(Int, Str)
 
     ui = Instance('VixenUI')
 
@@ -102,8 +106,8 @@ class ProjectEditor(HasTraits):
         del self.extensions[index]
 
     def add_processor(self, name):
-        procs = {'Command': CommandFactory, 'Python': PythonFunctionFactory}
-        self.processors.append(procs[name](dest=path))
+        procs = {'command': CommandFactory, 'python': PythonFunctionFactory}
+        self.processors.append(procs[name](dest=self.path))
 
     def remove_processor(self, index):
         del self.processors[index]
@@ -132,6 +136,32 @@ class ProjectEditor(HasTraits):
                 if self.ui is not None:
                     self.ui.save()
 
+    def check_processor(self, proc):
+        with self.ui.busy():
+            proj = self.project
+            jobs = []
+            for key in proj.media:
+                test_media = {key: proj.media[key]}
+                jobs = proc.make_jobs(test_media)
+                if len(jobs) > 0:
+                    break
+            index = self.processors.index(proc)
+            self.clear_test_info(index)
+            if len(jobs) == 0:
+                self.test_job_status[index] = 'Error'
+            else:
+                job = jobs[0]
+                self.test_job[index] = job
+                job.run()
+                job.thread.join()
+                proc.clear()
+
+    def clear_test_info(self, index):
+        if index in self.test_job:
+            del self.test_job[index]
+        if index in self.test_job_status:
+            del self.test_job_status[index]
+
     def _get_actual_path(self, path):
         return abspath(expanduser(path))
 
@@ -147,6 +177,8 @@ class ProjectEditor(HasTraits):
                 self.extensions = list(proj.extensions)
                 self.processors = proj.processors
                 self.available_exts = []
+                self.test_job = {}
+                self.test_job_status = {}
 
     def _path_changed(self, path):
         self.valid_path = isdir(self._get_actual_path(path))
