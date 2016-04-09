@@ -1,3 +1,6 @@
+# Done for pyinstaller.
+from __future__ import absolute_import
+
 from argparse import ArgumentParser
 from os.path import join, isdir, exists
 import sys
