@@ -7,7 +7,7 @@ from tornado import autoreload
 
 def main(**context):
     async = False
-    html_file = join(dirname(__file__), 'html', 'vixen_new_ui.html')
+    html_file = join(dirname(__file__), 'html', 'vixen_ui.html')
     template = VueTemplate(html_file=html_file, base_url='/', async=async)
     ioloop = IOLoop.instance()
     app = WebApp(
