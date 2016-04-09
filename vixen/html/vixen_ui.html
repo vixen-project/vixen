@@ -1,16 +1,34 @@
-<html ng-app='jigna'>
-    <head>
+<html>
+  <head>
     <title>ViXen media viewer</title>
+
         <!-- Load the jigna script. -->
-        <script type='text/javascript' src='/jigna/jigna.js'></script>
+        <script type='text/javascript' src='/jigna/jigna-vue.js'></script>
 
         <!-- Once jigna is loaded, initialize it. -->
         <script type='text/javascript'>
             jigna.initialize({async: false});
         </script>
+
         <style>
             html * {
                 font-family: sans-serif;
+            }
+            .busy-overlay {
+                height: 100%;
+                width: 100%;
+                position: fixed;
+                z-index: 100;
+            }
+            img.loading {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+            }
+            p.loading {
+                position: absolute;
+                top: 55%;
+                left: 50%;
             }
             .resizable {
                 padding: 5px;
@@ -23,13 +41,19 @@
                 color: green;
             }
             .tag-editor label {
-                width: 6rem;
+                width: 10rem;
                 display: inline-block;
                 margin: 0.15rem auto;
             }
             .media-browser {
                 width: 30%;
                 margin: auto;
+            }
+            .error {
+            color: red;
+            }
+            .success {
+            color: green;
             }
             select,button {
                 font-size: 1rem;
@@ -39,100 +63,409 @@
 
 <body>
 <div>
-    <h2 style="text-align:center">Welcome to ViXeN</h2>
 
-    <label>Grid</label>
-    <select ng-model="vixen.grid"
-        ng-options="g for g in vixen.available_grids track by g">
-    </select>
-    <label>Camera</label>
-    <select ng-model="vixen.camera"
-        ng-options="c for c in vixen.available_cameras track by c">
-    </select>
+  <h3 style="text-align:center">Welcome to ViXeN</h3>
 
-    <div style="height:150px; width: 400px; overflow:scroll;" class="resizable">
-        <div ng-repeat="media in vixen.media | orderBy: 'file_name'"
-            ng-class="{processed:media.tags.processed}"
-            ng-click="vixen.selected = media">
-            {{media.file_name}} on {{media.date}} at {{media.time}}
-            <br/>
-        </div>
+  <div v-if="ui.is_busy" class="busy-overlay">
+    <img :src="ui.loading_image" class="loading" alt="loading..."/>
+    <p class="loading">Please wait...</p>
+  </div>
+
+  <template v-if="ui.mode !== 'view'">
+    <h3>Available Projects</h3>
+    <ul>
+      <li v-for="project in vixen.projects" >
+        {{project.name}}
+        <button v-on:click="threaded(ui, 'view', project)">View</button>
+        <button v-on:click="threaded(ui, 'edit', project)">Edit</button>
+        <button v-on:click="remove_project(project)">Remove</button>
+      </li>
+    </ul>
+    <button style="font-size:larger; margin:0.5rem"
+            v-on:click="ui.add_project()" type="button">New Project</button>
+  </template>
+
+  <br/>
+
+  <template v-if="ui.mode === 'edit' && editor.project">
+    <h3> Edit Project</h3>
+    <div class="tag-editor" style="float:left; padding: 5px">
+      <label> Name: </label> <input v-model="editor.name"><br>
+      <label>
+        Description: </label> <input v-model="editor.description"><br>
+      <label> Path: </label>
+      <input v-bind:class="editor.valid_path ? 'success' : 'error'"
+             v-model="editor.path" debounce="500">
+        <br>
+      <label> Tags: </label> <br>
+      <div v-for="tag in editor.tags">
+        <label>{{tag.name}}</label>
+        <select v-model="tag.type">
+          <option>string</option>
+          <option>int</option>
+          <option>float</option>
+          <option>bool</option>
+        </select>
+        <button v-on:click="editor.remove_tag($index)">Remove</button>
+      </div>
+      <input v-model="editor.tag_name">
+      <button v-on:click="editor.add_tag(editor.tag_name)">
+        Add tag</button>
+      <br>
+      <br>
+      File extensions to index: <b v-if="editor.extensions.length == 0">All files.</b>
+      <ul>
+        <li v-for="ext in editor.extensions">
+          {{ext}}
+          <button v-on:click="editor.remove_extension($index)">
+            Remove
+          </button>
+        </li>
+      </ul>
+      <input v-model="editor.ext_name">
+      <button v-on:click="editor.add_extension(editor.ext_name)">
+        Add extension
+      </button>
+      <br>
+      <br>
+      <div v-if="editor.available_exts">
+        Available extensions are: {{editor.available_exts}}
+      </div>
+      <button v-on:click="threaded(editor, 'find_extensions')">
+        Find available extensions
+      </button>
+      <br>
+      <br>
+      <!-- Processors -->
+      <edit-processor :editor="editor"></edit-processor>
+
+      <button v-bind:disabled="!editor.valid_path"
+      v-on:click="threaded(editor, 'apply')">Apply changes</button>
+
+    </div>
+  </template>
+
+  <template v-if="ui.mode === 'view' && viewer.project">
+
+    <div v-on:click="ui.home()"><a href="#">Home</a></div>
+    <h3> View Project {{viewer.name}}</h3>
+
+    <div v-if="viewer.project.processors.length > 0">
+      <view-processor :ui="ui" :processor="ui.processor"
+                      :project="viewer.project">
+        </view-processor>
     </div>
 
-    <div ng-if="vixen.selected" style="padding: 5px;">
-        <div class="tag-editor" style="float:left; padding: 5px">
-            <div title="{{vixen.selected.path}}">
-            <label>File name</label>
-            {{vixen.selected.file_name}}
-            </div>
-            <label>Grid</label>
-            {{vixen.selected.tags.grid}}
-            <br/>
-            <label>Camera</label>
-            {{vixen.selected.tags.camera}}
-            <br/>
-            <label>Grid date</label>
-            {{vixen.selected.tags.grid_date}}
-            <br/>
-            <label>File date</label>
-            {{vixen.selected.date}} {{vixen.selected.time}}
-            <br/>
-            <label>Jackal</label>
-            <input type="number" ng-model="vixen.selected.tags.jackal"/>
-            <br/>
-            <label>Indian Fox</label>
-            <input type="number" ng-model="vixen.selected.tags.indian_fox"/>
-            <br/>
-            <label>Desert Fox</label>
-            <input type="number" ng-model="vixen.selected.tags.desert_fox"/>
-            <br/>
-            <label>Dog</label>
-            <input type="number" ng-model="vixen.selected.tags.dog"/>
-            <br/>
-            <label>Others</label>
-            <input ng-model="vixen.selected.tags.others"/>
-            <br/>
-            <label>Capture</label>
-            <input ng-model="vixen.selected.tags.capture"/>
-            <br/>
-            <label>Temperature</label>
-            <input ng-model="vixen.selected.tags.temperature"/>
-            <br/>
-            <label>Pressure</label>
-            <input ng-model="vixen.selected.tags.pressure"/>
-            <br/>
-            <label>Remarks</label>
-            <input ng-model="vixen.selected.tags.remarks"/>
-            <br/>
-            <label>Processed</label>
-            <input type="checkbox" ng-model="vixen.selected.tags.processed"/>
-            <br/>
-        </div>
+    This project has {{viewer.project.number_of_files}} files.
+    <button v-on:click="threaded(viewer, 'rescan')">Rescan</button>
+    <br>
 
-        <div class="resizable">
-            <video controls ng-src="{{vixen.selected.view}}"
-                  style="width: 100%;"></video>
+    <view-directory :viewer="viewer"></view-directory>
+
+    <div v-if="viewer.current_file" style="padding:5px;">
+      <div class="tag-editor" style="float:left; padding: 5px">
+        <label> Name: </label>
+        <label title="Click to open with system viewer" style="color:blue;"
+               v-on:click="viewer.os_open(viewer.current_file.path)">
+          {{viewer.current_file.name}}</label>
+        <br>
+        <label> Date: </label> {{viewer.media.date}}
+        <br/>
+        <label> Time: </label> {{viewer.media.time}}
+        <br/>
+        <label> Size: </label> {{(viewer.media.size/1024).toFixed(1)}} (KB)
+        <br/>
+
+        <div v-for="tag in viewer.project.tags">
+          <label>{{tag.name}}</label>
+          <input v-if="tag.type == 'bool'" v-model="viewer.media.tags[tag.name]"
+                 type="checkbox">
+          <input v-if="tag.type == 'string'"
+                 v-model="viewer.media.tags[tag.name]">
+          <input v-if="tag.type == 'int' || tag.type == 'float'"
+                 v-model="viewer.media.tags[tag.name]" number>
         </div>
+      </div>
+
+      <view-media :media="viewer.media"></view-media>
+    </div>
+    <div style="position: relative; bottom: 5px;">
+      <hr/>
+
+      <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
+             v-model="viewer.csv_file.path" debounce="250">
+      <button v-bind:disabled="!viewer.csv_file_valid"
+              v-on:click="viewer.project.export_csv(viewer.csv_file.abspath) ||
+                          window.alert(viewer.csv_file.path + '
+                          created.')">Export CSV</button>
+      <br/>
+      <button v-on:click="threaded(viewer.project, 'save')">Save</button>
+      <br/>
+      Last saved at: {{viewer.project.last_save_time}}
     </div>
 
-    <div ng-if="vixen.media">
-        <button style="font-size:larger; margin:0.5rem"
-            ng-click="vixen.save()" type="button">Save</button>
-        Last saved at: {{vixen.last_save_time}}
-        <div style="float:right">
-            <input id="export_csv" type="text"
-           title="Will save the file to the current directory.">
-            <button
-            onclick="jigna.models.vixen.export_csv(document.getElementById('export_csv').value);"
-            type="button">Export to CSV
-            </button>
-        </div>
-    </div>
-
+  </template>
 
 </div>
-
 </body>
+
+<!--  vue.js Components -->
+<!-- view-directory template -->
+  <script type="text/x-template" id="view-directory-template">
+    <div>
+      Current directory:
+      {{viewer.project.root.name}}/{{viewer.current_dir.relpath}}
+      <br>
+      <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
+      <div style="height:100px; width: 300px; overflow:scroll;"
+           class="resizable">
+        <div v-for="path in viewer.paths | limitBy 20 (page-1)*20">
+        <label v-if="path.directories" style="font-weight: bold;"
+               v-on:click="viewer.view(path)">{{path.name}}/</label>
+        <label v-else v-on:click="viewer.view(path)">
+          {{path.name}}
+        </label>
+        </div>
+      </div>
+      {{viewer.current_dir.files.length}} files
+      <button v-bind:disabled="page < 2" v-on:click="prev()">Prev</button>
+      Page <input v-model="page" number> of {{total()}}
+      <button v-bind:disabled="page >= total()" v-on:click="next()">Next</button>
+    </div>
+  </script>
+
+  <!-- view-media template -->
+  <script type="text/x-template" id="view-media-template">
+    <div style="display: inline-block;">
+      <div v-if="media.type == 'image'" class="resizable" style="width: 500px;">
+        <a v-bind:href="media.path">
+          <img v-bind:src="media.path"
+               v-bind:alt="media.file_name" width="100%">
+        </a>
+      </div>
+      <div v-if="media.type == 'video'" class="resizable"
+           style="width: 500px;">
+        <video v-bind:src="media.path" controls
+               preload="auto" style="width:100%;">
+        </video>
+      </div>
+      <div v-if="media.type == 'audio'" class="resizable"
+           style="width: 300px">
+        <audio v-bind:src="media.path" controls>
+        </audio>
+      </div>
+      <div v-if="media.type == 'unknown'" >
+        <a v-bind:href="media.path">{{media.file_name}}</a>
+      </div>
+    </div>
+  </script>
+
+  <!-- edit-processor template -->
+  <script type="text/x-template" id="edit-processor-template">
+    <div>
+      <label> <b>Processors</b></label><br/>
+      <div v-for="proc in editor.processors">
+
+        <!-- Command factory -->
+        <div v-if="proc.command !== undefined" class="tag-editor">
+          <label>Processor {{$index +1}} </label>
+          <button v-on:click="editor.remove_processor($index)">
+            Remove
+          </button>
+          <br/>
+          Run command:
+          <br/>
+          <label>Destination path</label>
+          <input v-model="proc.dest">
+          <br/>
+          <label>Mirror tree</label>
+          <input v-model="proc.mirror_tree" type="checkbox">
+          <br/>
+          <label>Input extension</label>
+          <input v-model="proc.input_extension">
+          <br/>
+          <label>Output extension</label>
+          <input v-model="proc.output_extension">
+          <br/>
+          <label>Command</label>
+          <input v-model="proc.command"
+                 title="Use $input for input file and $output for output file">
+          <br/>
+        </div>
+
+        <!-- Python factory -->
+        <div v-else class="tag-editor">
+          <label>Processor {{$index +1}} </label>
+          <button v-on:click="editor.remove_processor($index)">
+            Remove
+          </button>
+          <br/>
+          Run Python code:
+          <br/>
+          <label>Destination path</label>
+          <input v-model="proc.dest">
+          <br/>
+          <label>Code</label>
+          <textarea style="width:500px; height:100px" v-model="proc.code"
+                    title="Write a Python function called process taking three"\
+                    "arguments (relpath, media, dest)">
+          </textarea>
+          <br/>
+        </div>
+        <button v-on:click="editor.check_processor(proc)">Test</button>
+        <button v-on:click="editor.clear_test_info($index)">Clear</button>
+        <view-job :job="editor.test_job[$index]"
+                  :job_status="editor.test_job_status[$index]"
+                  :project="editor.project">
+        </view-job>
+        <!-- End of for proc in processors -->
+      </div>
+      <br/>
+      <label>Add processor of type:</label>
+      <select v-model="editor.processor_type">
+        <option selected>command</option>
+        <option>python</option>
+      </select>
+      <button v-on:click="editor.add_processor(editor.processor_type)">
+        Add</button>
+      <br>
+    </div>
+  </script>
+
+  <!-- view-job template -->
+  <script type="text/x-template" id="view-job-template">
+    <div v-if="job && job.info">
+      <label>Info:</label>{{job.info}} <br/>
+      <label>Status:</label> {{job.status}} <br/>
+      <div v-if="job.error.length > 0" class="error">
+        <label>Error:</label>
+        <pre>{{job.error}}</pre>
+        <br/>
+      </div>
+    </div>
+    <div v-else v-if="job_status">
+      <div v-if="project && project.media.length == 0">
+        You need to apply changes once to scan the project before you
+        start processing.  Currently no files are available.
+      </div>
+      <div v-else>
+        Nothing to do!  Check your input extensions.
+      </div>
+    </div>
+  </script>
+
+  <!-- view-processor template -->
+  <script type="text/x-template" id="view-processor-template">
+    <label> Processor status: </label> {{processor.status}}
+    <br/>
+    Completed {{processor.completed.length}} of
+    {{processor.jobs.length}} jobs
+    <ul>
+      <li v-for="job in processor.running">{{job.info}}</li>
+    </ul>
+    <button v-on:click="threaded(ui, 'process', project)"
+            v-bind:disabled="processor.status === 'running'">
+      Run processing</button>
+    <div v-if="processor.status === 'error'">
+      <label>Errors</label>
+      <div v-for="job in processor.errored_jobs"
+           class="error resizable" style="height:150px;">
+        <view-job :job="job"></view-job>
+      </div>
+    </div>
+    <br/>
+  </script>
+
+  <!-- Setting up vue.js -->
+  <script>
+  var vm = undefined;
+
+  jigna.ready.done(function() {
+      // Components.
+      Vue.component('view-media', {
+          template: "#view-media-template",
+          props: ['media'],
+      });
+
+      Vue.component('edit-processor', {
+          template: "#edit-processor-template",
+          props: ['editor'],
+      });
+
+      Vue.component('view-job', {
+          template: "#view-job-template",
+          props: ['job', 'job_status', 'project'],
+      });
+
+      Vue.component('view-processor', {
+          template: "#view-processor-template",
+          props: ['processor', 'ui', 'project'],
+          methods: {
+              threaded: function(obj, method_name, args) {
+                  jigna.threaded.apply(jigna, arguments);
+               },
+         }
+      });
+
+      Vue.component('view-directory', {
+          template: "#view-directory-template",
+          props: ['viewer'],
+          computed: {
+              page: {
+                  get: function() {
+                      if (this.my_page < 1) {
+                          this.my_page = 1;
+                      }
+                      else if (this.my_page > this.total()) {
+                          this.my_page = this.total();
+                      }
+                      return this.my_page;
+                  },
+                  set: function(value) {
+                      this.my_page = Math.min(Math.max(1, value), this.total());
+                  }
+              }
+          },
+          data: function() {
+              return {my_page: 1};
+          },
+          methods: {
+              total : function() {
+                  return Math.round(this.viewer.paths.length/20 + 0.5);
+              },
+              next : function() {
+                  this.page += 1;
+              },
+              prev: function() {
+                  this.page -= 1;
+              },
+          }
+      });
+
+      // The Vue instance.
+      var data = Object.assign({}, jigna.models);
+      data.window = window;
+
+      var vm = new Vue({
+          el: "body", // Attach to the body tag.
+          data: data,
+          methods: {
+              threaded: function(obj, method_name, args) {
+                  jigna.threaded.apply(jigna, arguments);
+              },
+              remove_project: function(project) {
+                  var m = "This will remove all saved information about this project, are "+
+                          "you sure you want to delete it?"
+                  if (confirm(m)) {
+                      this.ui.remove(project);
+                  }
+              }
+          }
+      });
+      window.vm = vm;
+  });
+
+</script>
 
 
 </html>

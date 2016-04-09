@@ -3,15 +3,13 @@ import os
 
 from traits.api import Dict, HasTraits, Long, Property, Str
 
+# Some pre-defined file extensions.
+IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
+VIDEO = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
+AUDIO = ['.mp3', '.wav', '.ogg', '.m4a']
+
 
 class Media(HasTraits):
-
-    ########## Traits to be set by the user #######
-    # The file/resource that can be viewed by vixen.  For example, with videos
-    # this is typically a webm file which is created when the media is
-    # initially  processed by vixen.  If the original path is already a webm,
-    # then the view may be the same as the `path` trait.
-    view = Str
 
     # The type of the media, typically ("video", "image" or whatever).  This
     # is technically entirely user defined and hence left as a generic string
@@ -22,8 +20,6 @@ class Media(HasTraits):
     # This is entirely dependent on the nature of the user's data and study
     # and is free-form.
     tags = Dict
-
-    ########## Automatically setup traits. ######
 
     # The file name.
     file_name = Property(Str)
@@ -60,9 +56,20 @@ class Media(HasTraits):
         """Return a flattened dict of the metadata for processing or dumping.
         """
         data = dict(self.to_dict())
-        tags = data.pop('tags')
+        tags = data.pop('tags', {})
         data.update(tags)
         return data
 
     def _get_file_name(self):
         return os.path.basename(self.path)
+
+    def _path_changed(self, path):
+        ext = os.path.splitext(path)[1].lower()
+        if ext in IMAGE:
+            self.type = "image"
+        elif ext in VIDEO:
+            self.type = "video"
+        elif ext in AUDIO:
+            self.type = "audio"
+        else:
+            self.type = "unknown"
