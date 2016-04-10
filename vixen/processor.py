@@ -155,6 +155,8 @@ class CommandFactory(FactoryBase):
         for relpath, media in media_dict.items():
             if os.path.splitext(relpath.lower())[1] != self.input_extension:
                 continue
+            if not os.path.exists(media.path):
+                continue
             out_file = self._get_output(relpath, media, ext)
             if not self._done.get(out_file, False):
                 cmd = self._get_command(media, out_file)

@@ -136,7 +136,7 @@ class TestCommandFactory(TestFactoryBase):
         expect = 'echo %s %s'%(m.path, dest)
         self.assertEqual(job.args, [expect.split(), dest])
 
-    def test_command_factory_commands(self):
+    def test_command_factory_jobs(self):
         # Given.
         import sys
         command = """\
@@ -174,6 +174,20 @@ class TestCommandFactory(TestFactoryBase):
         for attr in cf.__dict__.keys():
             self.assertEqual(getattr(cf1, attr), getattr(cf, attr))
 
+    def test_command_factory_ignores_non_existing_paths(self):
+        # Given.
+        cf = CommandFactory(dest=self.root1, input_extension='.py',
+                            output_extension='.rst',
+                            command="echo $input $output")
+        p = Project(name='test', path=self.root)
+        p.scan()
+        os.remove(os.path.join(self.root, 'hello.py'))
+
+        # When
+        jobs = cf.make_jobs(p.media)
+
+        # Then.
+        self.assertEqual(len(jobs), 0)
 
 
 class TestPythonFunctionFactory(TestFactoryBase):
