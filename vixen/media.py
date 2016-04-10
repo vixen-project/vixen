@@ -40,13 +40,7 @@ class Media(HasTraits):
     @classmethod
     def from_path(cls, path):
         obj = cls(path=os.path.abspath(path))
-        stat = os.stat(path)
-        video_mtime = long(stat.st_mtime)
-        obj.size = stat.st_size
-        dt = datetime.datetime.fromtimestamp(video_mtime)
-        obj.time = str(dt.time())
-        date = dt.date()
-        obj.date = date.strftime('%d %b %Y')
+        obj.update()
         return obj
 
     def to_dict(self):
@@ -59,6 +53,19 @@ class Media(HasTraits):
         tags = data.pop('tags', {})
         data.update(tags)
         return data
+
+    def update(self):
+        """Update the metadata from the file.
+        """
+        path = self.path
+        if os.path.exists(path):
+            stat = os.stat(path)
+            video_mtime = long(stat.st_mtime)
+            self.size = stat.st_size
+            dt = datetime.datetime.fromtimestamp(video_mtime)
+            self.time = str(dt.time())
+            date = dt.date()
+            self.date = date.strftime('%d %b %Y')
 
     def _get_file_name(self):
         return os.path.basename(self.path)

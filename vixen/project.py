@@ -212,6 +212,8 @@ class Project(HasTraits):
                     m = self._create_media(f, default_tags)
                     new_media[f.relpath] = m
                 f.media = m
+                if refresh:
+                    m.update()
             for d in dir.directories:
                 if refresh:
                     d.refresh()

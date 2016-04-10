@@ -108,15 +108,18 @@ class TestProject(unittest.TestCase):
         self.assertEqual(basename(row[2]), 'subsub.txt')
         self.assertEqual(row[0], 'False')
 
-    def test_scan_updates_new_media(self):
+    def test_refresh_updates_new_media(self):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
         self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
+        orig_size = m.size
         # Change this.
         m.tags['completed'] = True
         create_dummy_file(join(self.root, 'sub', 'sub1.txt'))
+        with open(m.path, 'w') as fp:
+            fp.write('hello world\n')
 
         # When
         p.refresh()
@@ -125,6 +128,7 @@ class TestProject(unittest.TestCase):
         m = p.media['root.txt']
         self.assertEqual(m.tags['completed'], True)
         self.assertEqual(len(p.media), 6)
+        self.assertTrue(m.size > orig_size)
         m = p.media['sub/sub1.txt']
         self.assertEqual(m.tags['completed'], False)
 
