@@ -28,7 +28,7 @@ class TestProject(unittest.TestCase):
         self.assertEqual(p.name, 'test')
         self.assertEqual(p.root, None)
         self.assertEqual(len(p.tags), 1)
-        self.assertEqual(p.tags[0].name, 'processed')
+        self.assertEqual(p.tags[0].name, 'completed')
         self.assertEqual(p.tags[0].type, 'bool')
         self.assertEqual(len(p.media), 0)
 
@@ -41,11 +41,11 @@ class TestProject(unittest.TestCase):
         self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         self.assertEqual(len(m.tags), 1)
-        self.assertIn('processed', m.tags)
+        self.assertIn('completed', m.tags)
         m = p.media['sub/sub.txt']
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
-        self.assertIn('processed', m.tags)
+        self.assertIn('completed', m.tags)
 
     def test_load_should_restore_saved_state(self):
         # Given
@@ -66,24 +66,24 @@ class TestProject(unittest.TestCase):
         self.assertEqual(len(p.root.directories), 2)
         self.assertEqual(len(p.root.files), 2)
         self.assertEqual(len(p.tags), 1)
-        self.assertEqual(p.tags[0].name, 'processed')
+        self.assertEqual(p.tags[0].name, 'completed')
         self.assertEqual(p.tags[0].type, 'bool')
 
         self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         self.assertEqual(len(m.tags), 1)
-        self.assertIn('processed', m.tags)
+        self.assertIn('completed', m.tags)
         m = p.media['sub/sub.txt']
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
-        self.assertIn('processed', m.tags)
+        self.assertIn('completed', m.tags)
 
     def test_export_to_csv(self):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
         m = p.media['root.txt']
-        m.tags['processed'] = True
+        m.tags['completed'] = True
         out_fname = tempfile.mktemp(dir=self.root, suffix='.csv')
         out = open(out_fname, 'w')
 
@@ -93,20 +93,20 @@ class TestProject(unittest.TestCase):
         # Then
         reader = csv.reader(open(out_fname))
         cols = reader.next()
-        expected = ['date', 'path', 'processed', 'size', 'time', 'type']
+        expected = ['completed', 'date', 'path', 'size', 'time', 'type']
         self.assertEqual(cols, expected)
         row = reader.next()
-        self.assertEqual(basename(row[1]), 'hello.py')
-        self.assertEqual(row[2], 'False')
+        self.assertEqual(basename(row[2]), 'hello.py')
+        self.assertEqual(row[0], 'False')
         row = reader.next()
-        self.assertEqual(basename(row[1]), 'root.txt')
-        self.assertEqual(row[2], 'True')
+        self.assertEqual(basename(row[2]), 'root.txt')
+        self.assertEqual(row[0], 'True')
         row = reader.next()
-        self.assertEqual(basename(row[1]), 'sub.txt')
-        self.assertEqual(row[2], 'False')
+        self.assertEqual(basename(row[2]), 'sub.txt')
+        self.assertEqual(row[0], 'False')
         row = reader.next()
-        self.assertEqual(basename(row[1]), 'subsub.txt')
-        self.assertEqual(row[2], 'False')
+        self.assertEqual(basename(row[2]), 'subsub.txt')
+        self.assertEqual(row[0], 'False')
 
     def test_scan_updates_new_media(self):
         # Given
@@ -115,7 +115,7 @@ class TestProject(unittest.TestCase):
         self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         # Change this.
-        m.tags['processed'] = True
+        m.tags['completed'] = True
         create_dummy_file(join(self.root, 'sub', 'sub1.txt'))
 
         # When
@@ -123,10 +123,10 @@ class TestProject(unittest.TestCase):
 
         # Then
         m = p.media['root.txt']
-        self.assertEqual(m.tags['processed'], True)
+        self.assertEqual(m.tags['completed'], True)
         self.assertEqual(len(p.media), 6)
         m = p.media['sub/sub1.txt']
-        self.assertEqual(m.tags['processed'], False)
+        self.assertEqual(m.tags['completed'], False)
 
     def test_update_tags_updates_existing_media(self):
         # Given
@@ -142,30 +142,30 @@ class TestProject(unittest.TestCase):
         self.assertEqual(p.tags, new_tags)
         for m in p.media.values():
             self.assertEqual(m.tags['foo'], '')
-            self.assertTrue('processed' not in m.tags)
+            self.assertTrue('completed' not in m.tags)
 
     def test_update_tags_handles_type_changes_for_existing_tag(self):
         # Given
-        tags = [TagInfo(name='processed', type='bool'),
+        tags = [TagInfo(name='completed', type='bool'),
                 TagInfo(name='foo', type='string')]
 
         p = Project(name='test', path=self.root, tags=tags)
         p.scan()
-        p.media.values()[0].tags['processed'] = True
+        p.media.values()[0].tags['completed'] = True
         p.media.values()[0].tags['foo'] = 'hello world'
         # When
         new_tags = [
             TagInfo(name='foo', type='int'),
-            TagInfo(name='processed', type='bool')
+            TagInfo(name='completed', type='bool')
         ]
         p.update_tags(new_tags)
 
         # Then
         self.assertEqual(p.tags, new_tags)
-        self.assertEqual(p.media.values()[0].tags['processed'], True)
+        self.assertEqual(p.media.values()[0].tags['completed'], True)
         self.assertEqual(p.media.values()[0].tags['foo'], 0)
         for m in p.media.values():
-             self.assertEqual(type(m.tags['processed']), bool)
+             self.assertEqual(type(m.tags['completed']), bool)
              self.assertEqual(m.tags['foo'], 0)
 
     def test_get_non_existing_filename(self):

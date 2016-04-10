@@ -183,7 +183,7 @@ class TestPythonFunctionFactory(TestFactoryBase):
         from textwrap import dedent
         code = dedent("""
         def process(relpath, media, dest):
-            media.tags['processed'] = True
+            media.tags['completed'] = True
             media.tags['args'] = "%s %s"%(relpath, dest)
         """)
         factory = PythonFunctionFactory(code=code, dest=self.root1)
@@ -200,7 +200,7 @@ class TestPythonFunctionFactory(TestFactoryBase):
         # Then.
         self.assertEqual(len(jobs), 5)
         for key, media in p.media.items():
-            self.assertEqual(media.tags['processed'], True)
+            self.assertEqual(media.tags['completed'], True)
             expect = "%s %s"%(key, self.root1)
             self.assertEqual(media.tags['args'], expect)
 

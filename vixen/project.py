@@ -246,7 +246,7 @@ class Project(HasTraits):
             self.root = Directory(path=path, extensions=self.extensions)
 
     def _tags_default(self):
-        return [TagInfo(name='processed', type='bool')]
+        return [TagInfo(name='completed', type='bool')]
 
     def _save_file_default(self):
         if len(self.name) > 0:
