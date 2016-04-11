@@ -72,7 +72,7 @@
 <body>
 <div>
 
-  <h3 style="text-align:center">Welcome to ViXeN</h3>
+  <h3 style="text-align:center; padding: 0px; margin: 0px;">Welcome to ViXeN</h3>
 
   <div v-if="ui.is_busy" class="busy-overlay">
     <img :src="ui.loading_image" class="loading" alt="loading..."/>
@@ -155,8 +155,10 @@
 
   <template v-if="ui.mode === 'view' && viewer.project">
 
-    <div v-on:click="ui.home()"><a href="#">Home</a></div>
-    <h3> View Project {{viewer.name}}</h3>
+    <div style="position: absolute; top: 5px;" v-on:click="ui.home()">
+      <a href="#">Home</a>
+    </div>
+    <h3 style="margin: 5px;"> View Project: {{viewer.name}}</h3>
 
     <div v-if="viewer.project.processors.length > 0">
       <view-processor :ui="ui" :processor="ui.processor"
@@ -197,7 +199,7 @@
 
       <view-media :media="viewer.media"></view-media>
     </div>
-    <div style="position: relative; bottom: 5px;">
+    <div style="clear: left; padding: 10px;">
       <hr/>
 
       <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"

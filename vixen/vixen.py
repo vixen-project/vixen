@@ -363,8 +363,7 @@ class ProjectViewer(HasTraits):
         self.media = file.media
 
     def _csv_file_default(self):
-        return ValidPath(path=join('~', 'Downloads', 'data.csv'),
-                         is_file=True)
+        return ValidPath(path=join(expanduser('~'), 'data.csv'), is_file=True)
 
     def _pager_default(self):
         p = Pager(limit=20)
