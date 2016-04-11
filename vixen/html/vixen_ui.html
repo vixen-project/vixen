@@ -10,6 +10,8 @@
             jigna.initialize({async: false});
         </script>
 
+        <script type='text/javascript' src='$HTML_ROOT/mousetrap.min.js'></script>
+
         <style>
             html * {
                 font-family: sans-serif;
@@ -39,6 +41,9 @@
             }
             .processed {
                 color: green;
+            }
+            label.current-index {
+                border: 1px solid;
             }
             label.selected {
                 background: lightblue;
@@ -204,7 +209,7 @@
       <br/>
       <button v-on:click="threaded(viewer.project, 'save')">Save</button>
       <br/>
-      Last saved at: {{viewer.project.last_save_time}}
+      Last saved at: {{viewer.last_save_time}}
     </div>
 
   </template>
@@ -224,9 +229,11 @@
            class="resizable">
         <div v-for="path in pager.data | limitBy pager.limit pager.start">
           <label v-if="path.directories" style="font-weight: bold;"
+                 v-bind:class="{'current-index': pager.rel_index == $index}"
                  v-on:click="pager.select($index)">{{path.name}}/</label>
           <label v-else v-on:click="pager.select($index)"
-                 v-bind:class="pager.selected == path ? 'selected' : ''">
+                 v-bind:class="{'current-index': pager.rel_index == $index,
+                               'selected': pager.selected == path}">
             {{path.name}}
           </label>
         </div>
@@ -438,6 +445,33 @@
           }
       });
       window.vm = vm;
+
+      // Keybindings using Mousetrap
+      Mousetrap.bind(['command+s', 'control+s'], function(e) {
+          jigna.models.ui.save();
+          return false;
+      });
+      // Navigation keys.
+      Mousetrap.bind(['h', 'left'], function(e) {
+          if (jigna.models.ui.mode === 'view') {
+              jigna.models.viewer.go_to_parent();
+          }
+      });
+      Mousetrap.bind(['k', 'n', 'down'], function(e) {
+          if (jigna.models.ui.mode === 'view') {
+              jigna.models.viewer.pager.next();
+          }
+      });
+      Mousetrap.bind(['j', 'p', 'up'], function(e) {
+          if (jigna.models.ui.mode === 'view') {
+              jigna.models.viewer.pager.prev();
+          }
+      });
+      Mousetrap.bind(['l', 'enter', 'right'], function(e) {
+          if (jigna.models.ui.mode === 'view') {
+              jigna.models.viewer.pager.select();
+          }
+      });
   });
 
 </script>

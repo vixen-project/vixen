@@ -134,7 +134,7 @@ class ProjectEditor(HasTraits):
                 cp.scan()
                 cp.save()
                 if self.ui is not None:
-                    self.ui.save()
+                    self.ui.vixen.save()
 
     def check_processor(self, proc):
         with self.ui.busy():
@@ -195,6 +195,8 @@ class Pager(HasTraits):
 
     index = Property(Int, depends_on='_index')
 
+    rel_index = Property(Int, depends_on='_index')
+
     page = Property(Int, depends_on='_page')
 
     start = Property(Int, depends_on='_page')
@@ -209,8 +211,17 @@ class Pager(HasTraits):
     _page = Int
     _index = Int
 
-    def select(self, relindex):
-        self.index = (self.page -1)*self.limit + relindex
+    def select(self, relindex=None):
+        if relindex is None:
+            index = self.index
+        else:
+            index = (self.page -1)*self.limit + relindex
+            self.index = index
+        data = self.data
+        if len(data) > 0:
+            self.selected = data[index]
+        else:
+            self.selected = None
 
     def next(self):
         self.index += 1
@@ -226,11 +237,7 @@ class Pager(HasTraits):
 
     def _data_changed(self, data):
         self.selected = None
-        # Set this to an invalid index, we can't set it to zero as
-        # this will trigger a change to selected, if we set _index to 0 then
-        # if a user clicks on the zero'th index nothing will change as _index
-        # is already 0.
-        self._index = -1
+        self._index = 0
         self._page = 1
 
     def _get_page(self):
@@ -241,6 +248,9 @@ class Pager(HasTraits):
         limit = self.limit
         if p != self._page:
             self._page = p
+            base_index = (p -1)*limit
+            if self.index < base_index or self.index > base_index + limit:
+                self.index = base_index
 
     def _get_start(self):
         return (self.page - 1)*self.limit
@@ -257,17 +267,15 @@ class Pager(HasTraits):
         idx = min(max(0, index), self.total-1)
         if idx != self._index:
             self._index = idx
-            data = self.data
-            if len(data) > 0:
-                self.selected = data[idx]
-            else:
-                self.selected = None
             desired_page = int(idx/self.limit) + 1
             if self.page != desired_page:
                 self.page = desired_page
 
     def __index_default(self):
         return -1
+
+    def _get_rel_index(self):
+        return self.index - (self.page - 1)*self.limit
 
     def _get_total(self):
         return len(self.data)
@@ -303,6 +311,8 @@ class ProjectViewer(HasTraits):
     csv_file = Instance(ValidPath)
 
     csv_file_valid = DelegatesTo('csv_file', prefix='valid')
+
+    last_save_time = DelegatesTo('project')
 
     type = Enum("unknown", "image", "video", "audio")
 
@@ -416,9 +426,12 @@ class VixenUI(HasTraits):
 
     def save(self):
         with self.busy():
-            if self.editor.project is not None:
-                self.editor.project.save()
-            self.vixen.save()
+            if self.mode == 'edit':
+                if self.editor and self.editor.project is not None:
+                    self.editor.apply()
+            elif self.mode == 'view':
+                if self.viewer.project is not None:
+                    self.viewer.project.save()
 
     @contextmanager
     def busy(self):

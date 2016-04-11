@@ -18,24 +18,27 @@ class TestPager(unittest.TestCase):
         self.assertEqual(p.total_pages, 5)
         self.assertEqual(p.view, list(range(2)))
         self.assertEqual(p.selected, None)
+        self.assertEqual(p.index, 0)
 
         # When.
         p.next()
         # Then.
         self.assertEqual(p.view, list(range(2)))
-        self.assertEqual(p.selected, 0)
+        self.assertEqual(p.index, 1)
+        self.assertEqual(p.selected, None)
 
         # When.
-        p.next(); p.next()
+        p.next(); p.next(); p.select()
         # Then.
-        self.assertEqual(p.index, 2)
+        self.assertEqual(p.index, 3)
         self.assertEqual(p.view, list(range(2,4)))
         self.assertEqual(p.page, 2)
-        self.assertEqual(p.selected, 2)
+        self.assertEqual(p.selected, 3)
 
         # When.
         for i in range(8):
             p.next()
+        p.select()
         # Then.
         self.assertEqual(p.index, 9)
         self.assertEqual(p.page, 5)
@@ -58,12 +61,17 @@ class TestPager(unittest.TestCase):
         # Then.
         self.assertEqual(p.index, 0)
         self.assertEqual(p.view, list(range(2)))
+        self.assertEqual(p.selected, None)
+
+        # When
+        p.select()
         self.assertEqual(p.selected, 0)
 
         # When.
         for i in range(10):
             p.next()
         p.prev()
+        p.select()
 
         # Then.
         self.assertEqual(p.index, 8)
@@ -92,7 +100,7 @@ class TestPager(unittest.TestCase):
 
         # Then
         self.assertEqual(p.start, 4)
-        self.assertEqual(p.index, 2)
+        self.assertEqual(p.index, 4)
         self.assertEqual(p.view, list(range(4,6)))
         self.assertEqual(p.page, 3)
         self.assertEqual(p.selected, 2)
@@ -136,7 +144,7 @@ class TestPager(unittest.TestCase):
         # Then.
         self.assertEqual(p.total, 11)
         self.assertEqual(p.total_pages, 6)
-        self.assertEqual(p.index, -1)
+        self.assertEqual(p.index, 2)
         self.assertEqual(p.view, list(range(2,4)))
         self.assertEqual(p.page, 2)
         self.assertEqual(p.selected, None)
