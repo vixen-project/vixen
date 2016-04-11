@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-from traits.api import (Bool, DelegatesTo, Dict, Enum, HasTraits, Instance,
+from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits, Instance,
                         Int, List, Property, Str)
 
 from .project import Project, TagInfo, get_project_dir
@@ -184,6 +184,104 @@ class ProjectEditor(HasTraits):
         self.valid_path = isdir(self._get_actual_path(path))
 
 
+class Pager(HasTraits):
+
+    """A simple paginator for a large list of elements.
+    """
+
+    selected = Any
+
+    limit = Int(20)
+
+    index = Property(Int, depends_on='_index')
+
+    page = Property(Int, depends_on='_page')
+
+    start = Property(Int, depends_on='_page')
+
+    view = Property(List, depends_on=['page', 'data'])
+
+    total = Property(Int, depends_on='data')
+
+    total_pages = Property(Int, depends_on=['data', 'limit'])
+
+    data = List
+    _page = Int
+    _index = Int
+
+    def select(self, relindex):
+        self.index = (self.page -1)*self.limit + relindex
+
+    def next(self):
+        self.index += 1
+
+    def prev(self):
+        self.index -= 1
+
+    def next_page(self):
+        self.page += 1
+
+    def prev_page(self):
+        self.page -= 1
+
+    def _data_changed(self, data):
+        self.selected = None
+        # Set this to an invalid index, we can't set it to zero as
+        # this will trigger a change to selected, if we set _index to 0 then
+        # if a user clicks on the zero'th index nothing will change as _index
+        # is already 0.
+        self._index = -1
+        self._page = 1
+
+    def _get_page(self):
+        return self._page
+
+    def _set_page(self, page):
+        p = min(max(1, page), self.total_pages)
+        limit = self.limit
+        if p != self._page:
+            self._page = p
+
+    def _get_start(self):
+        return (self.page - 1)*self.limit
+
+    def _get_view(self):
+        p = self.page -1
+        limit = self.limit
+        return self.data[p*limit:(p+1)*limit]
+
+    def _get_index(self):
+        return self._index
+
+    def _set_index(self, index):
+        idx = min(max(0, index), self.total-1)
+        if idx != self._index:
+            self._index = idx
+            data = self.data
+            if len(data) > 0:
+                self.selected = data[idx]
+            else:
+                self.selected = None
+            desired_page = int(idx/self.limit) + 1
+            if self.page != desired_page:
+                self.page = desired_page
+
+    def __index_default(self):
+        return -1
+
+    def _get_total(self):
+        return len(self.data)
+
+    def _get_total_pages(self):
+        size = len(self.data)
+        n = size/self.limit if size > 0 else 1
+        rem = size%self.limit
+        if rem > 0:
+            return n + 1
+        else:
+            return n
+
+
 class ProjectViewer(HasTraits):
 
     project = Instance(Project, allow_none=True)
@@ -198,7 +296,7 @@ class ProjectViewer(HasTraits):
 
     current_file = Instance(File)
 
-    paths = List
+    pager = Instance(Pager)
 
     media = Instance(Media)
 
@@ -247,7 +345,7 @@ class ProjectViewer(HasTraits):
 
     def _current_dir_changed(self, d):
         self.parent = d.parent
-        self.paths = d.directories + d.files
+        self.pager.data = d.directories + d.files
 
     def _current_file_changed(self, file):
         if file is None:
@@ -255,7 +353,14 @@ class ProjectViewer(HasTraits):
         self.media = file.media
 
     def _csv_file_default(self):
-        return ValidPath(path=join('~', 'Downloads', 'data.csv'), is_file=True)
+        return ValidPath(path=join('~', 'Downloads', 'data.csv'),
+                         is_file=True)
+
+    def _pager_default(self):
+        p = Pager(limit=20)
+        p.on_trait_change(self.view, 'selected')
+        return p
+
 
 
 class VixenUI(HasTraits):
