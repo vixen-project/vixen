@@ -386,8 +386,6 @@ class VixenUI(HasTraits):
 
     is_busy = Bool(False)
 
-    loading_image = Str
-
     def get_context(self):
         return dict(
             ui=self, vixen=self.vixen, editor=self.editor, viewer=self.viewer
@@ -450,9 +448,6 @@ class VixenUI(HasTraits):
 
     def _viewer_default(self):
         return ProjectViewer(ui=self)
-
-    def _loading_image_default(self):
-        return join(dirname(__file__), 'html', 'loading.gif')
 
     def _processor_default(self):
         return Processor()
