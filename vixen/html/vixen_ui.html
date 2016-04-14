@@ -1,13 +1,13 @@
 <html>
   <head>
-    <title>ViXen media viewer</title>
+    <title>ViXeN media viewer</title>
 
         <!-- Load the jigna script. -->
         <script type='text/javascript' src='/jigna/jigna-vue.js'></script>
 
         <!-- Once jigna is loaded, initialize it. -->
         <script type='text/javascript'>
-            jigna.initialize({async: false});
+            jigna.initialize({async: false, debug: false});
         </script>
 
         <script type='text/javascript' src='$HTML_ROOT/mousetrap.min.js'></script>
@@ -74,8 +74,8 @@
 
   <h3 style="text-align:center; padding: 0px; margin: 0px;">Welcome to ViXeN</h3>
 
-  <div v-if="ui.is_busy" class="busy-overlay">
-    <img :src="ui.loading_image" class="loading" alt="loading..."/>
+  <div v-if="ui.is_busy" id="busy-overlay" class="busy-overlay">
+    <img src="$HTML_ROOT/loading.gif" class="loading" alt="loading..."/>
     <p class="loading">Please wait...</p>
   </div>
 
@@ -84,8 +84,8 @@
     <ul>
       <li v-for="project in vixen.projects" >
         {{project.name}}
-        <button v-on:click="threaded(ui, 'view', project)">View</button>
-        <button v-on:click="threaded(ui, 'edit', project)">Edit</button>
+        <button v-on:click="busy_call(ui, 'view', project)">View</button>
+        <button v-on:click="busy_call(ui, 'edit', project)">Edit</button>
         <button v-on:click="remove_project(project)">Remove</button>
       </li>
     </ul>
@@ -139,7 +139,7 @@
       <div v-if="editor.available_exts">
         Available extensions are: {{editor.available_exts}}
       </div>
-      <button v-on:click="threaded(editor, 'find_extensions')">
+      <button v-on:click="busy_call(editor, 'find_extensions')">
         Find available extensions
       </button>
       <br>
@@ -148,7 +148,7 @@
       <edit-processor :editor="editor"></edit-processor>
 
       <button v-bind:disabled="!editor.valid_path"
-      v-on:click="threaded(editor, 'apply')">Apply changes</button>
+      v-on:click="busy_call(editor, 'apply')">Apply changes</button>
 
     </div>
   </template>
@@ -167,35 +167,15 @@
     </div>
 
     This project has {{viewer.project.number_of_files}} files.
-    <button v-on:click="threaded(viewer, 'rescan')">Rescan</button>
+    <button v-on:click="busy_call(viewer, 'rescan')">Rescan</button>
     <br>
 
-    <view-directory :viewer="viewer" :pager="viewer.pager"></view-directory>
+    <view-directory :viewer="viewer" :pager="viewer.pager"
+                    :current_dir="viewer.current_dir"></view-directory>
 
     <div v-if="viewer.current_file" style="padding:5px;">
-      <div class="tag-editor" style="float:left; padding: 5px">
-        <label> Name: </label>
-        <label title="Click to open with system viewer" style="color:blue;"
-               v-on:click="viewer.os_open(viewer.current_file.path)">
-          {{viewer.current_file.name}}</label>
-        <br>
-        <label> Date: </label> {{viewer.media.date}}
-        <br/>
-        <label> Time: </label> {{viewer.media.time}}
-        <br/>
-        <label> Size: </label> {{(viewer.media.size/1024).toFixed(1)}} (KB)
-        <br/>
-
-        <div v-for="tag in viewer.project.tags">
-          <label>{{tag.name}}</label>
-          <input v-if="tag.type == 'bool'" v-model="viewer.media.tags[tag.name]"
-                 type="checkbox">
-          <input v-if="tag.type == 'string'"
-                 v-model="viewer.media.tags[tag.name]">
-          <input v-if="tag.type == 'int' || tag.type == 'float'"
-                 v-model="viewer.media.tags[tag.name]" number>
-        </div>
-      </div>
+      <edit-media :viewer="viewer" :current_file="viewer.current_file"
+                  :media="viewer.media"></edit-media>
 
       <view-media :media="viewer.media"></view-media>
     </div>
@@ -209,7 +189,7 @@
                           window.alert(viewer.csv_file.path + '
                           created.')">Export CSV</button>
       <br/>
-      <button v-on:click="threaded(viewer.project, 'save')">Save</button>
+      <button v-on:click="busy_call(viewer.project, 'save')">Save</button>
       <br/>
       Last saved at: {{viewer.last_save_time}}
     </div>
@@ -224,7 +204,7 @@
   <script type="text/x-template" id="view-directory-template">
     <div>
       Current directory:
-      {{viewer.project.root.name}}/{{viewer.current_dir.relpath}}
+      {{viewer.project.root.name}}/{{current_dir.relpath}}
       <br>
       <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
       <div style="height:100px; width: 300px; overflow:scroll;"
@@ -240,11 +220,38 @@
           </label>
         </div>
       </div>
-      {{viewer.current_dir.files.length}} files.
+      {{current_dir.files.length}} files.
       Page {{pager.page}}
       <input v-show="pager.total_pages > 1" v-model="pager.page"
              type="range" min="1" v-bind:max="pager.total_pages">
       of {{pager.total_pages}}
+    </div>
+  </script>
+
+  <!-- edit-media template -->
+  <script type="text/x-template" id="edit-media-template">
+    <div class="tag-editor" style="float:left; padding: 5px">
+      <label> Name: </label>
+      <label title="Click to open with system viewer" style="color:blue;"
+             v-on:click="viewer.os_open(current_file.path)">
+        {{current_file.name}}</label>
+      <br>
+      <label> Date: </label> {{media.date}}
+      <br/>
+      <label> Time: </label> {{media.time}}
+      <br/>
+      <label> Size: </label> {{(media.size/1024).toFixed(1)}} (KB)
+      <br/>
+
+      <div v-for="tag in viewer.project.tags">
+        <label>{{tag.name}}</label>
+        <input v-if="tag.type == 'bool'" v-model="media.tags[tag.name]"
+               type="checkbox">
+        <input v-if="tag.type == 'string'"
+               v-model="media.tags[tag.name]">
+        <input v-if="tag.type == 'int' || tag.type == 'float'"
+               v-model="media.tags[tag.name]" number>
+      </div>
     </div>
   </script>
 
@@ -390,12 +397,44 @@
     <br/>
   </script>
 
+
   <!-- Setting up vue.js -->
   <script>
-  var vm = undefined;
+  var busy_call = function(obj, method_name, args) {
 
+      // We do this as calling the function directly will block. Since the JS
+      // code is blocking, the UI will not update to show the busy status.  We
+      // therefore manually set the busy status and then call the method via
+      // setTimeout and set the status back once done.
+
+      // 'this' is bound to either the Vue instance or component.
+      this.ui.is_busy = true;
+
+      var self = this;
+      var args = Array.prototype.slice.call(arguments, 2);
+      setTimeout(function() {
+          obj[method_name].apply(obj, args);
+          self.ui.is_busy = false;
+      });
+  };
+
+  var threaded = function(obj, method_name, args) {
+      jigna.threaded.apply(jigna, arguments);
+  };
+
+  var vm = undefined;
   jigna.ready.done(function() {
       // Components.
+      Vue.component('view-directory', {
+          template: "#view-directory-template",
+          props: ['viewer', 'pager', 'current_dir'],
+      });
+
+      Vue.component('edit-media', {
+          template: "#edit-media-template",
+          props: ['viewer', 'current_file', 'media'],
+      });
+
       Vue.component('view-media', {
           template: "#view-media-template",
           props: ['media'],
@@ -415,15 +454,8 @@
           template: "#view-processor-template",
           props: ['processor', 'ui', 'project'],
           methods: {
-              threaded: function(obj, method_name, args) {
-                  jigna.threaded.apply(jigna, arguments);
-               },
-         }
-      });
-
-      Vue.component('view-directory', {
-          template: "#view-directory-template",
-          props: ['viewer', 'pager'],
+              threaded: threaded
+          },
       });
 
       // The Vue instance.
@@ -434,9 +466,8 @@
           el: "body", // Attach to the body tag.
           data: data,
           methods: {
-              threaded: function(obj, method_name, args) {
-                  jigna.threaded.apply(jigna, arguments);
-              },
+              threaded: threaded,
+              busy_call: busy_call,
               remove_project: function(project) {
                   var m = "This will remove all saved information about this project, are "+
                           "you sure you want to delete it?"
@@ -446,6 +477,8 @@
               }
           }
       });
+
+      // Useful when debugging.
       window.vm = vm;
 
       // Keybindings using Mousetrap
