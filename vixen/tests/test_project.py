@@ -92,19 +92,19 @@ class TestProject(unittest.TestCase):
 
         # Then
         reader = csv.reader(open(out_fname))
-        cols = reader.next()
+        cols = next(reader)
         expected = ['completed', 'date', 'path', 'size', 'time', 'type']
         self.assertEqual(cols, expected)
-        row = reader.next()
+        row = next(reader)
         self.assertEqual(basename(row[2]), 'hello.py')
         self.assertEqual(row[0], 'False')
-        row = reader.next()
+        row = next(reader)
         self.assertEqual(basename(row[2]), 'root.txt')
         self.assertEqual(row[0], 'True')
-        row = reader.next()
+        row = next(reader)
         self.assertEqual(basename(row[2]), 'sub.txt')
         self.assertEqual(row[0], 'False')
-        row = reader.next()
+        row = next(reader)
         self.assertEqual(basename(row[2]), 'subsub.txt')
         self.assertEqual(row[0], 'False')
 
@@ -155,8 +155,8 @@ class TestProject(unittest.TestCase):
 
         p = Project(name='test', path=self.root, tags=tags)
         p.scan()
-        p.media.values()[0].tags['completed'] = True
-        p.media.values()[0].tags['foo'] = 'hello world'
+        list(p.media.values())[0].tags['completed'] = True
+        list(p.media.values())[0].tags['foo'] = 'hello world'
         # When
         new_tags = [
             TagInfo(name='foo', type='int'),
@@ -166,8 +166,8 @@ class TestProject(unittest.TestCase):
 
         # Then
         self.assertEqual(p.tags, new_tags)
-        self.assertEqual(p.media.values()[0].tags['completed'], True)
-        self.assertEqual(p.media.values()[0].tags['foo'], 0)
+        self.assertEqual(list(p.media.values())[0].tags['completed'], True)
+        self.assertEqual(list(p.media.values())[0].tags['foo'], 0)
         for m in p.media.values():
              self.assertEqual(type(m.tags['completed']), bool)
              self.assertEqual(m.tags['foo'], 0)
@@ -206,7 +206,7 @@ class TestProject(unittest.TestCase):
 
         # Then
         self.assertEqual(len(p.media), 1)
-        self.assertEqual(p.media.keys()[0], 'hello.py')
+        self.assertEqual(list(p.media.keys())[0], 'hello.py')
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from jigna.vue_template import VueTemplate
 from jigna.web_app import WebApp
 from os.path import join, dirname
@@ -22,5 +23,5 @@ def main(**context):
     autoreload.watch(html_file)
     app.listen(8000)
     url = 'http://localhost:8000'
-    print "Point your browser to", url
+    print("Point your browser to", url)
     ioloop.start()

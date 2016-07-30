@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from traits.api import Dict, HasTraits, Long, Property, Str
+from traits.api import Dict, HasTraits, Int, Property, Str
 
 # Some pre-defined file extensions.
 IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
@@ -34,7 +34,7 @@ class Media(HasTraits):
     date = Str
 
     # The size of the file in bytes.
-    size = Long
+    size = Int
 
 
     @classmethod
@@ -60,7 +60,7 @@ class Media(HasTraits):
         path = self.path
         if os.path.exists(path):
             stat = os.stat(path)
-            video_mtime = long(stat.st_mtime)
+            video_mtime = int(stat.st_mtime)
             self.size = stat.st_size
             dt = datetime.datetime.fromtimestamp(video_mtime)
             self.time = str(dt.time())

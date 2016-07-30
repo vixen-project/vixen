@@ -129,7 +129,7 @@ class Project(HasTraits):
             line = []
             for key in cols:
                 elem = d[key]
-                if isinstance(elem, basestring):
+                if isinstance(elem, str):
                     elem = '"%s"'%elem
                 else:
                     elem = str(elem) if elem is not None else ""
