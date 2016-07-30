@@ -9,9 +9,14 @@ setup(
     name='vixen',
     version=data.get('__version__'),
     author='Prabhu Ramachandran and Kadambari Devarajan',
+    author_email='prabhu@aero.iitb.ac.in',
     description='View eXtract and aNnotate media',
+    url='https://github.com/prabhuramachandran/vixen',
     packages=find_packages(),
     package_dir={'vixen':'vixen'},
+    package_data={
+        '': ['*.html', '*.css', '*.gif', '*.js']
+    },
     include_package_data=True,
     entry_points="""
         [console_scripts]
