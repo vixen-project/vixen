@@ -1,0 +1,146 @@
+@import 'https://fonts.googleapis.com/css?family=Titillium+Web';
+Html, html * {
+  font-family: 'Titillium Web';
+  cursor: default;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+/* simple 5 column grid */
+div, article, section {
+  box-sizing: border-box;
+}
+[class$="fifth"], .whole, .half, .third, .quarter, .sans-third, .sans-quarter {
+  float: left;
+}
+.one-fifth {
+  width: 20%; }
+.two-fifth {
+  width: 40% }
+.three-fifth {
+  width: 60%; }
+.four-fifth {
+  width: 80%; }
+.whole {
+  width: 100%; }
+.half {
+  width: 50%; }
+.third {
+  width: 33.333%; }
+.sans-third {
+  width: 66.66%; }
+.quarter {
+  width: 25%; }
+.sans-quarter {
+  width: 75%; }
+h3.title {
+  height: 5vh;
+  line-height: 5vh;
+  text-align: center;
+  padding: 0; margin: 0;
+  font-size: 3vh;
+  border-bottom: 1px solid lightgray;
+}
+a, button, input[type=button][type=submit] {
+  cursor: pointer;
+}
+section {
+  min-height: 95vh;
+  position: relative;
+  /* this is important if this block contains children that are
+  positioned (absolute | relative | static) to use this as the frame
+  of reference instead of one of its positioned parents */ }
+body {
+  /* clear everything, we need a clean slate snugly fit into the window */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+.viewer {
+  margin: 2rem;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  min-height: 60vh;
+  text-align: center;
+  background:#eee;
+}
+.main-controls {
+  width: 100%;
+  min-height: 10vh;
+  display:block;
+  position: absolute;
+  bottom: 0;
+  background: #fff;
+  padding: 5vh;
+  text-align: right;
+  box-shadow: inset 0 0 10px rgba(0,0,40,0.3);
+}
+button.main {
+  padding: 0.7em;
+  font-size: 1.2em;
+  color: #333;
+  background: #fff;
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+/********************************************
+     Application specific styles.
+*********************************************/
+
+.busy-overlay {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    z-index: 100;
+}
+img.loading {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+}
+p.loading {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+}
+.resizable {
+    padding: 5px;
+    border: 1px solid;
+    resize: both;
+    overflow: auto;
+    width: 800px;
+}
+
+.directory-browser {
+    overflow:scroll;
+    box-shadow:inset 0 0 10px rgba(0,0,0,0.2);
+}
+
+.processed {
+    color: green;
+}
+label {
+    line-height: 1.2;
+}
+label.current-index {
+    border: 1px solid;
+    line-height: 1.2;
+}
+label.selected {
+    background: lightblue;
+    padding: 0px;
+}
+.tag-editor label {
+    width: 10rem;
+    display: inline-block;
+    margin: 0.15rem auto;
+}
+.media-browser {
+    width: 30%;
+    margin: auto;
+}
+.error {
+    color: red;
+}
+.success {
+    color: green;
+}

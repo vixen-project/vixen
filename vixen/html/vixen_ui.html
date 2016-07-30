@@ -1,5 +1,9 @@
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>ViXeN media viewer</title>
 
         <!-- Load the jigna script. -->
@@ -10,76 +14,24 @@
             jigna.initialize({async: false, debug: false});
         </script>
 
-        <script type='text/javascript' src='$HTML_ROOT/mousetrap.min.js'></script>
+        <script type='text/javascript' src='$HTML_ROOT/js/mousetrap.min.js'>
+        </script>
 
-        <style>
-            html * {
-                font-family: sans-serif;
-            }
-            .busy-overlay {
-                height: 100%;
-                width: 100%;
-                position: fixed;
-                z-index: 100;
-            }
-            img.loading {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-            }
-            p.loading {
-                position: absolute;
-                top: 55%;
-                left: 50%;
-            }
-            .resizable {
-                padding: 5px;
-                border: 1px solid;
-                resize: both;
-                overflow: auto;
-                width: 800px;
-            }
-            .processed {
-                color: green;
-            }
-            label.current-index {
-                border: 1px solid;
-            }
-            label.selected {
-                background: lightblue;
-            }
-            .tag-editor label {
-                width: 10rem;
-                display: inline-block;
-                margin: 0.15rem auto;
-            }
-            .media-browser {
-                width: 30%;
-                margin: auto;
-            }
-            .error {
-            color: red;
-            }
-            .success {
-            color: green;
-            }
-            select,button {
-                font-size: 1rem;
-            }
-        </style>
+        <link href="$HTML_ROOT/css/style.css" rel="stylesheet">
     </head>
 
 <body>
 <div>
 
-  <h3 style="text-align:center; padding: 0px; margin: 0px;">Welcome to ViXeN</h3>
+  <h2 style="text-align:center; padding: 0px; margin: 0px;">Welcome to ViXeN</h2>
 
   <div v-if="ui.is_busy" id="busy-overlay" class="busy-overlay">
-    <img src="$HTML_ROOT/loading.gif" class="loading" alt="loading..."/>
+    <img src="$HTML_ROOT/images/loading.gif" class="loading" alt="loading..."/>
     <p class="loading">Please wait...</p>
   </div>
 
   <template v-if="ui.mode !== 'view'">
+    <section class='third' style="background:#ffe">
     <h3>Available Projects</h3>
     <ul>
       <li v-for="project in vixen.projects" >
@@ -91,11 +43,14 @@
     </ul>
     <button style="font-size:larger; margin:0.5rem"
             v-on:click="ui.add_project()" type="button">New Project</button>
+  </section>
   </template>
 
-  <br/>
-
   <template v-if="ui.mode === 'edit' && editor.project">
+
+  <section class="sans-third"
+           style='background:#f0f0f0'>
+
     <h3> Edit Project</h3>
     <div class="tag-editor" style="float:left; padding: 5px">
       <label> Name: </label> <input v-model="editor.name"><br>
@@ -105,7 +60,7 @@
       <input v-bind:class="editor.valid_path ? 'success' : 'error'"
              v-model="editor.path" debounce="500">
         <br>
-      <label> Tags: </label> <br>
+      <label> <b>Tags</b> </label> <br>
       <div v-for="tag in editor.tags">
         <label>{{tag.name}}</label>
         <select v-model="tag.type">
@@ -147,10 +102,13 @@
       <!-- Processors -->
       <edit-processor :editor="editor"></edit-processor>
 
-      <button v-bind:disabled="!editor.valid_path"
-      v-on:click="busy_call(editor, 'apply')">Apply changes</button>
+      <br/>
+      <button style="font-size:larger; margin:0.5rem"
+              v-bind:disabled="!editor.valid_path"
+              v-on:click="busy_call(editor, 'apply')">Apply changes</button>
 
     </div>
+    </section>
   </template>
 
   <template v-if="ui.mode === 'view' && viewer.project">
@@ -158,6 +116,8 @@
     <div style="position: absolute; top: 5px;" v-on:click="ui.home()">
       <a href="#">Home</a>
     </div>
+    <section class='third' style='background:#ffe'>
+
     <h3 style="margin: 5px;"> View Project: {{viewer.name}}</h3>
 
     <div v-if="viewer.project.processors.length > 0">
@@ -176,8 +136,6 @@
     <div v-if="viewer.current_file" style="padding:5px;">
       <edit-media :viewer="viewer" :current_file="viewer.current_file"
                   :media="viewer.media"></edit-media>
-
-      <view-media :media="viewer.media"></view-media>
     </div>
     <div style="clear: left; padding: 10px;">
       <hr/>
@@ -193,7 +151,15 @@
       <br/>
       Last saved at: {{viewer.last_save_time}}
     </div>
+    </section>
 
+    <section class="sans-third"
+             style="background:#f0f0f0;box-shadow:inset 0 0 10px rgba(0,0,0,0.2)">
+
+    <div v-if="viewer.current_file" style="padding:5px;">
+          <view-media class="viewer" :media="viewer.media"></view-media>
+    </div>
+    </section>
   </template>
 
 </div>
@@ -207,8 +173,8 @@
       {{viewer.project.root.name}}/{{current_dir.relpath}}
       <br>
       <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
-      <div style="height:100px; width: 300px; overflow:scroll;"
-           class="resizable">
+      <div style="height:100px; width: 300px;"
+           class="resizable directory-browser">
         <div v-for="path in pager.data | limitBy pager.limit pager.start">
           <label v-if="path.directories" style="font-weight: bold;"
                  v-bind:class="{'current-index': pager.rel_index == $index}"
