@@ -102,7 +102,7 @@ class TestDirectory(unittest.TestCase):
         self.assertEqual(file_obj.name, 'hello.py')
         self.assertEqual(file_obj.parent, d)
         self.assertEqual(file_obj.relpath, 'hello.py')
-        sub_dir = d.directories[0]
+        sub_dir = self.get_path_from_name(d.directories, 'sub')
         self.assertEqual(len(sub_dir.files), 0)
         self.assertEqual(sub_dir.name, 'sub')
         self.assertEqual(sub_dir.parent, d)
@@ -123,7 +123,7 @@ class TestDirectory(unittest.TestCase):
         self.assertEqual(file_obj.name, 'root.txt')
         self.assertEqual(file_obj.parent, d)
         self.assertEqual(file_obj.relpath, 'root.txt')
-        sub_dir = d.directories[0]
+        sub_dir = self.get_path_from_name(d.directories, 'sub')
         self.assertEqual(len(sub_dir.files), 1)
         self.assertEqual(sub_dir.name, 'sub')
         self.assertEqual(sub_dir.parent, d)
