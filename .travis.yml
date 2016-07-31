@@ -4,7 +4,13 @@ python:
 
 install:
   - pip install -r requirements.txt
+  - pip install coverage
   - python setup.py develop
 
 script:
-  - nosetests -v
+  - coverage erase
+  - coverage run --source vixen -p -m nose.core -v vixen
+  - coverage combine
+
+after_success:
+  - coverage report
