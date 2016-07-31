@@ -430,6 +430,13 @@ class VixenUI(HasTraits):
                 if self.viewer.project is not None:
                     self.viewer.project.save()
 
+    def halt(self):
+        """Shut down the webserver.
+        """
+        from tornado.ioloop import IOLoop
+        ioloop = IOLoop.instance()
+        ioloop.stop()
+
     @contextmanager
     def busy(self):
         self.is_busy = True
