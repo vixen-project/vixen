@@ -33,26 +33,31 @@ class TestDirectory(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self._temp)
 
+    def get_path_from_name(self, d, name):
+        for f in d:
+            if f.name == name:
+                return f
+
     def check_root(self, d):
         self.assertEqual(d.name, 'test')
         self.assertEqual(d.parent, None)
         self.assertEqual(d.relpath, '')
         self.assertEqual(len(d.files), 2)
-        file_obj = d.files[0]
+        file_obj = self.get_path_from_name(d.files, 'hello.py')
         self.assertEqual(file_obj.name, 'hello.py')
         self.assertEqual(file_obj.parent, d)
         self.assertEqual(file_obj.relpath, 'hello.py')
-        file_obj = d.files[1]
+        file_obj = self.get_path_from_name(d.files, 'root.txt')
         self.assertEqual(file_obj.name, 'root.txt')
         self.assertEqual(file_obj.parent, d)
         self.assertEqual(file_obj.relpath, 'root.txt')
 
         self.assertEqual(len(d.directories), 2)
-        sub_dir = d.directories[0]
+        sub_dir = self.get_path_from_name(d.directories, 'sub')
         self.assertEqual(sub_dir.name, 'sub')
         self.assertEqual(sub_dir.parent, d)
         self.assertEqual(sub_dir.relpath, 'sub')
-        file_obj = sub_dir.files[0]
+        file_obj = self.get_path_from_name(sub_dir.files, 'sub.txt')
         self.assertEqual(file_obj.name, 'sub.txt')
         self.assertEqual(file_obj.parent, sub_dir)
         self.assertEqual(file_obj.relpath, join('sub', 'sub.txt'))
