@@ -1,4 +1,6 @@
 *.py[co]
 *~
+.coverage
 build/
+dist/
 *.egg-info/
