@@ -10,7 +10,7 @@ from tornado.ioloop import IOLoop
 from tornado import autoreload
 
 
-def main(dev=False, **context):
+def main(dev=False, port=None, **context):
     async = False
     html_dir = join(dirname(__file__), 'html')
 
@@ -26,11 +26,13 @@ def main(dev=False, **context):
         html = html.replace('$HTML_ROOT', html_dir)
     template = VueTemplate(html=html, base_url='/', async=async)
     ioloop = IOLoop.instance()
-    if dev:
-        port = 8000
-    else:
-        from jigna.utils.web import get_free_port
-        port = get_free_port()
+    if port is None:
+        if dev:
+            port = 8000
+        else:
+            from jigna.utils.web import get_free_port
+            port = get_free_port()
+
     app = WebApp(
         template=template, context=context,
         port=port, async=async,
