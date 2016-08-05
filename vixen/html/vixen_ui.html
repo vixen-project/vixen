@@ -30,6 +30,15 @@
     <p class="loading">Please wait...</p>
   </div>
 
+  <!-- Menu on the top -->
+  <div style="position: absolute; top: 5px;" v-on:click="ui.home()">
+    <a href="#">Home</a>
+  </div>
+  <div style="position: absolute; top: 5px; right: 5px;">
+    <button v-on:click="halt()">Stop ViXeN</button>
+  </div>
+  <!--  Menu end -->
+
   <template v-if="ui.mode !== 'view'">
     <section class='third' style="background:#ffe">
     <h3>Available Projects</h3>
@@ -113,9 +122,6 @@
 
   <template v-if="ui.mode === 'view' && viewer.project">
 
-    <div style="position: absolute; top: 5px;" v-on:click="ui.home()">
-      <a href="#">Home</a>
-    </div>
     <section class='third' style='background:#ffe'>
 
     <h3 style="margin: 5px;"> View Project: {{viewer.name}}</h3>
@@ -161,7 +167,6 @@
     </div>
     </section>
   </template>
-
 </div>
 </body>
 
@@ -440,6 +445,11 @@
                   if (confirm(m)) {
                       this.ui.remove(project);
                   }
+              },
+              halt: function() {
+                  this.ui.halt();
+                  var m = "ViXeN has been stopped, please close this tab/window.";
+                  this.window.alert(m);
               }
           }
       });
