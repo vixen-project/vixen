@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from os.path import dirname, isdir, join
+import sys
 import webbrowser
 
 from jigna.vue_template import VueTemplate
@@ -10,8 +11,7 @@ from tornado.ioloop import IOLoop
 from tornado import autoreload
 
 
-def main(dev=False, port=None, **context):
-    async = False
+def get_html_file():
     html_dir = join(dirname(__file__), 'html')
 
     # When the app is bundled by pyinstaller, we cannot have a vixen directory
@@ -20,11 +20,37 @@ def main(dev=False, port=None, **context):
     if not isdir(html_dir):
         html_dir = join(dirname(dirname(__file__)), 'vixen_data', 'html')
 
-    html_file = join(html_dir, 'vixen_ui.html')
+    return join(html_dir, 'vixen_ui.html')
+
+
+def get_html(html_file):
+    """Returns the HTML to render.
+    """
+    # The root is prepended to media.path, useful on windows as '/' has to be
+    # prepended using a js expression
+    root = ''
+    html_dir = dirname(html_file)
+    if sys.platform.startswith('win'):
+        html_dir = '/' + html_dir
+        root = "'/' + "
+
     with open(html_file) as fp:
         html = fp.read()
         html = html.replace('$HTML_ROOT', html_dir)
-    template = VueTemplate(html=html, base_url='/', async=async)
+        html = html.replace('$ROOT', root)
+    return html
+
+
+def main(dev=False, port=None, **context):
+    async = False
+
+    base_url = '/'
+    if sys.platform.startswith('win'):
+        base_url = ''
+
+    html_file = get_html_file()
+    html = get_html(html_file)
+    template = VueTemplate(html=html, base_url=base_url, async=async)
     ioloop = IOLoop.instance()
     if port is None:
         if dev:

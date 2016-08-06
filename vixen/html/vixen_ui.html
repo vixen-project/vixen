@@ -230,24 +230,24 @@
   <script type="text/x-template" id="view-media-template">
     <div style="display: inline-block;">
       <div v-if="media.type == 'image'" class="resizable" style="width: 500px;">
-        <a v-bind:href="media.path">
-          <img v-bind:src="media.path"
+        <a v-bind:href="$ROOTmedia.path">
+          <img v-bind:src="$ROOTmedia.path"
                v-bind:alt="media.file_name" width="100%">
         </a>
       </div>
       <div v-if="media.type == 'video'" class="resizable"
            style="width: 500px;">
-        <video v-bind:src="media.path" controls
+        <video v-bind:src="$ROOTmedia.path" controls
                preload="auto" style="width:100%;">
         </video>
       </div>
       <div v-if="media.type == 'audio'" class="resizable"
            style="width: 300px">
-        <audio v-bind:src="media.path" controls>
+        <audio v-bind:src="$ROOTmedia.path" controls>
         </audio>
       </div>
       <div v-if="media.type == 'unknown'" >
-        <a v-bind:href="media.path">{{media.file_name}}</a>
+        <a v-bind:href="$ROOTmedia.path">{{media.file_name}}</a>
       </div>
     </div>
   </script>
