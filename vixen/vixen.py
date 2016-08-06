@@ -337,7 +337,7 @@ class ProjectViewer(HasTraits):
     def os_open(self, path):
         """Ask the OS to open the path with a suitable application.
         """
-        if sys.platform == 'windows':
+        if sys.platform.startswith('win'):
             os.startfile(path)
         elif sys.platform.startswith('linux'):
             subprocess.call(['xdg-open', path])
