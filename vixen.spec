@@ -2,19 +2,11 @@
 
 block_cipher = None
 
-import datetime
+import sys
 import os
 import jigna
 
-import vixen
-
-version = vixen.__version__
-if version.endswith('.dev0'):
-    today = datetime.datetime.now().strftime('%Y%m%d')
-    version += '-' + today
-app_dir_name = 'vixen-{version}'.format(version=version)
-
-
+app_dir_name = 'vixen_app'
 JIGNA_DIR = os.path.join(os.path.dirname(jigna.__file__), 'js', 'dist')
 added_files = [
     ('vixen/html', 'vixen_data/html'),
@@ -41,7 +33,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True )
+          console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -49,3 +41,9 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                name=app_dir_name)
+
+if sys.platform.startswith('darwin'):
+    app = BUNDLE(coll,
+                 name='ViXeN.app',
+                 icon=None,
+                 bundle_identifier=None)
