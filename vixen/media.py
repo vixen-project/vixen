@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from traits.api import Dict, HasTraits, Int, Property, Str
+from traits.api import Date, Dict, HasTraits, Int, Property, Str
 
 # Some pre-defined file extensions.
 IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
@@ -27,15 +27,22 @@ class Media(HasTraits):
     # The file path.
     path = Str
 
-    # The time obtained from the video's timestamp.
-    time = Str
+    # The date string obtained from the file's mtime.
+    mtime = Str
 
-    # The date obtained from the video's timestamp.
-    date = Str
+    # The date string obtained from the file's ctime.
+    ctime = Str
 
     # The size of the file in bytes.
     size = Int
 
+    # The created time of the file. This and the _mtime are private as we
+    # cannot send this to the HTML UI as it is not JSON serializable. However
+    # they are is useful for searching through the media.
+    _ctime = Date
+
+    # The modified time of the file.
+    _mtime = Date
 
     @classmethod
     def from_path(cls, path):
@@ -60,12 +67,11 @@ class Media(HasTraits):
         path = self.path
         if os.path.exists(path):
             stat = os.stat(path)
-            video_mtime = int(stat.st_mtime)
+            self._mtime = datetime.datetime.fromtimestamp(stat.st_mtime)
+            self._ctime = datetime.datetime.fromtimestamp(stat.st_ctime)
             self.size = stat.st_size
-            dt = datetime.datetime.fromtimestamp(video_mtime)
-            self.time = str(dt.time())
-            date = dt.date()
-            self.date = date.strftime('%d %b %Y')
+            self.mtime = self._mtime.strftime('%d %b %Y %T')
+            self.ctime = self._ctime.strftime('%d %b %Y %T')
 
     def _get_file_name(self):
         return os.path.basename(self.path)

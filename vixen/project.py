@@ -1,5 +1,5 @@
 import datetime
-import json
+import json_tricks
 import os
 from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
                      join, realpath, splitext)
@@ -7,7 +7,7 @@ import re
 import shutil
 
 from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
-                        Property, Str)
+                        Str)
 
 from .media import Media
 from .directory import Directory
@@ -19,6 +19,7 @@ def get_project_dir():
     if not isdir(d):
         os.makedirs(d)
     return d
+
 
 def get_file_saved_time(path):
     dt = datetime.datetime.fromtimestamp(os.stat(path).st_ctime)
@@ -41,15 +42,17 @@ def open_file(fname_or_file, mode='r'):
     else:
         return open(fname_or_file, mode)
 
+
 def sanitize_name(name):
     name = name.lower()
     name = re.sub(r'\s+', '_', name)
     return re.sub(r'\W+', '', name)
 
+
 def get_non_existing_filename(fname):
     if exists(fname):
         base, ext = splitext(basename(fname))
-        return join(dirname(fname), base +'_a' + ext)
+        return join(dirname(fname), base + '_a' + ext)
     else:
         return fname
 
@@ -119,6 +122,8 @@ class Project(HasTraits):
             d = item.flatten()
             all_keys.update(d.keys())
             data.append(d)
+
+        all_keys -= set(('_ctime', '_mtime'))
         if cols is None:
             cols = all_keys
             cols = list(sorted(cols))
@@ -130,7 +135,7 @@ class Project(HasTraits):
             for key in cols:
                 elem = d[key]
                 if isinstance(elem, str):
-                    elem = '"%s"'%elem
+                    elem = '"%s"' % elem
                 else:
                     elem = str(elem) if elem is not None else ""
                 line.append(elem)
@@ -139,7 +144,7 @@ class Project(HasTraits):
         # Write it out.
         of = open_file(fp, 'w')
         for line in lines:
-            of.write(line +'\n')
+            of.write(line + '\n')
         of.close()
 
     def load(self, fp=None):
@@ -152,7 +157,7 @@ class Project(HasTraits):
         else:
             fp = open_file(fp)
 
-        data = json.load(fp)
+        data = json_tricks.load(fp, preserve_order=False)
         fp.close()
         self.name = data.get('name', '')
         self.description = data.get('description', '')
@@ -194,7 +199,7 @@ class Project(HasTraits):
             description=self.description, tags=tags, media=media,
             root=root, processors=processors
         )
-        json.dump(data, fp)
+        json_tricks.dump(data, fp)
         fp.close()
 
     def scan(self, refresh=False):
@@ -205,6 +210,7 @@ class Project(HasTraits):
         new_media = {}
         self._setup_root()
         default_tags = dict((ti.name, ti.default) for ti in self.tags)
+
         def _scan(dir):
             for f in dir.files:
                 m = media.get(f.relpath)
@@ -218,9 +224,11 @@ class Project(HasTraits):
                 if refresh:
                     d.refresh()
                 _scan(d)
+
         if refresh:
             self.root.refresh()
         _scan(self.root)
+
         if len(new_media) > 0:
             # This is done because if media is changed, a trait change notify
             # will be sent to listeners with a very large amount of data
@@ -234,7 +242,7 @@ class Project(HasTraits):
     def refresh(self):
         self.scan(refresh=True)
 
-    ##### Private protocol ################################################
+    # #### Private protocol ################################################
 
     def _create_media(self, f, default_tags):
         m = Media.from_path(f.path)

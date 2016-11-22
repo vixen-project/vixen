@@ -207,9 +207,7 @@
              v-on:click="viewer.os_open(current_file.path)">
         {{current_file.name}}</label>
       <br>
-      <label> Date: </label> {{media.date}}
-      <br/>
-      <label> Time: </label> {{media.time}}
+      <label> Time: </label> {{media.mtime}}
       <br/>
       <label> Size: </label> {{(media.size/1024).toFixed(1)}} (KB)
       <br/>

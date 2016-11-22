@@ -1,6 +1,5 @@
 import csv
-import os
-from os.path import basename, dirname, join, exists
+from os.path import basename, join, exists
 import tempfile
 import shutil
 
@@ -78,6 +77,12 @@ class TestProject(unittest.TestCase):
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
 
+        # Ensure that the ctime and mtimes are saved.
+        self.assertEqual(p.media['root.txt']._ctime,
+                         p1.media['root.txt']._ctime)
+        self.assertEqual(p.media['root.txt']._mtime,
+                         p1.media['root.txt']._mtime)
+
     def test_export_to_csv(self):
         # Given
         p = Project(name='test', path=self.root)
@@ -85,7 +90,6 @@ class TestProject(unittest.TestCase):
         m = p.media['root.txt']
         m.tags['completed'] = True
         out_fname = tempfile.mktemp(dir=self.root, suffix='.csv')
-        out = open(out_fname, 'w')
 
         # When
         p.export_csv(out_fname)
@@ -93,19 +97,19 @@ class TestProject(unittest.TestCase):
         # Then
         reader = csv.reader(open(out_fname))
         cols = next(reader)
-        expected = ['completed', 'date', 'path', 'size', 'time', 'type']
+        expected = ['completed', 'ctime', 'mtime', 'path', 'size', 'type']
         self.assertEqual(cols, expected)
         row = next(reader)
-        self.assertEqual(basename(row[2]), 'hello.py')
+        self.assertEqual(basename(row[3]), 'hello.py')
         self.assertEqual(row[0], 'False')
         row = next(reader)
-        self.assertEqual(basename(row[2]), 'root.txt')
+        self.assertEqual(basename(row[3]), 'root.txt')
         self.assertEqual(row[0], 'True')
         row = next(reader)
-        self.assertEqual(basename(row[2]), 'sub.txt')
+        self.assertEqual(basename(row[3]), 'sub.txt')
         self.assertEqual(row[0], 'False')
         row = next(reader)
-        self.assertEqual(basename(row[2]), 'subsub.txt')
+        self.assertEqual(basename(row[3]), 'subsub.txt')
         self.assertEqual(row[0], 'False')
 
     def test_refresh_updates_new_media(self):
@@ -169,8 +173,8 @@ class TestProject(unittest.TestCase):
         self.assertEqual(list(p.media.values())[0].tags['completed'], True)
         self.assertEqual(list(p.media.values())[0].tags['foo'], 0)
         for m in p.media.values():
-             self.assertEqual(type(m.tags['completed']), bool)
-             self.assertEqual(m.tags['foo'], 0)
+            self.assertEqual(type(m.tags['completed']), bool)
+            self.assertEqual(m.tags['foo'], 0)
 
     def test_get_non_existing_filename(self):
         # Given

@@ -3,3 +3,4 @@ https://github.com/enthought/jigna/archive/v0.9.9.tar.gz
 tornado
 mock
 nose
+json_tricks>=3.0
