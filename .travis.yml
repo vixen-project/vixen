@@ -9,7 +9,7 @@ install:
 
 script:
   - coverage erase
-  - coverage run --source vixen -p -m nose.core -v vixen
+  - coverage run -p -m nose.core -v vixen
   - coverage combine
 
 after_success:
