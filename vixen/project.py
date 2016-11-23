@@ -271,7 +271,9 @@ class Project(HasTraits):
         else:
             fp = open_file(fp)
 
-        data = json_tricks.load(fp, preserve_order=False)
+        data = json_tricks.load(
+            fp, preserve_order=False, ignore_comments=False
+        )
         fp.close()
         self.name = data.get('name', '')
         self.description = data.get('description', '')
