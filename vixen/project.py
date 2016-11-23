@@ -5,13 +5,21 @@ from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
                      join, realpath, splitext)
 import re
 import shutil
+import sys
 
 from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
                         Str)
+from whoosh import fields, qparser, query
 
 from .media import Media
 from .directory import Directory
 from . import processor
+
+
+if sys.version_info[0] > 2:
+    unicode = str
+INT = fields.NUMERIC(numtype=int)
+FLOAT = fields.NUMERIC(numtype=float)
 
 
 def get_project_dir():
@@ -30,6 +38,9 @@ class TagInfo(HasTraits):
     name = Str
     type = Enum("string", "int", "float", "bool")
     default = Any
+
+    def __repr__(self):
+        return 'TagInfo(%r, %r)' % (self.name, self.type)
 
     def _default_default(self):
         map = {"string": "", "int": 0, "float": 0.0, "bool": False}
@@ -57,6 +68,82 @@ def get_non_existing_filename(fname):
         return fname
 
 
+COMMON_TAGS = dict(
+    type='string', file_name='string', path='string',
+    ctime='string', mtime='string', size='int'
+)
+
+
+def _cleanup_query(q, tag_types):
+    type_map = dict(float=FLOAT.from_bytes, int=INT.from_bytes)
+    for term in q.leaves():
+        if isinstance(term, query.Term):
+            if isinstance(term.text, (str, unicode)):
+                fieldtype = tag_types[term.fieldname]
+                if fieldtype in type_map:
+                    term.text = type_map[fieldtype](term.text)
+
+
+def _check_value(value, expr):
+    if isinstance(expr, (str, unicode)):
+        return expr in value
+    else:
+        return expr == value
+
+
+def _check_range(x, term):
+    result = True
+    if term.start is not None:
+        if term.startexcl:
+            result &= x > term.start
+        else:
+            result &= x >= term.start
+    if term.end is not None and result:
+        if term.endexcl:
+            result &= x < term.end
+        else:
+            result &= x <= term.end
+    return result
+
+
+def _get_tag(media, attr):
+    if attr in COMMON_TAGS:
+        return getattr(media, attr)
+    else:
+        return media.tags.get(attr)
+
+
+def _search_media(expr, media):
+    if expr.is_leaf():
+        if isinstance(expr, query.Term):
+            attr = expr.fieldname
+            return _check_value(_get_tag(media, attr), expr.text)
+        elif isinstance(expr, query.NumericRange):
+            attr = expr.fieldname
+            return _check_range(_get_tag(media, attr), expr)
+        elif isinstance(expr, query.DateRange):
+            value = media._ctime if expr.fieldname == 'ctime' else media._mtime
+            return expr.start <= value <= expr.end
+    else:
+        if isinstance(expr, query.And):
+            result = True
+            for child in expr.children():
+                result &= _search_media(child, media)
+                if not result:
+                    break
+            return result
+        elif isinstance(expr, query.Or):
+            result = False
+            for child in expr.children():
+                result |= _search_media(child, media)
+                if result:
+                    break
+            return result
+        elif isinstance(expr, query.Not):
+            subquery = list(expr.children())[0]
+            return not _search_media(subquery, media)
+
+
 class Project(HasTraits):
     name = Str
     description = Str
@@ -76,6 +163,8 @@ class Project(HasTraits):
     save_file = Str
 
     last_save_time = Str
+
+    _query_parser = Instance(qparser.QueryParser)
 
     def add_tags(self, tags):
         tags = list(self.tags) + tags
@@ -103,6 +192,8 @@ class Project(HasTraits):
                 del m.tags[tag.name]
             for tag in added:
                 m.tags[tag.name] = tag.default
+
+        self._query_parser = self._make_query_parser()
 
     def export_csv(self, fp, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
@@ -239,6 +330,14 @@ class Project(HasTraits):
             self.trait_setq(media=media_copy)
             self.number_of_files = len(self.media)
 
+    def search(self, q):
+        parsed_q = self._query_parser.parse(q)
+        tag_types = self._get_tag_types()
+        _cleanup_query(parsed_q, tag_types)
+        for relpath, m in self.media.items():
+            if _search_media(parsed_q, m):
+                yield m
+
     def refresh(self):
         self.scan(refresh=True)
 
@@ -290,3 +389,33 @@ class Project(HasTraits):
     def _extensions_items_changed(self):
         if self.root is not None:
             self.root.extensions = self.extensions
+
+    def _get_tag_types(self):
+        result = dict(COMMON_TAGS)
+        result.update(dict((t.name, t.type) for t in self.tags))
+        return result
+
+    def _make_schema(self):
+        from whoosh.fields import BOOLEAN, DATETIME, TEXT, Schema
+        kw = dict(
+            type=TEXT, file_name=TEXT, path=TEXT,
+            mtime=DATETIME, ctime=DATETIME, size=INT
+        )
+        type_to_field = dict(
+            string=TEXT, int=INT, float=FLOAT, bool=BOOLEAN
+        )
+        for tag in self.tags:
+            kw[tag.name] = type_to_field[tag.type]
+
+        return Schema(**kw)
+
+    def _make_query_parser(self):
+        schema = self._make_schema()
+        qp = qparser.QueryParser('path', schema=schema)
+        qp.add_plugin(qparser.GtLtPlugin())
+        from whoosh.qparser.dateparse import DateParserPlugin
+        qp.add_plugin(DateParserPlugin())
+        return qp
+
+    def __query_parser_default(self):
+        return self._make_query_parser()

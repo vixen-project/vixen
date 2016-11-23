@@ -4,3 +4,4 @@ tornado
 mock
 nose
 json_tricks>=3.0
+whoosh

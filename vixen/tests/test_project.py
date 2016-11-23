@@ -6,10 +6,10 @@ import shutil
 import unittest
 
 from vixen.tests.test_directory import make_data, create_dummy_file
-from vixen.project import Project, TagInfo, get_non_existing_filename
+from vixen.project import Project, TagInfo, get_non_existing_filename, INT
 
 
-class TestProject(unittest.TestCase):
+class TestProjectBase(unittest.TestCase):
     def setUp(self):
         self._temp = tempfile.mkdtemp()
         self.root = join(self._temp, 'test')
@@ -17,6 +17,9 @@ class TestProject(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self._temp)
+
+
+class TestProject(TestProjectBase):
 
     def test_simple_project(self):
         # Given, When
@@ -211,6 +214,182 @@ class TestProject(unittest.TestCase):
         # Then
         self.assertEqual(len(p.media), 1)
         self.assertEqual(list(p.media.keys())[0], 'hello.py')
+
+
+class TestSearchMedia(TestProjectBase):
+    def test_query_schema_is_setup_correctly(self):
+        # Given
+        p = Project(name='test', path=self.root)
+
+        # When
+        p.scan()
+
+        # Then
+        schema = p._query_parser.schema
+        items = schema.items()
+        from whoosh import fields
+        self.assertIn(('path', fields.TEXT()), items)
+        self.assertIn(('ctime', fields.DATETIME()), items)
+        self.assertIn(('completed', fields.BOOLEAN()), items)
+        self.assertIn(('size', INT), items)
+
+    def test_query_schema_is_updated_when_tags_are_added(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+
+        # When
+        p.add_tags([TagInfo(name='new_tag', type='int')])
+
+        # Then
+        schema = p._query_parser.schema
+        items = schema.items()
+        self.assertIn(('new_tag', INT), items)
+
+    def test_simple_search_works(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+
+        # When
+        result = list(p.search("hello"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, "hello.py")
+
+    def test_logical_operations_in_search(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+
+        # When
+        result = list(p.search("hello subsub"))
+
+        # Then
+        self.assertEqual(len(result), 0)
+
+        # When
+        result = list(p.search("hello AND subsub"))
+
+        # Then
+        self.assertEqual(len(result), 0)
+
+        # When
+        result = list(p.search("hello OR subsub"))
+
+        # Then
+        self.assertEqual(len(result), 2)
+        names = sorted(x.file_name for x in result)
+        self.assertEqual(names, ["hello.py", "subsub.txt"])
+
+        # When
+        result = list(p.search("hello AND NOT .py"))
+
+        # Then
+        self.assertEqual(len(result), 0)
+
+        # When
+        result = list(p.search("NOT .txt"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, "hello.py")
+
+    def test_tags_in_search_work_correctly(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+
+        # When
+        result = list(p.search("path:hello.py"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, "hello.py")
+
+        # When
+        result = list(p.search("file_name:test"))
+
+        # Then
+        self.assertEqual(len(result), 0)
+
+        # When
+        result = list(p.search("path:test"))
+
+        # Then
+        # Should get everything since everything is inside the
+        # test directory!
+        self.assertEqual(len(result), 5)
+
+        # When
+        p.media['root.txt'].tags['completed'] = True
+        result = list(p.search("completed:1"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, "root.txt")
+
+        # When
+        result = list(p.search("completed:yes"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, "root.txt")
+
+        # When
+        result = list(p.search("completed:0"))
+
+        # Then
+        self.assertEqual(len(result), 4)
+        self.assertNotIn('root.txt', [x.file_name for x in result])
+
+    def test_numeric_tags_and_ranges_are_searchable(self):
+        # Given
+        tags = [
+            TagInfo(name='fox', type='int'),
+            TagInfo(name='age', type='float')
+        ]
+        p = Project(name='test', path=self.root, tags=tags)
+        p.scan()
+        p.media[join('sub2', 'sub2.txt')].tags['fox'] = 1
+
+        # When
+        result = list(p.search("fox:1"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'sub2.txt')
+
+        # When
+        result = list(p.search("fox:>=1"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'sub2.txt')
+
+        # When
+        result = list(p.search("fox:<1"))
+
+        # Then
+        self.assertEqual(len(result), 4)
+        self.assertNotIn('sub2.txt', [x.file_name for x in result])
+
+        # When
+        p.media['root.txt'].tags['age'] = 50.5
+        result = list(p.search("age:50.5"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'root.txt')
+
+        # When
+        result = list(p.search("age:>50"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'root.txt')
+
 
 
 if __name__ == '__main__':
