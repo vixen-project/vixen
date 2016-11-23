@@ -1,4 +1,5 @@
 import csv
+import datetime
 from os.path import basename, join, exists
 import tempfile
 import shutil
@@ -390,6 +391,67 @@ class TestSearchMedia(TestProjectBase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].file_name, 'root.txt')
 
+    def test_date_ranges_are_searchable(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+        p.media['root.txt']._mtime = datetime.datetime(2015, 1, 1)
+
+        # When
+        result = list(p.search("mtime:2015"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'root.txt')
+
+        # When
+        p.media['hello.py']._mtime = datetime.datetime(2015, 2, 1)
+        result = list(p.search("mtime:2015"))
+
+        # Then
+        self.assertEqual(len(result), 2)
+        names = sorted(x.file_name for x in result)
+        self.assertEqual(names, ['hello.py', 'root.txt'])
+
+        # When
+        result = list(p.search("mtime:201501"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'root.txt')
+
+        # When
+        result = list(p.search("mtime:[jan 2015 TO feb 2015]"))
+
+        # Then
+        self.assertEqual(len(result), 2)
+        names = sorted(x.file_name for x in result)
+        self.assertEqual(names, ['hello.py', 'root.txt'])
+
+        # When
+        result = list(p.search("mtime:>20150202"))
+
+        # Then
+        self.assertEqual(len(result), 3)
+        names = sorted(x.file_name for x in result)
+        self.assertNotIn('hello.py', names)
+        self.assertNotIn('root.txt', names)
+
+    def test_phrases_are_searchable(self):
+        # Given
+        tags = [
+            TagInfo(name='comment', type='string'),
+        ]
+        p = Project(name='test', path=self.root, tags=tags)
+        p.scan()
+        p.media['root.txt'].tags['comment'] = 'Hola how are you?'
+
+        # When
+        result = list(p.search('comment:"hola how"'))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].file_name, 'root.txt')
 
 
 if __name__ == '__main__':

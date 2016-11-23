@@ -82,11 +82,15 @@ def _cleanup_query(q, tag_types):
                 fieldtype = tag_types[term.fieldname]
                 if fieldtype in type_map:
                     term.text = type_map[fieldtype](term.text)
+                else:
+                    term.text = term.text.lower()
+        elif isinstance(term, query.Phrase):
+            term.words = [x.lower() for x in term.words]
 
 
 def _check_value(value, expr):
     if isinstance(expr, (str, unicode)):
-        return expr in value
+        return expr in value.lower()
     else:
         return expr == value
 
@@ -106,6 +110,15 @@ def _check_range(x, term):
     return result
 
 
+def _check_date_range(x, term):
+    result = True
+    if term.startdate is not None:
+        result &= x >= term.startdate
+    if term.enddate is not None and result:
+        result &= x <= term.enddate
+    return result
+
+
 def _get_tag(media, attr):
     if attr in COMMON_TAGS:
         return getattr(media, attr)
@@ -118,12 +131,19 @@ def _search_media(expr, media):
         if isinstance(expr, query.Term):
             attr = expr.fieldname
             return _check_value(_get_tag(media, attr), expr.text)
+        elif isinstance(expr, query.Phrase):
+            attr = expr.fieldname
+            text = " ".join(expr.words)
+            return _check_value(_get_tag(media, attr), text)
+        elif isinstance(expr, query.DateRange):
+            value = media._ctime if expr.fieldname == 'ctime' else media._mtime
+            return _check_date_range(value, expr)
         elif isinstance(expr, query.NumericRange):
             attr = expr.fieldname
             return _check_range(_get_tag(media, attr), expr)
-        elif isinstance(expr, query.DateRange):
-            value = media._ctime if expr.fieldname == 'ctime' else media._mtime
-            return expr.start <= value <= expr.end
+        else:
+            print("Unsupported term: %r" % expr)
+            return False
     else:
         if isinstance(expr, query.And):
             result = True
@@ -142,6 +162,9 @@ def _search_media(expr, media):
         elif isinstance(expr, query.Not):
             subquery = list(expr.children())[0]
             return not _search_media(subquery, media)
+        else:
+            print("Unsupported term: %r" % expr)
+            return False
 
 
 class Project(HasTraits):
@@ -331,7 +354,11 @@ class Project(HasTraits):
             self.number_of_files = len(self.media)
 
     def search(self, q):
-        parsed_q = self._query_parser.parse(q)
+        try:
+            parsed_q = self._query_parser.parse(q)
+        except Exception:
+            print("Invalid search expression: %s" % q)
+            return
         tag_types = self._get_tag_types()
         _cleanup_query(parsed_q, tag_types)
         for relpath, m in self.media.items():
