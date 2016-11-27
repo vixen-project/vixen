@@ -18,7 +18,9 @@
         </script>
 
         <link href="$HTML_ROOT/css/style.css" rel="stylesheet">
-    </head>
+        <!-- Use an empty icon for now until we have a logo. -->
+        <link rel="icon" href="data:,">
+  </head>
 
 <body>
 <div>
@@ -136,21 +138,22 @@
     <button v-on:click="busy_call(viewer, 'rescan')">Rescan</button>
     <br>
 
-    <input v-model="viewer.search">
+    <input v-model="viewer.search" style="width:75%" placeholder="Search"
+           v-on:keyup.enter="busy_call(viewer, 'do_search')">
     <button v-on:click="busy_call(viewer, 'do_search')">Search</button>
     <button v-on:click="viewer.clear_search()">Clear</button>
 
-    <div v-if="viewer.search.length == 0">
-    <view-directory :viewer="viewer" :pager="viewer.pager"
-                    :current_dir="viewer.current_dir"></view-directory>
-    </div>
-    <div v-else>
+    <div v-if="viewer.is_searching">
         <view-search-results :viewer="viewer" :pager="viewer.search_pager">
         </view-search-results>
     </div>
+    <div v-else>
+        <view-directory :viewer="viewer" :pager="viewer.pager"
+                        :current_dir="viewer.current_dir"></view-directory>
+    </div>
 
 
-    <div v-if="viewer.current_file || (viewer.search.length > 0 && viewer.media)"
+    <div v-if="viewer.current_file || (viewer.is_searching && viewer.media)"
          style="padding:5px;">
         <edit-media :viewer="viewer" :media="viewer.media"></edit-media>
     </div>
@@ -173,7 +176,7 @@
     <section class="sans-third"
              style="background:#f0f0f0;box-shadow:inset 0 0 10px rgba(0,0,0,0.2)">
 
-        <div v-if="viewer.current_file || (viewer.search.length > 0 && viewer.media)"
+        <div v-if="viewer.current_file || (viewer.is_searching && viewer.media)"
              style="padding:5px;">
           <view-media class="viewer" :media="viewer.media"></view-media>
     </div>
@@ -219,11 +222,14 @@
    <div v-for="media in pager.data | limitBy pager.limit pager.start">
    <label v-on:click="pager.select($index)"
    v-bind:class="{'current-index': pager.rel_index == $index,
-                               'selected': pager.selected == media}">
+                               'selected': pager.selected == media}"
+       title="{{media.path}}"
+       >
    {{media.file_name}}
    </label>
    </div>
    </div>
+   {{pager.total}} results.
    Page {{pager.page}}
    <input v-show="pager.total_pages > 1" v-model="pager.page"
    type="range" min="1" v-bind:max="pager.total_pages">
@@ -506,17 +512,17 @@
       });
       Mousetrap.bind(['k', 'n', 'down'], function(e) {
           if (jigna.models.ui.mode === 'view') {
-              jigna.models.viewer.pager.next();
+              jigna.models.viewer.active_pager.next();
           }
       });
       Mousetrap.bind(['j', 'p', 'up'], function(e) {
           if (jigna.models.ui.mode === 'view') {
-              jigna.models.viewer.pager.prev();
+              jigna.models.viewer.active_pager.prev();
           }
       });
       Mousetrap.bind(['l', 'enter', 'right'], function(e) {
           if (jigna.models.ui.mode === 'view') {
-              jigna.models.viewer.pager.select();
+              jigna.models.viewer.active_pager.select();
           }
       });
   });

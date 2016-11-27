@@ -318,10 +318,14 @@ class ProjectViewer(HasTraits):
 
     search_pager = Instance(Pager)
 
+    active_pager = Property(Instance(Pager), depends_on="is_searching")
+
+    is_searching = Property(Bool, depends_on="search")
+
     type = Enum("unknown", "image", "video", "audio")
 
     def go_to_parent(self):
-        if self.parent is not None:
+        if self.parent is not None and not self.is_searching:
             self.current_dir = self.parent
 
     def view(self, path):
@@ -334,17 +338,17 @@ class ProjectViewer(HasTraits):
         self.media = media
 
     def clear_search(self):
-        if len(self.search) == 0:
+        if self.is_searching:
             self.search = ''
             self.media = None
             self.search_pager.data = []
+            self.current_file = None
 
     def do_search(self):
         with self.ui.busy():
-            if len(self.search) > 0:
+            if self.is_searching:
                 self.media = None
                 result = list(self.project.search(self.search))
-                print("Obtained %s results" % len(result))
                 self.search_pager.data = result
 
     def rescan(self):
@@ -373,6 +377,7 @@ class ProjectViewer(HasTraits):
                 self.name = proj.name
                 self.current_dir = proj.root
                 self.current_file = None
+                self.clear_search()
 
     def _current_dir_changed(self, d):
         self.parent = d.parent
@@ -395,6 +400,15 @@ class ProjectViewer(HasTraits):
         p = Pager(limit=20)
         p.on_trait_change(self.view_media, 'selected')
         return p
+
+    def _get_is_searching(self):
+        return len(self.search) > 0
+
+    def _get_active_pager(self):
+        if self.is_searching:
+            return self.search_pager
+        else:
+            return self.pager
 
 
 class VixenUI(HasTraits):
