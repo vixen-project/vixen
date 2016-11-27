@@ -283,7 +283,7 @@ class Pager(HasTraits):
     def _get_total_pages(self):
         size = len(self.data)
         n = size/self.limit if size > 0 else 1
-        rem = size%self.limit
+        rem = size % self.limit
         if rem > 0:
             return n + 1
         else:
@@ -314,6 +314,10 @@ class ProjectViewer(HasTraits):
 
     last_save_time = DelegatesTo('project')
 
+    search = Str
+
+    search_pager = Instance(Pager)
+
     type = Enum("unknown", "image", "video", "audio")
 
     def go_to_parent(self):
@@ -325,6 +329,23 @@ class ProjectViewer(HasTraits):
             self.current_dir = path
         else:
             self.current_file = path
+
+    def view_media(self, media):
+        self.media = media
+
+    def clear_search(self):
+        if len(self.search) == 0:
+            self.search = ''
+            self.media = None
+            self.search_pager.data = []
+
+    def do_search(self):
+        with self.ui.busy():
+            if len(self.search) > 0:
+                self.media = None
+                result = list(self.project.search(self.search))
+                print("Obtained %s results" % len(result))
+                self.search_pager.data = result
 
     def rescan(self):
         with self.ui.busy():
@@ -370,6 +391,10 @@ class ProjectViewer(HasTraits):
         p.on_trait_change(self.view, 'selected')
         return p
 
+    def _search_pager_default(self):
+        p = Pager(limit=20)
+        p.on_trait_change(self.view_media, 'selected')
+        return p
 
 
 class VixenUI(HasTraits):
