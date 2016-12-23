@@ -6,17 +6,17 @@
 Welcome to ViXeN's documentation!
 =================================
 
-Contents:
+ViXeN is a simple tool to facilitate easily viewing, adding, and annotating
+metadata associated with media. ViXeN has been designed primarily to assist
+field biologists with managing the large amount of media they collect in a
+minimally intrusive manner.
+
 
 .. toctree::
    :maxdepth: 2
 
+   overview
+   installation
+   using_vixen
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
-
