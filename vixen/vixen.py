@@ -425,6 +425,8 @@ class VixenUI(HasTraits):
 
     is_busy = Bool(False)
 
+    docs = Property(Str)
+
     def get_context(self):
         return dict(
             ui=self, vixen=self.vixen, editor=self.editor, viewer=self.viewer
@@ -483,6 +485,17 @@ class VixenUI(HasTraits):
             yield
         finally:
             self.is_busy = False
+
+    def _get_docs(self):
+        mydir = dirname(__file__)
+        build = join(dirname(mydir), 'docs', 'build', 'html', 'index.html')
+        bundled = join(
+            dirname(mydir), 'vixen_data', 'docs', 'html', 'index.html'
+        )
+        if exists(bundled):
+            return bundled
+        else:
+            return build
 
     def _vixen_default(self):
         v = Vixen()

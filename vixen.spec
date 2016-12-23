@@ -11,6 +11,7 @@ JIGNA_DIR = os.path.join(os.path.dirname(jigna.__file__), 'js', 'dist')
 added_files = [
     ('vixen/html', 'vixen_data/html'),
     (JIGNA_DIR, 'jigna/js/dist'),
+    ('docs/build/html', 'vixen_data/docs/html')
 ]
 
 a = Analysis(['vixen/cli.py'],

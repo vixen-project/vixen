@@ -61,6 +61,10 @@ def make_bundle():
 
 
 def main():
+    os.chdir('docs')
+    subprocess.call(['make', 'html'])
+    os.chdir('..')
+
     subprocess.call(['pyinstaller', 'vixen.spec'])
 
     if sys.platform == 'darwin':

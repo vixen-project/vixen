@@ -34,7 +34,7 @@
 
   <!-- Menu on the top -->
   <div style="position: absolute; top: 5px;" v-on:click="ui.home()">
-    <a href="#">Home</a>
+      <a href="#">Home</a> <a v-bind:href="ui.docs" target="_blank">Help</a>
   </div>
   <div style="position: absolute; top: 5px; right: 5px;">
     <button v-on:click="halt()">Stop ViXeN</button>
