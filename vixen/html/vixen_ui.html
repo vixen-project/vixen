@@ -25,7 +25,12 @@
 <body>
 <div>
 
-  <h2 style="text-align:center; padding: 0px; margin: 0px;">Welcome to ViXeN</h2>
+    <h2 style="text-align:center; padding: 0px; margin: 0px;">
+        Welcome to ViXeN
+    </h2>
+    <div style="position: absolute; bottom: 5px; right: 5px">
+        <p>Version: {{ui.version}}</p>
+    </div>
 
   <div v-if="ui.is_busy" id="busy-overlay" class="busy-overlay">
     <img src="$HTML_ROOT/images/loading.gif" class="loading" alt="loading..."/>

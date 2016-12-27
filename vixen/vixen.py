@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from contextlib import contextmanager
 import copy
 import json
@@ -427,6 +428,8 @@ class VixenUI(HasTraits):
 
     docs = Property(Str)
 
+    version = Str
+
     def get_context(self):
         return dict(
             ui=self, vixen=self.vixen, editor=self.editor, viewer=self.viewer
@@ -510,3 +513,7 @@ class VixenUI(HasTraits):
 
     def _processor_default(self):
         return Processor()
+
+    def _version_default(self):
+        import vixen
+        return vixen.__version__
