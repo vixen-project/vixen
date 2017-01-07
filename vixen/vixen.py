@@ -142,7 +142,7 @@ class ProjectEditor(HasTraits):
             proj = self.project
             jobs = []
             for key in proj.media:
-                test_media = {key: proj.media[key]}
+                test_media = [proj.media[key]]
                 jobs = proc.make_jobs(test_media)
                 if len(jobs) > 0:
                     break
@@ -450,7 +450,7 @@ class VixenUI(HasTraits):
     def process(self, project):
         jobs = []
         for proc in project.processors:
-            jobs.extend(proc.make_jobs(project.media))
+            jobs.extend(proc.make_jobs(project.media.values()))
         self.processor.jobs = jobs
         self.processor.process()
 

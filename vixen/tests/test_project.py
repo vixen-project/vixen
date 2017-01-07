@@ -43,6 +43,7 @@ class TestProject(TestProjectBase):
         # Then
         self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
+        self.assertEqual(m.relpath, 'root.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
         m = p.media['sub/sub.txt']
@@ -101,7 +102,9 @@ class TestProject(TestProjectBase):
         # Then
         reader = csv.reader(open(out_fname))
         cols = next(reader)
-        expected = ['completed', 'ctime', 'mtime', 'path', 'size', 'type']
+        expected = [
+            'completed', 'ctime', 'mtime', 'path', 'relpath', 'size', 'type'
+        ]
         self.assertEqual(cols, expected)
         row = next(reader)
         self.assertEqual(basename(row[3]), 'hello.py')

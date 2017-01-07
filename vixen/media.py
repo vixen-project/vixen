@@ -27,6 +27,10 @@ class Media(HasTraits):
     # The file path.
     path = Str
 
+    # The relative path of the file, this is typically relative to the root
+    # of a particular project.
+    relpath = Str
+
     # The date string obtained from the file's mtime.
     mtime = Str
 
@@ -45,8 +49,9 @@ class Media(HasTraits):
     _mtime = Date
 
     @classmethod
-    def from_path(cls, path):
+    def from_path(cls, path, relpath):
         obj = cls(path=os.path.abspath(path))
+        obj.relpath = relpath
         obj.update()
         return obj
 

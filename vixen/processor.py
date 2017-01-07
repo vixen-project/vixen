@@ -2,13 +2,12 @@ import multiprocessing
 import os
 import shlex
 import subprocess
-import sys
 import time
 from threading import Thread
 from traceback import format_exc
 
 from traits.api import (Any, Bool, Callable, Dict, Enum, HasTraits, Instance,
-                        Int, List, Property, Str)
+                        Int, List, Str)
 
 
 class Job(HasTraits):
@@ -44,7 +43,7 @@ class Job(HasTraits):
             self.status = 'success'
         except Exception as e:
             if hasattr(e, 'output'):
-                self.error = 'OUTPUT: %s\n'%e.output
+                self.error = 'OUTPUT: %s\n' % e.output
             self.error += format_exc()
             self.status = 'error'
 
@@ -120,6 +119,7 @@ class Processor(HasTraits):
     def _jobs_changed(self):
         self.completed = []
 
+
 class FactoryBase(HasTraits):
 
     # The destination path.  This is typically the root of the directory where
@@ -146,13 +146,14 @@ class CommandFactory(FactoryBase):
 
     command = Str
 
-    def make_jobs(self, media_dict):
+    def make_jobs(self, media_seq):
         jobs = []
         ext = self.output_extension
         if len(ext) > 0:
             ext = ext if '.' in ext else '.' + ext
-        command = self.command
-        for relpath, media in media_dict.items():
+
+        for media in media_seq:
+            relpath = media.relpath
             if os.path.splitext(relpath.lower())[1] != self.input_extension:
                 continue
             if not os.path.exists(media.path):
@@ -211,12 +212,13 @@ class PythonFunctionFactory(FactoryBase):
 
     _func = Callable(transient=True)
 
-    def make_jobs(self, media_dict):
+    def make_jobs(self, media_seq):
         self._setup_func()
         jobs = []
-        for relpath, media in media_dict.items():
+        for media in media_seq:
+            relpath = media.relpath
             if not self._done.get(media.path, False):
-                info = "Processing %s"%media.path
+                info = "Processing %s" % media.path
                 job = Job(
                     func=self._run, args=[relpath, media, self.dest],
                     info=info
@@ -243,6 +245,7 @@ def dump(factory):
     name = factory.__class__.__name__
     data = factory.__getstate__()
     return name, data
+
 
 def load(state):
     """Create and setup the state from pickled data.

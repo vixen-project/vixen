@@ -373,7 +373,7 @@ class Project(HasTraits):
     # #### Private protocol ################################################
 
     def _create_media(self, f, default_tags):
-        m = Media.from_path(f.path)
+        m = Media.from_path(f.path, f.relpath)
         m.tags = dict(default_tags)
         return m
 

@@ -9,12 +9,13 @@ from vixen.processor import Processor, Job, CommandFactory, \
 from vixen.tests.test_directory import make_data
 from vixen.project import Project, TagInfo
 
+
 class TestJob(unittest.TestCase):
     def test_simple_job(self):
         # Given
         func = mock.Mock(return_value='hello')
-        args = [1,2]
-        kw = {'a':10, 'b':20}
+        args = [1, 2]
+        kw = {'a': 10, 'b': 20}
         j = Job(func=func, args=args, kw=kw)
         self.assertEqual(j.status, 'none')
         self.assertEqual(j.result, None)
@@ -44,7 +45,7 @@ class TestJob(unittest.TestCase):
         self.assertEqual(j.status, 'error')
         self.assertIn('AssertionError', j.error)
         self.assertIn('assert 1 == 2', j.error)
-        self.assertTrue(len(j.error) > 1, "Got: %s"%j.error)
+        self.assertTrue(len(j.error) > 1, "Got: %s" % j.error)
 
 
 class TestProcessor(unittest.TestCase):
@@ -69,6 +70,7 @@ class TestProcessor(unittest.TestCase):
     def test_processor_bails_on_error(self):
         # Given
         f = mock.Mock()
+
         def bomb():
             f()
             assert 1 == 2
@@ -104,6 +106,7 @@ class TestProcessor(unittest.TestCase):
         self.assertEqual(p.errored_jobs[0].status, 'error')
         self.assertEqual(f.call_count, 2)
 
+
 class TestFactoryBase(unittest.TestCase):
     def setUp(self):
         self._temp = tempfile.mkdtemp()
@@ -126,14 +129,14 @@ class TestCommandFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = cf.make_jobs(p.media)
+        jobs = cf.make_jobs(p.media.values())
 
         # Then.
         self.assertEqual(len(jobs), 1)
         job = jobs[0]
         m = p.media['hello.py']
         dest = os.path.join(self.root1, 'hello.rst')
-        expect = 'echo %s %s'%(m.path, dest)
+        expect = 'echo %s %s' % (m.path, dest)
         self.assertEqual(job.args, [expect.split(), dest])
 
     def test_command_factory_jobs(self):
@@ -141,7 +144,7 @@ class TestCommandFactory(TestFactoryBase):
         import sys
         command = """\
         %s -c 'import shutil;shutil.copy("$input", "$output")'\
-        """%sys.executable
+        """ % sys.executable
         cf = CommandFactory(dest=self.root1, input_extension='.py',
                             output_extension='.rst',
                             command=command)
@@ -149,7 +152,7 @@ class TestCommandFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = cf.make_jobs(p.media)
+        jobs = cf.make_jobs(p.media.values())
         job = jobs[0]
         job.run()
         job.thread.join()
@@ -163,7 +166,7 @@ class TestCommandFactory(TestFactoryBase):
         self.assertTrue(os.path.exists(dest))
         self.assertEqual(cf._done[dest], True)
 
-        jobs = cf.make_jobs(p.media)
+        jobs = cf.make_jobs(p.media.values())
         self.assertEqual(len(jobs), 0)
 
         # When.
@@ -184,7 +187,7 @@ class TestCommandFactory(TestFactoryBase):
         os.remove(os.path.join(self.root, 'hello.py'))
 
         # When
-        jobs = cf.make_jobs(p.media)
+        jobs = cf.make_jobs(p.media.values())
 
         # Then.
         self.assertEqual(len(jobs), 0)
@@ -206,7 +209,7 @@ class TestPythonFunctionFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = factory.make_jobs(p.media)
+        jobs = factory.make_jobs(p.media.values())
         for job in jobs:
             job.run()
             job.thread.join()
@@ -215,11 +218,11 @@ class TestPythonFunctionFactory(TestFactoryBase):
         self.assertEqual(len(jobs), 5)
         for key, media in p.media.items():
             self.assertEqual(media.tags['completed'], True)
-            expect = "%s %s"%(key, self.root1)
+            expect = "%s %s" % (key, self.root1)
             self.assertEqual(media.tags['args'], expect)
 
         # When
-        jobs = factory.make_jobs(p.media)
+        jobs = factory.make_jobs(p.media.values())
 
         # Then
         self.assertEqual(len(jobs), 0)
