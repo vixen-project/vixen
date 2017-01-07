@@ -2,14 +2,13 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 import copy
 import json
-from os.path import (abspath, dirname, exists, expanduser, join, isdir,
-                     splitext)
+from os.path import abspath, dirname, exists, expanduser, join, isdir
 import os
 import subprocess
 import sys
 
-from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits, Instance,
-                        Int, List, Property, Str)
+from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits,
+                        Instance, Int, List, Property, Str)
 
 from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
@@ -216,7 +215,7 @@ class Pager(HasTraits):
         if relindex is None:
             index = self.index
         else:
-            index = (self.page -1)*self.limit + relindex
+            index = (self.page - 1)*self.limit + relindex
             self.index = index
         data = self.data
         if len(data) > 0:
@@ -249,7 +248,7 @@ class Pager(HasTraits):
         limit = self.limit
         if p != self._page:
             self._page = p
-            base_index = (p -1)*limit
+            base_index = (p - 1)*limit
             if self.index < base_index or self.index > base_index + limit:
                 self.index = base_index
 
@@ -257,7 +256,7 @@ class Pager(HasTraits):
         return (self.page - 1)*self.limit
 
     def _get_view(self):
-        p = self.page -1
+        p = self.page - 1
         limit = self.limit
         return self.data[p*limit:(p+1)*limit]
 
@@ -450,7 +449,11 @@ class VixenUI(HasTraits):
     def process(self, project):
         jobs = []
         for proc in project.processors:
-            jobs.extend(proc.make_jobs(project.media.values()))
+            if self.viewer.is_searching:
+                to_process = self.viewer.search_pager.data
+            else:
+                to_process = project.media.values()
+            jobs.extend(proc.make_jobs(to_process))
         self.processor.jobs = jobs
         self.processor.process()
 
@@ -460,7 +463,7 @@ class VixenUI(HasTraits):
 
     def add_project(self):
         projects = self.vixen.projects
-        name = 'Project%d'%(len(projects) + 1)
+        name = 'Project%d' % (len(projects) + 1)
         p = Project(name=name)
         projects.append(p)
         self.editor.project = p
