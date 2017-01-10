@@ -2,6 +2,7 @@ import csv
 import datetime
 from os.path import basename, join, exists
 import tempfile
+from textwrap import dedent
 import shutil
 
 import unittest
@@ -218,6 +219,58 @@ class TestProject(TestProjectBase):
         # Then
         self.assertEqual(len(p.media), 1)
         self.assertEqual(list(p.media.keys())[0], 'hello.py')
+
+    def _write_csv(self, data):
+        fname = join(self._temp, 'data.csv')
+        with open(join(self._temp, 'data.csv'), 'wb') as fp:
+            fp.write(data)
+        return fname
+
+    def test_import_csv_fails_with_bad_csv_header(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+        data = dedent("""\
+        /blah/blah,1
+        """)
+        csv = self._write_csv(data)
+
+        # When
+        success, err = p.import_csv(csv)
+
+        # Then
+        self.assertFalse(success)
+
+        # Given
+        data = dedent("""\
+        relpath,fox
+        root.txt,1
+        """)
+        csv = self._write_csv(data)
+
+        # When
+        success, err = p.import_csv(csv)
+
+        # Then
+        self.assertFalse(success)
+
+    def test_import_csv_works(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.add_tags([TagInfo(name='fox', type='int')])
+        p.scan()
+        data = dedent("""\
+        path,fox,junk
+        %s,2,hello
+        """ % (join(self.root, 'root.txt')))
+        csv = self._write_csv(data)
+
+        # When
+        success, err = p.import_csv(csv)
+
+        # Then
+        self.assertTrue(success)
+        self.assertEqual(p.media['root.txt'].tags['fox'], 2)
 
 
 class TestSearchMedia(TestProjectBase):

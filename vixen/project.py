@@ -1,8 +1,9 @@
+import csv
 import datetime
 import json_tricks
 import os
 from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
-                     join, realpath, splitext)
+                     join, realpath, relpath, splitext)
 import re
 import shutil
 import sys
@@ -32,6 +33,25 @@ def get_project_dir():
 def get_file_saved_time(path):
     dt = datetime.datetime.fromtimestamp(os.stat(path).st_ctime)
     return dt.ctime()
+
+
+def _get_sample(fname):
+    sample = ''
+    with open(fname, 'rb') as fp:
+        sample += fp.readline() + fp.readline()
+
+    return sample
+
+
+def _get_csv_headers(fname):
+    sample = _get_sample(fname)
+    sniffer = csv.Sniffer()
+    has_header = sniffer.has_header(sample)
+    dialect = sniffer.sniff(sample)
+    with open(fname, 'rb') as fp:
+        reader = csv.reader(fp, dialect)
+        header = next(reader)
+    return has_header, header, dialect
 
 
 class TagInfo(HasTraits):
@@ -261,6 +281,58 @@ class Project(HasTraits):
             of.write(line + '\n')
         of.close()
 
+    def import_csv(self, fname):
+        """Read tag information from given CSV filename.
+
+        Returns the success status and the error message if any. Note that this
+        only applies tags for column headers with known tags. Unknown tags are
+        not added.
+
+        Parameters
+        ----------
+
+        fname : str   Input filename.
+
+        """
+        has_header, header, dialect = _get_csv_headers(fname)
+        if not has_header:
+            return False, "The CSV file does not appear to have a header."
+        if 'path' not in header:
+            msg = "The CSV file does not have a 'path' column."
+            return False, msg
+
+        tags = {x: header.index(x.name) for x in self.tags if x.name in header}
+        path_idx = header.index('path')
+        TRUE = ('1', 'True', 't', 'true', 'y', 'yes')
+        type_map = {
+            'bool': lambda x: x in TRUE,
+            'string': lambda x: x,
+            'int': int,
+            'float': float
+        }
+
+        count = 0
+        total = 0
+        with open(fname, 'rb') as fp:
+            reader = csv.reader(fp, dialect)
+            next(reader)  # Skip header
+            for record in reader:
+                total += 1
+                path = record[path_idx]
+                rpath = relpath(path, self.path)
+                media = self.media.get(rpath)
+                if media is not None:
+                    count += 1
+                    for tag, index in tags.items():
+                        data = record[index]
+                        try:
+                            media.tags[tag.name] = type_map[tag.type](data)
+                        except ValueError:
+                            pass
+
+        msg = "Read tags for %d paths out of %d entries" % (count, total)
+        return True, msg
+
     def load(self, fp=None):
         """Load media info from opened file object.
         """
@@ -363,7 +435,8 @@ class Project(HasTraits):
             return
         tag_types = self._get_tag_types()
         _cleanup_query(parsed_q, tag_types)
-        for relpath, m in self.media.items():
+        for key in self.media:
+            m = self.media[key]
             if _search_media(parsed_q, m):
                 yield m
 
