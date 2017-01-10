@@ -75,6 +75,7 @@
       <label> Path: </label>
       <input v-bind:class="editor.valid_path ? 'success' : 'error'"
              v-model="editor.path" debounce="500">
+      <button v-on:click="editor.select_path()">Browse...</button>
         <br>
       <label> <b>Tags</b> </label> <br>
       <div v-for="tag in editor.tags">
@@ -165,17 +166,10 @@
     <div style="clear: left; padding: 10px;">
       <hr/>
 
+      <button v-on:click="busy_call(viewer.project, 'save')">Save</button>
+      <button v-on:click="myalert(viewer.export_csv())">Export CSV</button>
       <button v-on:click="myalert(viewer.import_csv())"
               title="Import tags from a CSV file">Import CSV</button>
-      <br/>
-      <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
-             v-model="viewer.csv_file.path" debounce="250">
-      <button v-bind:disabled="!viewer.csv_file_valid"
-              v-on:click="viewer.project.export_csv(viewer.csv_file.abspath) ||
-                          window.alert(viewer.csv_file.path + '
-                          created.')">Export CSV</button>
-      <br/>
-      <button v-on:click="busy_call(viewer.project, 'save')">Save</button>
       <br/>
       Last saved at: {{viewer.last_save_time}}
     </div>
@@ -314,6 +308,9 @@
           <br/>
           <label>Destination path</label>
           <input v-model="proc.dest">
+          <button v-on:click="editor.select_destination_path(proc)">
+              Browse ...
+          </button>
           <br/>
           <label>Mirror tree</label>
           <input v-model="proc.mirror_tree" type="checkbox">

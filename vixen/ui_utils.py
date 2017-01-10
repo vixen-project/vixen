@@ -29,7 +29,6 @@ def _make_root():
     # Make it almost invisible - no decorations, 0 size, top left corner.
     root.overrideredirect(True)
     root.geometry('0x0+0+0')
-    root.attributes("-topmost", True)
 
     # Show window again and lift it to top so it can get focus,
     # otherwise dialogs will end up behind the terminal.

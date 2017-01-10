@@ -14,7 +14,7 @@ from .directory import File, Directory
 from .media import Media
 from .processor import (FactoryBase, CommandFactory, Processor,
                         PythonFunctionFactory, Job)
-from .ui_utils import askopenfilename
+from .ui_utils import askopenfilename, askdirectory, asksaveasfilename
 
 
 class Vixen(HasTraits):
@@ -44,28 +44,6 @@ class Vixen(HasTraits):
 
     def _save_file_default(self):
         return join(get_project_dir(), 'projects.json')
-
-
-class ValidPath(HasTraits):
-    path = Str
-    abspath = Property(Str, depends_on='path')
-    valid = Bool
-    is_file = Bool
-
-    def _path_changed(self, path):
-        if len(path) > 0:
-            if self.is_file:
-                self.valid = isdir(dirname(self.abspath))
-            else:
-                self.valid = isdir(self.abspath)
-        else:
-            self.valid = False
-
-    def _is_file_changed(self, value):
-        self._path_changed(self.path)
-
-    def _get_abspath(self):
-        return abspath(expanduser(self.path))
 
 
 class ProjectEditor(HasTraits):
@@ -112,9 +90,26 @@ class ProjectEditor(HasTraits):
     def remove_processor(self, index):
         del self.processors[index]
 
+    def select_path(self):
+        initialdir = self.path if len(self.path) > 0 else None
+        path = askdirectory(
+            message='Select Project Directory', initialdir=initialdir
+        )
+        if len(path) > 0:
+            self.path = path
+
+    def select_destination_path(self, proc):
+        initialdir = proc.dest if len(proc.dest) > 0 else None
+        path = askdirectory(
+            message='Select Destination Directory',
+            initialdir=initialdir
+        )
+        if len(path) > 0:
+            proc.dest = path
+
     def find_extensions(self):
         with self.ui.busy():
-            path = self._get_actual_path(self.path)
+            path = self.path
             exts = set(
                 os.path.splitext(x.lower())[1]
                 for r, d, files in os.walk(path) for x in files
@@ -127,7 +122,7 @@ class ProjectEditor(HasTraits):
             if cp is not None and self.valid_path:
                 cp.name = self.name
                 cp.description = self.description
-                cp.path = self._get_actual_path(self.path)
+                cp.path = self.path
                 cp.extensions = self.extensions
                 cp.processors = self.processors
                 cp.update_tags(self.tags)
@@ -162,9 +157,6 @@ class ProjectEditor(HasTraits):
         if index in self.test_job_status:
             del self.test_job_status[index]
 
-    def _get_actual_path(self, path):
-        return abspath(expanduser(path))
-
     def _project_changed(self, proj):
         with self.ui.busy():
             if proj is not None:
@@ -172,7 +164,7 @@ class ProjectEditor(HasTraits):
                     proj.load()
                 self.name = proj.name
                 self.description = proj.description
-                self.path = self._get_actual_path(proj.path)
+                self.path = proj.path
                 self.tags = copy.deepcopy(proj.tags)
                 self.extensions = list(proj.extensions)
                 self.processors = proj.processors
@@ -181,7 +173,7 @@ class ProjectEditor(HasTraits):
                 self.test_job_status = {}
 
     def _path_changed(self, path):
-        self.valid_path = isdir(self._get_actual_path(path))
+        self.valid_path = isdir(path)
 
 
 class Pager(HasTraits):
@@ -308,10 +300,6 @@ class ProjectViewer(HasTraits):
 
     media = Instance(Media)
 
-    csv_file = Instance(ValidPath)
-
-    csv_file_valid = DelegatesTo('csv_file', prefix='valid')
-
     last_save_time = DelegatesTo('project')
 
     search = Str
@@ -333,6 +321,17 @@ class ProjectViewer(HasTraits):
         if len(csv) > 0:
             result = self.project.import_csv(csv)
             return result[1]
+        else:
+            return ''
+
+    def export_csv(self):
+        csv = asksaveasfilename(
+            message='Enter CSV file to create',
+            defaultextension='.csv'
+        )
+        if len(csv) > 0:
+            self.project.export_csv(csv)
+            return 'Data saved to %s' % csv
         else:
             return ''
 
@@ -395,9 +394,6 @@ class ProjectViewer(HasTraits):
         if file is None:
             return
         self.media = file.media
-
-    def _csv_file_default(self):
-        return ValidPath(path=join(expanduser('~'), 'data.csv'), is_file=True)
 
     def _pager_default(self):
         p = Pager(limit=20)
