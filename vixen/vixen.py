@@ -6,7 +6,6 @@ from os.path import abspath, dirname, exists, expanduser, join, isdir
 import os
 import subprocess
 import sys
-
 from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits,
                         Instance, Int, List, Property, Str)
 
@@ -15,6 +14,7 @@ from .directory import File, Directory
 from .media import Media
 from .processor import (FactoryBase, CommandFactory, Processor,
                         PythonFunctionFactory, Job)
+from .ui_utils import askopenfilename
 
 
 class Vixen(HasTraits):
@@ -327,6 +327,14 @@ class ProjectViewer(HasTraits):
     def go_to_parent(self):
         if self.parent is not None and not self.is_searching:
             self.current_dir = self.parent
+
+    def import_csv(self):
+        csv = askopenfilename(message='Open CSV file')
+        if len(csv) > 0:
+            result = self.project.import_csv(csv)
+            return result[1]
+        else:
+            return ''
 
     def view(self, path):
         if isinstance(path, Directory):

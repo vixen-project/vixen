@@ -165,6 +165,9 @@
     <div style="clear: left; padding: 10px;">
       <hr/>
 
+      <button v-on:click="myalert(viewer.import_csv())"
+              title="Import tags from a CSV file">Import CSV</button>
+      <br/>
       <input v-bind:class="viewer.csv_file_valid ? 'success' : 'error'"
              v-model="viewer.csv_file.path" debounce="250">
       <button v-bind:disabled="!viewer.csv_file_valid"
@@ -497,6 +500,11 @@
                   this.ui.halt();
                   var m = "ViXeN has been stopped, please close this tab/window.";
                   this.window.alert(m);
+              },
+              myalert: function(msg) {
+                  if (msg.length > 0) {
+                      this.window.alert(msg);
+                  }
               }
           }
       });
