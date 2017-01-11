@@ -17,6 +17,9 @@
         <script type='text/javascript' src='$HTML_ROOT/js/mousetrap.min.js'>
         </script>
 
+        <script type='text/javascript' src='$HTML_ROOT/js/notify.min.js'>
+        </script>
+
         <link href="$HTML_ROOT/css/style.css" rel="stylesheet">
         <!-- Use an empty icon for now until we have a logo. -->
         <link rel="icon" href="data:,">
@@ -448,7 +451,7 @@
       setTimeout(function() {
           obj[method_name].apply(obj, args);
           self.ui.is_busy = false;
-      });
+      }, 50);
   };
 
   var threaded = function(obj, method_name, args) {
@@ -520,7 +523,7 @@
               },
               myalert: function(msg) {
                   if (msg.length > 0) {
-                      this.window.alert(msg);
+                      $.notify(msg, "info");
                   }
               }
           }
