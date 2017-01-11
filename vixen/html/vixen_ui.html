@@ -298,7 +298,7 @@
       <div v-for="proc in editor.processors">
 
         <!-- Command factory -->
-        <div v-if="proc.command !== undefined" class="tag-editor">
+        <div v-if="proc.name === 'CommandFactory'" class="tag-editor">
           <label>Processor {{$index +1}} </label>
           <button v-on:click="editor.remove_processor($index)">
             Remove
@@ -328,7 +328,7 @@
         </div>
 
         <!-- Python factory -->
-        <div v-else class="tag-editor">
+        <div v-if="proc.name === 'PythonFunctionFactory'" class="tag-editor">
           <label>Processor {{$index +1}} </label>
           <button v-on:click="editor.remove_processor($index)">
             Remove
@@ -338,6 +338,9 @@
           <br/>
           <label>Destination path</label>
           <input v-model="proc.dest">
+          <button v-on:click="editor.select_destination_path(proc)">
+            Browse ...
+          </button>
           <br/>
           <label>Code</label>
           <textarea style="width:500px; height:100px" v-model="proc.code"
@@ -346,6 +349,22 @@
           </textarea>
           <br/>
         </div>
+
+        <!-- Tagger factory -->
+        <div v-if="proc.name === 'TaggerFactory'" class="tag-editor">
+          <label>Processor {{$index +1}} </label>
+          <button v-on:click="editor.remove_processor($index)">
+          Remove
+          </button>
+          <br/>
+          Run tagging command:
+          <br/>
+          <label>Command</label>
+          <input v-model="proc.command"
+           title="Command to run, it will be passed the path to the media.">
+          <br/>
+        </div>
+
         <button v-on:click="editor.check_processor(proc)">Test</button>
         <button v-on:click="editor.clear_test_info($index)">Clear</button>
         <view-job :job="editor.test_job[$index]"
@@ -358,6 +377,7 @@
       <label>Add processor of type:</label>
       <select v-model="editor.processor_type">
         <option selected>command</option>
+        <option>tagger</option>
         <option>python</option>
       </select>
       <button v-on:click="editor.add_processor(editor.processor_type)">

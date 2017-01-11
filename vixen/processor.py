@@ -130,6 +130,9 @@ class FactoryBase(HasTraits):
     # processed again.
     _done = Dict
 
+    # The name of this factory.
+    name = Str
+
     def clear(self):
         """Clear out any old file information.
         """
@@ -146,7 +149,9 @@ class CommandFactory(FactoryBase):
 
     command = Str
 
-    def make_jobs(self, media_seq):
+    name = 'CommandFactory'
+
+    def make_jobs(self, media_seq, project):
         jobs = []
         ext = self.output_extension
         if len(ext) > 0:
@@ -212,7 +217,9 @@ class PythonFunctionFactory(FactoryBase):
 
     _func = Callable(transient=True)
 
-    def make_jobs(self, media_seq):
+    name = 'PythonFunctionFactory'
+
+    def make_jobs(self, media_seq, project):
         self._setup_func()
         jobs = []
         for media in media_seq:
@@ -238,6 +245,63 @@ class PythonFunctionFactory(FactoryBase):
 
     def _code_default(self):
         return "def process(relpath, media, dest): pass"
+
+
+class TaggerFactory(FactoryBase):
+    command = Str
+
+    _tag_types = Any
+
+    name = 'TaggerFactory'
+
+    def make_jobs(self, media_seq, project):
+        self._setup_tag_types(project)
+        jobs = []
+
+        for media in media_seq:
+            path = media.path
+            if not os.path.exists(media.path):
+                continue
+            if not self._done.get(path, False):
+                cmd = shlex.split(self.command) + [path]
+                job = Job(
+                    func=self._run, args=[cmd, media], info=' '.join(cmd)
+                )
+                jobs.append(job)
+
+        return jobs
+
+    def _run(self, command, media):
+        p = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        stdout, stderr = p.communicate()
+        if p.returncode == 0:
+            tag_types = self._tag_types
+            for line in stdout.splitlines():
+                if len(line) == 0:
+                    continue
+                try:
+                    tag, value = [x.strip() for x in line.split(':', 1)]
+                except ValueError:
+                    pass
+                else:
+                    if tag in tag_types:
+                        media.tags[tag] = tag_types[tag](value)
+
+            self._done[media.path] = True
+
+    def _setup_tag_types(self, project):
+
+        TRUE = ('1', 't', 'true', 'y', 'yes')
+        type_map = {
+            'bool': lambda x: x.lower() in TRUE,
+            'string': lambda x: x,
+            'int': int,
+            'float': float
+        }
+
+        self._tag_types = {x.name: type_map[x.type] for x in project.tags}
 
 
 def dump(factory):

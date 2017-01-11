@@ -13,7 +13,7 @@ from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
 from .media import Media
 from .processor import (FactoryBase, CommandFactory, Processor,
-                        PythonFunctionFactory, Job)
+                        PythonFunctionFactory, TaggerFactory, Job)
 from .ui_utils import askopenfilename, askdirectory, asksaveasfilename
 
 
@@ -84,7 +84,11 @@ class ProjectEditor(HasTraits):
         del self.extensions[index]
 
     def add_processor(self, name):
-        procs = {'command': CommandFactory, 'python': PythonFunctionFactory}
+        procs = {
+            'command': CommandFactory,
+            'python': PythonFunctionFactory,
+            'tagger': TaggerFactory
+        }
         self.processors.append(procs[name](dest=self.path))
 
     def remove_processor(self, index):
@@ -137,7 +141,7 @@ class ProjectEditor(HasTraits):
             jobs = []
             for key in proj.media:
                 test_media = [proj.media[key]]
-                jobs = proc.make_jobs(test_media)
+                jobs = proc.make_jobs(test_media, proj)
                 if len(jobs) > 0:
                     break
             index = self.processors.index(proc)
@@ -457,7 +461,7 @@ class VixenUI(HasTraits):
                 to_process = self.viewer.search_pager.data
             else:
                 to_process = project.media.values()
-            jobs.extend(proc.make_jobs(to_process))
+            jobs.extend(proc.make_jobs(to_process, project))
         self.processor.jobs = jobs
         self.processor.process()
 

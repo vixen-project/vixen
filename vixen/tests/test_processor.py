@@ -5,7 +5,7 @@ import tempfile
 import unittest
 
 from vixen.processor import Processor, Job, CommandFactory, \
-    PythonFunctionFactory, dump, load
+    PythonFunctionFactory, TaggerFactory, dump, load
 from vixen.tests.test_directory import make_data
 from vixen.project import Project, TagInfo
 
@@ -129,7 +129,7 @@ class TestCommandFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = cf.make_jobs(p.media.values())
+        jobs = cf.make_jobs(p.media.values(), p)
 
         # Then.
         self.assertEqual(len(jobs), 1)
@@ -152,7 +152,7 @@ class TestCommandFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = cf.make_jobs(p.media.values())
+        jobs = cf.make_jobs(p.media.values(), p)
         job = jobs[0]
         job.run()
         job.thread.join()
@@ -166,7 +166,7 @@ class TestCommandFactory(TestFactoryBase):
         self.assertTrue(os.path.exists(dest))
         self.assertEqual(cf._done[dest], True)
 
-        jobs = cf.make_jobs(p.media.values())
+        jobs = cf.make_jobs(p.media.values(), p)
         self.assertEqual(len(jobs), 0)
 
         # When.
@@ -187,7 +187,7 @@ class TestCommandFactory(TestFactoryBase):
         os.remove(os.path.join(self.root, 'hello.py'))
 
         # When
-        jobs = cf.make_jobs(p.media.values())
+        jobs = cf.make_jobs(p.media.values(), p)
 
         # Then.
         self.assertEqual(len(jobs), 0)
@@ -209,7 +209,7 @@ class TestPythonFunctionFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = factory.make_jobs(p.media.values())
+        jobs = factory.make_jobs(p.media.values(), p)
         for job in jobs:
             job.run()
             job.thread.join()
@@ -222,7 +222,7 @@ class TestPythonFunctionFactory(TestFactoryBase):
             self.assertEqual(media.tags['args'], expect)
 
         # When
-        jobs = factory.make_jobs(p.media.values())
+        jobs = factory.make_jobs(p.media.values(), p)
 
         # Then
         self.assertEqual(len(jobs), 0)
@@ -239,6 +239,68 @@ class TestPythonFunctionFactory(TestFactoryBase):
         f = factory
         for attr in ['code', '_done']:
             self.assertEqual(getattr(f1, attr), getattr(f, attr))
+
+
+class TestTaggerFactory(TestFactoryBase):
+
+    def test_tagger_factory_tags_known_tags(self):
+        # Given.
+        code = 'import sys; print("args:"+sys.argv[1]'\
+               '+"\nlength:10\ncompleted:yes\n")'
+        command = "python -c %r" % code
+
+        factory = TaggerFactory(command=command)
+        p = Project(name='test', path=self.root)
+        p.add_tags(
+            [
+                TagInfo(name='args', type='string'),
+                TagInfo(name='length', type='int')
+            ]
+        )
+        p.scan()
+
+        # When
+        jobs = factory.make_jobs(p.media.values(), p)
+        for job in jobs:
+            job.run()
+            job.thread.join()
+
+        # Then.
+        self.assertEqual(len(jobs), 5)
+        for key, media in p.media.items():
+            self.assertEqual(media.tags['completed'], True)
+            expect = "%s" % (media.path)
+            self.assertEqual(media.tags['args'], expect)
+            self.assertEqual(media.tags['length'], 10)
+
+        # When
+        jobs = factory.make_jobs(p.media.values(), p)
+
+        # Then
+        self.assertEqual(len(jobs), 0)
+
+    def test_tagger_factory_skips_unknown_tags(self):
+        # Given.
+        code = 'import sys; print("\nlength:10\nxxx:yes\n")'
+        command = "python -c %r" % code
+
+        factory = TaggerFactory(command=command)
+        p = Project(name='test', path=self.root)
+        p.scan()
+
+        # When
+        jobs = factory.make_jobs(p.media.values(), p)
+        for job in jobs:
+            job.run()
+            job.thread.join()
+
+        # Then.
+        self.assertEqual(len(jobs), 5)
+        for key, media in p.media.items():
+            self.assertTrue('length' not in media.tags)
+            self.assertTrue('xxx' not in media.tags)
+            self.assertEqual(media.tags['completed'], False)
+
 
 if __name__ == '__main__':
     unittest.main()

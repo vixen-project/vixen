@@ -303,9 +303,9 @@ class Project(HasTraits):
 
         tags = {x: header.index(x.name) for x in self.tags if x.name in header}
         path_idx = header.index('path')
-        TRUE = ('1', 'True', 't', 'true', 'y', 'yes')
+        TRUE = ('1', 't', 'true', 'y', 'yes')
         type_map = {
-            'bool': lambda x: x in TRUE,
+            'bool': lambda x: x.lower() in TRUE,
             'string': lambda x: x,
             'int': int,
             'float': float
