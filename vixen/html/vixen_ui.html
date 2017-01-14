@@ -277,31 +277,47 @@
                v-bind:alt="media.file_name" width="100%">
         </a>
       </div>
+      <!-- VIDEO -->
       <div v-if="media.type == 'video'" class="resizable"
            style="width: 500px;">
         <video v-bind:src="$ROOTmedia.path" controls
                preload="auto" style="width:100%;">
         </video>
       </div>
+      <!-- AUDIO -->
       <div v-if="media.type == 'audio'" class="resizable"
            style="width: 300px">
         <audio v-bind:src="$ROOTmedia.path" controls>
         </audio>
       </div>
+      <!-- TEXT -->
       <div v-if="media.type == 'text'" class="resizable"
            style="width: 500px; height: 500px;">
         <object v-bind:data="$ROOTmedia.path" type="text/plain"
          width="100%" height="100%">
        </object>
       </div>
+      <!-- HTML -->
       <div v-if="media.type == 'html'" class="resizable"
            style="width: 500px; height: 500px;">
           <object v-bind:data="$ROOTmedia.path" type="text/html"
                   width="100%" height="100%">
           </object>
       </div>
-      <div v-if="media.type == 'unknown'" >
+      <!-- PDF -->
+      <div v-if="media.type == 'pdf'" class="resizable"
+           style="width: 500px; height: 500px;">
+          <object v-bind:data="$ROOTmedia.path" type="application/pdf"
+                  width="100%" height="100%">
+          </object>
+      </div>
+      <!-- OTHER -->
+      <div v-if="media.type == 'unknown'" class="resizable"
+           style="width: 500px; height: 500px;">
         <a v-bind:href="$ROOTmedia.path">{{media.file_name}}</a>
+            <object v-bind:data="$ROOTmedia.path"
+                    width="100%" height="100%">
+            </object>
       </div>
     </div>
   </script>

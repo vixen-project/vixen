@@ -45,6 +45,7 @@ class TestProject(TestProjectBase):
         self.assertEqual(len(p.media), 5)
         m = p.media['root.txt']
         self.assertEqual(m.relpath, 'root.txt')
+        self.assertEqual(m.type, 'text')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
         m = p.media['sub/sub.txt']
