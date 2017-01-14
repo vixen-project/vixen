@@ -288,6 +288,18 @@
         <audio v-bind:src="$ROOTmedia.path" controls>
         </audio>
       </div>
+      <div v-if="media.type == 'text'" class="resizable"
+           style="width: 500px; height: 500px;">
+        <object v-bind:data="$ROOTmedia.path" type="text/plain"
+         width="100%" height="100%">
+       </object>
+      </div>
+      <div v-if="media.type == 'html'" class="resizable"
+           style="width: 500px; height: 500px;">
+          <object v-bind:data="$ROOTmedia.path" type="text/html"
+                  width="100%" height="100%">
+          </object>
+      </div>
       <div v-if="media.type == 'unknown'" >
         <a v-bind:href="$ROOTmedia.path">{{media.file_name}}</a>
       </div>

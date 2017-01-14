@@ -1,12 +1,16 @@
 import datetime
 import os
 
+from jigna.core.wsgi import guess_type
 from traits.api import Date, Dict, HasTraits, Int, Property, Str
 
 # Some pre-defined file extensions.
 IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
 VIDEO = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
 AUDIO = ['.mp3', '.wav', '.ogg', '.m4a']
+HTML = ['.html', '.htm']
+# Only add the ones that mimetypes does not detect correctly here.
+TEXT = ['.md', '.rst', '.pyx']
 
 
 class Media(HasTraits):
@@ -89,5 +93,14 @@ class Media(HasTraits):
             self.type = "video"
         elif ext in AUDIO:
             self.type = "audio"
+        elif ext in HTML:
+            self.type = "html"
         else:
-            self.type = "unknown"
+            type, encoding = guess_type(path)
+            if len(type) > 0:
+                if type.startswith('text') or ext in TEXT:
+                    self.type = 'text'
+                else:
+                    self.type = 'unknown'
+            else:
+                self.type = "unknown"
