@@ -97,7 +97,7 @@ class ProjectEditor(HasTraits):
     def select_path(self):
         initialdir = self.path if len(self.path) > 0 else None
         path = askdirectory(
-            message='Select Project Directory', initialdir=initialdir
+            title='Select Project Directory', initialdir=initialdir
         )
         if len(path) > 0:
             self.path = path
@@ -105,7 +105,7 @@ class ProjectEditor(HasTraits):
     def select_destination_path(self, proc):
         initialdir = proc.dest if len(proc.dest) > 0 else None
         path = askdirectory(
-            message='Select Destination Directory',
+            title='Select Destination Directory',
             initialdir=initialdir
         )
         if len(path) > 0:

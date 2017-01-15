@@ -51,9 +51,9 @@ def askopenfilename(message=None, **options):
     return result
 
 
-def askdirectory(message=None, **options):
+def askdirectory(title=None, **options):
     root = _make_root()
-    result = FD.askdirectory(parent=root, message=message, **options)
+    result = FD.askdirectory(parent=root, title=title, **options)
     root.destroy()
     return result
 
