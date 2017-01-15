@@ -40,13 +40,18 @@ def _make_root():
                'of every process whose unix id is {} to true'
         script = tmpl.format(os.getpid())
         subprocess.check_call(['/usr/bin/osascript', '-e', script])
+        root.update()
+    elif sys.platform.startswith('win'):
+        root.attributes('-topmost', True)
+        root.lift()
+        root.after(0, lambda: root.attributes('-topmost', False))
 
     return root
 
 
-def askopenfilename(message=None, **options):
+def askopenfilename(title=None, **options):
     root = _make_root()
-    result = FD.askopenfilename(parent=root, message=message, **options)
+    result = FD.askopenfilename(parent=root, title=title, **options)
     root.destroy()
     return result
 
@@ -58,8 +63,8 @@ def askdirectory(title=None, **options):
     return result
 
 
-def asksaveasfilename(message=None, **options):
+def asksaveasfilename(title=None, **options):
     root = _make_root()
-    result = FD.asksaveasfilename(parent=root, message=message, **options)
+    result = FD.asksaveasfilename(parent=root, title=title, **options)
     root.destroy()
     return result

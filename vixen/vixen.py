@@ -321,7 +321,7 @@ class ProjectViewer(HasTraits):
             self.current_dir = self.parent
 
     def import_csv(self):
-        csv = askopenfilename(message='Open CSV file')
+        csv = askopenfilename(title='Open CSV file')
         if len(csv) > 0:
             result = self.project.import_csv(csv)
             return result[1]
@@ -330,7 +330,7 @@ class ProjectViewer(HasTraits):
 
     def export_csv(self):
         csv = asksaveasfilename(
-            message='Enter CSV file to create',
+            title='Enter CSV file to create',
             defaultextension='.csv'
         )
         if len(csv) > 0:
