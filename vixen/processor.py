@@ -174,7 +174,8 @@ class CommandFactory(FactoryBase):
         return jobs
 
     def _get_command(self, media, out_file):
-        cmd = [c.replace('$input', media.path).replace('$output', out_file)
+        cmd = [c.replace('$input', media.path).replace('$output', out_file).
+               replace('\\', '\\\\')
                for c in shlex.split(self.command)]
         return cmd
 

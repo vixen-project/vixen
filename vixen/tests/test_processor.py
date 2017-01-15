@@ -136,14 +136,14 @@ class TestCommandFactory(TestFactoryBase):
         job = jobs[0]
         m = p.media['hello.py']
         dest = os.path.join(self.root1, 'hello.rst')
-        expect = 'echo %s %s' % (m.path, dest)
+        expect = ('echo %s %s' % (m.path, dest)).replace('\\', '\\\\')
         self.assertEqual(job.args, [expect.split(), dest])
 
     def test_command_factory_jobs(self):
         # Given.
         import sys
         command = """\
-        %s -c 'import shutil;shutil.copy("$input", "$output")'\
+        %r -c 'import shutil;shutil.copy("$input", "$output")'\
         """ % sys.executable
         cf = CommandFactory(dest=self.root1, input_extension='.py',
                             output_extension='.rst',

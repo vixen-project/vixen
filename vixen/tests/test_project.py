@@ -48,7 +48,7 @@ class TestProject(TestProjectBase):
         self.assertEqual(m.type, 'text')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
-        m = p.media['sub/sub.txt']
+        m = p.media[join('sub', 'sub.txt')]
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
@@ -79,7 +79,7 @@ class TestProject(TestProjectBase):
         m = p.media['root.txt']
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
-        m = p.media['sub/sub.txt']
+        m = p.media[join('sub', 'sub.txt')]
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
@@ -115,10 +115,10 @@ class TestProject(TestProjectBase):
         self.assertEqual(basename(row[3]), 'root.txt')
         self.assertEqual(row[0], 'True')
         row = next(reader)
-        self.assertEqual(basename(row[3]), 'sub.txt')
+        self.assertTrue(basename(row[3]).startswith('sub'))
         self.assertEqual(row[0], 'False')
         row = next(reader)
-        self.assertEqual(basename(row[3]), 'subsub.txt')
+        self.assertTrue(basename(row[3]).startswith('sub'))
         self.assertEqual(row[0], 'False')
 
     def test_refresh_updates_new_media(self):
@@ -142,7 +142,7 @@ class TestProject(TestProjectBase):
         self.assertEqual(m.tags['completed'], True)
         self.assertEqual(len(p.media), 6)
         self.assertTrue(m.size > orig_size)
-        m = p.media['sub/sub1.txt']
+        m = p.media[join('sub', 'sub1.txt')]
         self.assertEqual(m.tags['completed'], False)
 
     def test_update_tags_updates_existing_media(self):
