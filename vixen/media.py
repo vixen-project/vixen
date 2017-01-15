@@ -80,8 +80,8 @@ class Media(HasTraits):
             self._mtime = datetime.datetime.fromtimestamp(stat.st_mtime)
             self._ctime = datetime.datetime.fromtimestamp(stat.st_ctime)
             self.size = stat.st_size
-            self.mtime = self._mtime.strftime('%d %b %Y %T')
-            self.ctime = self._ctime.strftime('%d %b %Y %T')
+            self.mtime = self._mtime.strftime('%d %b %Y %H:%M:%S')
+            self.ctime = self._ctime.strftime('%d %b %Y %H:%M:%S')
 
     def _get_file_name(self):
         return os.path.basename(self.path)
