@@ -73,6 +73,7 @@ class ProjectEditor(HasTraits):
 
     def add_tag(self, name):
         self.tags.append(TagInfo(name=name, type="string"))
+        self.tag_name = ''
 
     def remove_tag(self, index):
         del self.tags[index]
