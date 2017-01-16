@@ -1,1 +1,1 @@
-@start "" "vixen_app\vixen"
+@start "" "vixen_app\vixen" %*

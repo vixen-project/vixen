@@ -1,4 +1,3 @@
 #!/bin/bash
 
-exec ./vixen_app/vixen
-
+exec ./vixen_app/vixen $@
