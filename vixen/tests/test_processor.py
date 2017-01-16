@@ -137,7 +137,7 @@ class TestCommandFactory(TestFactoryBase):
         m = p.media['hello.py']
         dest = os.path.join(self.root1, 'hello.rst')
         expect = ('echo %s %s' % (m.path, dest)).replace('\\', '\\\\')
-        self.assertEqual(job.args, [expect.split(), dest])
+        self.assertEqual(job.args, [expect.split(), m.path, dest])
 
     def test_command_factory_jobs(self):
         # Given.
@@ -147,7 +147,7 @@ class TestCommandFactory(TestFactoryBase):
         """ % sys.executable
         cf = CommandFactory(dest=self.root1, input_extension='.py',
                             output_extension='.rst',
-                            command=command)
+                            command=command, copy_timestamps=True)
         p = Project(name='test', path=self.root)
         p.scan()
 
@@ -165,6 +165,10 @@ class TestCommandFactory(TestFactoryBase):
         dest = os.path.join(self.root1, 'hello.rst')
         self.assertTrue(os.path.exists(dest))
         self.assertEqual(cf._done[dest], True)
+        s_stat = os.stat(m.path)
+        d_stat = os.stat(dest)
+        self.assertEqual(s_stat.st_mtime, d_stat.st_mtime)
+        self.assertEqual(s_stat.st_ctime, d_stat.st_ctime)
 
         jobs = cf.make_jobs(p.media.values(), p)
         self.assertEqual(len(jobs), 0)

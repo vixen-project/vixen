@@ -1,6 +1,7 @@
 import multiprocessing
 import os
 import shlex
+import shutil
 import subprocess
 import time
 from threading import Thread
@@ -143,6 +144,8 @@ class CommandFactory(FactoryBase):
 
     mirror_tree = Bool(True)
 
+    copy_timestamps = Bool(True, desc='copy timestamps of source to target')
+
     input_extension = Str
 
     output_extension = Str
@@ -167,7 +170,8 @@ class CommandFactory(FactoryBase):
             if not self._done.get(out_file, False):
                 cmd = self._get_command(media, out_file)
                 job = Job(
-                    func=self._run, args=[cmd, out_file], info=' '.join(cmd)
+                    func=self._run, args=[cmd, media.path, out_file],
+                    info=' '.join(cmd)
                 )
                 jobs.append(job)
 
@@ -190,7 +194,7 @@ class CommandFactory(FactoryBase):
             output = output_base
         return output
 
-    def _run(self, command, out_file):
+    def _run(self, command, in_file, out_file):
         basedir = os.path.dirname(out_file)
         if not os.path.exists(basedir):
             os.makedirs(basedir)
@@ -203,6 +207,9 @@ class CommandFactory(FactoryBase):
 
         if not os.path.exists(out_file):
             subprocess.check_output(command, stderr=subprocess.STDOUT)
+
+        if self.copy_timestamps:
+            shutil.copystat(in_file, out_file)
 
         os.remove(lock)
         self._done[out_file] = True

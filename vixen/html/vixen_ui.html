@@ -335,24 +335,27 @@
             Remove
           </button>
           <br/>
-          Run command:
+          <em>Run command:</em>
           <br/>
-          <label>Destination path</label>
+          <label>Destination path:</label>
           <input v-model="proc.dest">
           <button v-on:click="editor.select_destination_path(proc)">
               Browse ...
           </button>
           <br/>
-          <label>Mirror tree</label>
+          <label>Mirror tree:</label>
           <input v-model="proc.mirror_tree" type="checkbox">
           <br/>
-          <label>Input extension</label>
+          <label>Copy timestamps:</label>
+          <input v-model="proc.copy_timestamps" type="checkbox">
+          <br/>
+          <label>Input extension:</label>
           <input v-model="proc.input_extension">
           <br/>
-          <label>Output extension</label>
+          <label>Output extension:</label>
           <input v-model="proc.output_extension">
           <br/>
-          <label>Command</label>
+          <label>Command:</label>
           <input v-model="proc.command"
                  title="Use $input for input file and $output for output file">
           <br/>
@@ -365,15 +368,15 @@
             Remove
           </button>
           <br/>
-          Run Python code:
+          <em>Run Python code:</em>
           <br/>
-          <label>Destination path</label>
+          <label>Destination path:</label>
           <input v-model="proc.dest">
           <button v-on:click="editor.select_destination_path(proc)">
             Browse ...
           </button>
           <br/>
-          <label>Code</label>
+          <label>Code:</label>
           <textarea style="width:500px; height:100px" v-model="proc.code"
                     title="Write a Python function called process taking three"\
                     "arguments (relpath, media, dest)">
@@ -388,9 +391,9 @@
           Remove
           </button>
           <br/>
-          Run tagging command:
+          <em>Run tagging command:</em>
           <br/>
-          <label>Command</label>
+          <label>Command:</label>
           <input v-model="proc.command"
            title="Command to run, it will be passed the path to the media.">
           <br/>
