@@ -167,8 +167,8 @@ class TestCommandFactory(TestFactoryBase):
         self.assertEqual(cf._done[dest], True)
         s_stat = os.stat(m.path)
         d_stat = os.stat(dest)
-        self.assertEqual(s_stat.st_mtime, d_stat.st_mtime)
-        self.assertEqual(s_stat.st_ctime, d_stat.st_ctime)
+        self.assertEqual(round(s_stat.st_mtime), round(d_stat.st_mtime))
+        self.assertEqual(round(s_stat.st_ctime), round(d_stat.st_ctime))
 
         jobs = cf.make_jobs(p.media.values(), p)
         self.assertEqual(len(jobs), 0)
