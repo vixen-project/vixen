@@ -55,6 +55,7 @@ def make_bundle():
 
     if sys.platform.startswith('linux'):
         shutil.copy(os.path.join('installer', 'vixen'), package_dir)
+        shutil.copy(os.path.join('installer', 'ViXeN.desktop'), package_dir)
     elif sys.platform.startswith('win32'):
         shutil.copy(os.path.join('installer', 'vixen.bat'), package_dir)
         shutil.copy(os.path.join('installer', 'vixen.lnk'), package_dir)
