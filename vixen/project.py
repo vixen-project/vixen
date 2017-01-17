@@ -330,7 +330,10 @@ class Project(HasTraits):
                         except ValueError:
                             pass
 
-        msg = "Read tags for %d paths out of %d entries" % (count, total)
+        msg = "Read tags for %d paths out of %d entries." % (count, total)
+        if count == 0 and total > 0:
+            msg += ("\nPlease check that your path column matches "
+                    "the media paths.")
         return True, msg
 
     def load(self, fp=None):
