@@ -2,6 +2,8 @@ ViXeN: View eXtract and aNnotate media
 =======================================
 
 [![Build Status](https://travis-ci.org/prabhuramachandran/vixen.svg?branch=master)](https://travis-ci.org/prabhuramachandran/vixen)
+[![Documentation Status](https://readthedocs.org/projects/vixen/badge/?version=latest)](http://vixen.readthedocs.io/en/latest/?badge=latest)
+
 
 ViXeN is a simple tool to facilitate easily viewing, adding, and annotating
 metadata associated with media.  ViXeN has been designed primarily to assist
