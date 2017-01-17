@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits,
-                        Instance, Int, List, Property, Str)
+                        Instance, Int, List, Property, Str, Tuple)
 
 from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
@@ -81,7 +81,8 @@ class ProjectEditor(HasTraits):
         del self.tags[index]
 
     def add_extension(self, name):
-        self.extensions.append(name.lower())
+        self.extensions.extend([x.strip().lower() for x in name.split(',')])
+        self.ext_name = ''
 
     def remove_extension(self, index):
         del self.extensions[index]
@@ -327,9 +328,10 @@ class ProjectViewer(HasTraits):
         csv = askopenfilename(title='Open CSV file')
         if len(csv) > 0:
             result = self.project.import_csv(csv)
-            return result[1]
-        else:
-            return ''
+            if result[0]:
+                self.ui.success(result[1])
+            else:
+                self.ui.error(result[1])
 
     def export_csv(self):
         csv = asksaveasfilename(
@@ -338,9 +340,7 @@ class ProjectViewer(HasTraits):
         )
         if len(csv) > 0:
             self.project.export_csv(csv)
-            return 'Data saved to %s' % csv
-        else:
-            return ''
+            self.ui.success('Data saved to %s' % csv)
 
     def view(self, path):
         if isinstance(path, Directory):
@@ -440,6 +440,8 @@ class VixenUI(HasTraits):
 
     version = Str
 
+    message = Tuple()
+
     def get_context(self):
         return dict(
             ui=self, vixen=self.vixen, editor=self.editor, viewer=self.viewer
@@ -448,14 +450,28 @@ class VixenUI(HasTraits):
     def home(self):
         self.mode = 'edit'
 
+    def error(self, msg):
+        self.message = msg, "error"
+        self.message = tuple()
+
+    def info(self, msg):
+        self.message = msg, "info"
+        self.message = tuple()
+
+    def success(self, msg):
+        self.message = msg, "success"
+        self.message = tuple()
+
     def edit(self, project):
         self.editor.project = project
         self.mode = 'edit'
+        self.info('Remember to "Apply changes" if you change anything.')
 
     def view(self, project):
         self.viewer.project = project
         self.mode = 'view'
         self.editor.project = None
+        self.info('Remember to "Save" if you edit any tags.')
 
     def process(self, project):
         jobs = []
@@ -467,6 +483,7 @@ class VixenUI(HasTraits):
             jobs.extend(proc.make_jobs(to_process, project))
         self.processor.jobs = jobs
         self.processor.process()
+        self.info("Remember to save the project once processing completes.")
 
     def remove(self, project):
         self.vixen.remove(project)

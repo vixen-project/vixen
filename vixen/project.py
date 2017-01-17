@@ -334,7 +334,11 @@ class Project(HasTraits):
         if count == 0 and total > 0:
             msg += ("\nPlease check that your path column matches "
                     "the media paths.")
-        return True, msg
+            return False, msg
+        else:
+            msg += ("\nPlease check the imported tags and make sure you "
+                    "save the project.")
+            return True, msg
 
     def load(self, fp=None):
         """Load media info from opened file object.

@@ -106,7 +106,8 @@
           </button>
         </li>
       </ul>
-      <input v-model="editor.ext_name">
+      <input v-model="editor.ext_name"
+             title="Case is not significant, use commas for multiple extensions. Examples: '.jpg' or '.jpg, .png'.">
       <button v-on:click="editor.add_extension(editor.ext_name)">
         Add extension
       </button>
@@ -171,8 +172,8 @@
       <hr/>
 
       <button v-on:click="busy_call(viewer.project, 'save')">Save</button>
-      <button v-on:click="myalert(viewer.export_csv())">Export CSV</button>
-      <button v-on:click="myalert(viewer.import_csv())"
+      <button v-on:click="viewer.export_csv()">Export CSV</button>
+      <button v-on:click="viewer.import_csv()"
               title="Import tags from a CSV file">Import CSV</button>
       <br/>
       Last saved at: {{viewer.last_save_time}}
@@ -552,17 +553,19 @@
                   this.ui.halt();
                   var m = "ViXeN has been stopped, please close this tab/window.";
                   this.window.alert(m);
-              },
-              myalert: function(msg) {
-                  if (msg.length > 0) {
-                      $.notify(msg, "info");
-                  }
               }
           }
       });
 
       // Useful when debugging.
       window.vm = vm;
+
+      // Hook up any messages from the UI to display on the view.
+      vm.$watch('ui.message', function(new_val, old_val) {
+          if (new_val.length > 0 && new_val[0].length > 0) {
+              $.notify(new_val[0], new_val[1]);
+          }
+      });
 
       // Keybindings using Mousetrap
       Mousetrap.bind(['command+s', 'control+s'], function(e) {
