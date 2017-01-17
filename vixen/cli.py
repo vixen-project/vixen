@@ -4,7 +4,8 @@ from __future__ import absolute_import
 from argparse import ArgumentParser
 import logging
 from logging.handlers import RotatingFileHandler
-from os.path import expanduser, join
+import os
+from os.path import expanduser, isdir, join
 import sys
 
 logger = logging.getLogger(__name__)
@@ -17,11 +18,19 @@ def _logging_excepthook(exc_type, value, tb):
     logger.error('Uncaught exception', exc_info=(exc_type, value, tb))
 
 
+def _make_logdir():
+    logdir = expanduser(join('~', '.vixen'))
+    if not isdir(logdir):
+        os.makedirs(logdir)
+    return logdir
+
+
 def setup_logger():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
     logging.captureWarnings(True)
-    fname = expanduser(join('~', '.vixen', 'vixen.log'))
+    logdir = _make_logdir()
+    fname = join(logdir, 'vixen.log')
     handler = RotatingFileHandler(
         filename=fname, maxBytes=2**17, backupCount=3
     )
