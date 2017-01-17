@@ -91,7 +91,8 @@
         </select>
         <button v-on:click="editor.remove_tag($index)">Remove</button>
       </div>
-      <input v-model="editor.tag_name">
+      <input v-model="editor.tag_name"
+             title="Enter a new tag. You may separate multiple tags by commas.">
       <button v-on:click="editor.add_tag(editor.tag_name)">
         Add tag</button>
       <br>

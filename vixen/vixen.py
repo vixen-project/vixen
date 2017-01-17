@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 import copy
 import json
-from os.path import abspath, dirname, exists, expanduser, join, isdir
+from os.path import dirname, exists, join, isdir
 import os
 import subprocess
 import sys
@@ -72,7 +72,9 @@ class ProjectEditor(HasTraits):
     ui = Instance('VixenUI')
 
     def add_tag(self, name):
-        self.tags.append(TagInfo(name=name, type="string"))
+        tags = [TagInfo(name=x.strip(), type="string")
+                for x in name.split(',')]
+        self.tags.extend(tags)
         self.tag_name = ''
 
     def remove_tag(self, index):
