@@ -26,10 +26,15 @@ Dependencies
 Core dependencies
 ^^^^^^^^^^^^^^^^^^
 
-Please make sure you have a good, functional browser such as:
-- Mozilla Firefox (any recent version)
-- Google Chrome (any recent version)
+Please make sure you have a recent, functional browser such as:
+- Mozilla Firefox_ (any recent version)
+- Google Chrome_ (any recent version)
 - Internet Explorer (IE 9 and above)
+
+ViXeN is tested to work best on Firefox_ and Chrome_.
+
+.. _Firefox: https://www.mozilla.org/en-US/firefox/new/
+.. _Chrome: https://www.google.com/chrome/
 
 
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -43,7 +48,7 @@ The optional dependencies are:
 .. _ffmpeg: http://ffmpeg.org
 
 
-This is only needed if you wish to use ffmpeg to convert any of your video media.
+This is only needed if you wish to use ffmpeg_ to convert any of your video media.
 
 -------------------------------
 Installing ViXeN on GNU/Linux
@@ -66,17 +71,19 @@ More detailed instructions are given below.
 Using Nautilus
 ^^^^^^^^^^^^^^^^^^^
 
-1. Download the ViXen binary file (say vixen-0.5-linux64.tgz) from
+1. Download the ViXen binary file (say vixen-0.9-linux64.tgz) from
    `ViXeN binary`_ to your preferred directory.
-
 
 2. Right click and select 'Extract Here' or 'Open With Archive Manager'. A
    ViXeN folder will appear in the directory you have selected (in this case
    the folder will be ``vixen-0.5``).
 
-3. Open the directory and double click the ``vixen`` file. The ViXeN
-   application will open on the browser, **if** Nautilus supports running
-   executables. If it does not, run the command shown in :ref:`using-cli`.
+3. Open the directory and double click the ``ViXeN`` file (the file is
+   ``ViXeN.desktop``). The ViXeN application will open on the browser.
+
+4. If the above did not work you can try to run the ``vixen`` file. This will
+   run **if** Nautilus supports running executables. If it does not, run the
+   command shown in :ref:`using-cli`.
 
 .. _using-cli:
 
@@ -87,13 +94,13 @@ Using the Command Line
 After downloading and unpacking ViXen either :ref:`using-nautilus`, run the
 following commands on the terminal::
 
-	$ cd vixen-0.5
+	$ cd vixen-0.9
 
-Where ``vixen-0.5`` is the extracted ViXeN binary. Suppose you downloaded and
-unpacked the ``vixen-0.5-linux64.tgz`` file in a folder named ``Software`` in
+Where ``vixen-0.9`` is the extracted ViXeN binary. Suppose you downloaded and
+unpacked the ``vixen-0.9-linux64.tgz`` file in a folder named ``Software`` in
 your ``home`` directory, then this command will be::
 
-	$ cd Software/vixen-0.5
+	$ cd Software/vixen-0.9
 
 Then run the application using::
 
@@ -106,7 +113,7 @@ Installing ViXeN on Mac OS X
 
 1. On OS X, download the ZIP file.
 2. Unpack it.
-3. Run the resulting dmg file by double clicking it.
+3. Run the resulting ``ViXeN.dmg`` file by double clicking it.
 
 You may move this dmg file anywhere you like or move it to your
 ``Applications`` folder if you wish to.
@@ -122,3 +129,19 @@ Installing ViXeN on Windows
    shortcut that you can use to run the application.
 
 The application will open in your default browser window.
+
+-----------------
+Troubleshooting
+-----------------
+
+If the application fails to run or you have any problems, please look at the
+log file ``vixen.log`` located inside the ``.vixen`` folder in your home
+directory.
+
+- On Linux this is typically in the directory ``/home/username/.vixen``.
+- On OS X this is in ``/Users/username/.vixen``.
+- On Windows this may be ``C:\Users\username\.vixen``.
+
+Email your log file to the developers or the mailing list.
+
+The ViXeN mailing list is available at https://groups.google.com/forum/#!forum/vixen

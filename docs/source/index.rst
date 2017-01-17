@@ -19,4 +19,10 @@ minimally intrusive manner.
    installation
    using_vixen
 
+
+==================
+Indices and tables
+==================
+
+* :ref:`genindex`
 * :ref:`search`
