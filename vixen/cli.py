@@ -2,6 +2,37 @@
 from __future__ import absolute_import
 
 from argparse import ArgumentParser
+import logging
+from logging.handlers import RotatingFileHandler
+from os.path import expanduser, join
+import sys
+
+logger = logging.getLogger(__name__)
+
+
+def _logging_excepthook(exc_type, value, tb):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, value, tb)
+        return
+    logger.error('Uncaught exception', exc_info=(exc_type, value, tb))
+
+
+def setup_logger():
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    logging.captureWarnings(True)
+    fname = expanduser(join('~', '.vixen', 'vixen.log'))
+    handler = RotatingFileHandler(
+        filename=fname, maxBytes=2**17, backupCount=3
+    )
+    formatter = logging.Formatter(
+        '%(levelname)s|%(asctime)s|%(name)s|%(message)s'
+    )
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
+    root_logger.addHandler(handler)
+    sys.excepthook = _logging_excepthook
+    logger.info('**** Starting ViXeN ****')
 
 
 def make_ui():
@@ -20,6 +51,7 @@ def view(dev, port):
 
 
 def main():
+    setup_logger()
     desc = "ViXeN: view, extract and annotate media"
     parser = ArgumentParser(description=desc, prog='vixen')
     parser.add_argument("--dev", default=False, action="store_true",
@@ -35,6 +67,8 @@ def main():
         help="Start a Python console (useful for direct scripting)."
     )
     args = parser.parse_args()
+    logger.info('vixen called as: %s', sys.argv)
+    logger.info('Parsed command line args: %s', args)
     if args.version:
         import vixen
         print("ViXeN version: %s" % vixen.__version__)

@@ -1,6 +1,7 @@
 import csv
 import datetime
 import json_tricks
+import logging
 import os
 from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
                      join, realpath, relpath, splitext)
@@ -16,6 +17,8 @@ from .media import Media
 from .directory import Directory
 from . import processor
 
+
+logger = logging.getLogger(__name__)
 
 if sys.version_info[0] > 2:
     unicode = str
@@ -238,16 +241,17 @@ class Project(HasTraits):
 
         self._query_parser = self._make_query_parser()
 
-    def export_csv(self, fp, cols=None):
+    def export_csv(self, fname, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
         it writes out all the useful metadata.
 
         Parameters
         -----------
 
-        path: str: a path to the csv file to dump.
+        fname: str: a path to the csv file to dump.
         cols: sequence: a sequence of columns to write.
         """
+        logger.info('Exporting CSV: %s', fname)
         lines = []
         data = []
         all_keys = set()
@@ -276,7 +280,7 @@ class Project(HasTraits):
             lines.append(','.join(line))
 
         # Write it out.
-        of = open_file(fp, 'w')
+        of = open_file(fname, 'w')
         for line in lines:
             of.write(line + '\n')
         of.close()
@@ -294,6 +298,7 @@ class Project(HasTraits):
         fname : str   Input filename.
 
         """
+        logger.info('Importing tags from: %s', fname)
         has_header, header, dialect = _get_csv_headers(fname)
         if not has_header:
             return False, "The CSV file does not appear to have a header."
@@ -396,6 +401,7 @@ class Project(HasTraits):
         )
         json_tricks.dump(data, fp)
         fp.close()
+        logger.info('Saved project: %s', self.name)
 
     def scan(self, refresh=False):
         """Find all the media recursively inside the root directory.
@@ -435,9 +441,11 @@ class Project(HasTraits):
             self.number_of_files = len(self.media)
 
     def search(self, q):
+        logger.info('Searching for %s', q)
         try:
             parsed_q = self._query_parser.parse(q)
         except Exception:
+            logger.warn("Invalid search expression: %s", q)
             print("Invalid search expression: %s" % q)
             return
         tag_types = self._get_tag_types()
@@ -448,6 +456,7 @@ class Project(HasTraits):
                 yield m
 
     def refresh(self):
+        logger.info('Refreshing project: %s', self.name)
         self.scan(refresh=True)
 
     # #### Private protocol ################################################

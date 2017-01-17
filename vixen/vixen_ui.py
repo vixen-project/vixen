@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import logging
 from os.path import dirname, isdir, join
 import sys
 import webbrowser
@@ -9,6 +10,11 @@ from jigna.web_app import WebApp
 
 from tornado.ioloop import IOLoop
 from tornado import autoreload
+
+
+def silence_tornado_access_log():
+    logger = logging.getLogger('tornado.access')
+    logger.setLevel(logging.WARNING)
 
 
 def get_html_file():
@@ -51,6 +57,7 @@ def main(dev=False, port=None, **context):
     html_file = get_html_file()
     html = get_html(html_file)
     template = VueTemplate(html=html, base_url=base_url, async=async)
+    silence_tornado_access_log()
     ioloop = IOLoop.instance()
     if port is None:
         if dev:

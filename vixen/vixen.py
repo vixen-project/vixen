@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 import copy
 import json
+import logging
 from os.path import dirname, exists, join, isdir
 import os
 import subprocess
@@ -15,6 +16,9 @@ from .media import Media
 from .processor import (FactoryBase, CommandFactory, Processor,
                         PythonFunctionFactory, TaggerFactory, Job)
 from .ui_utils import askopenfilename, askdirectory, asksaveasfilename
+
+
+logger = logging.getLogger(__name__)
 
 
 class Vixen(HasTraits):
@@ -72,22 +76,27 @@ class ProjectEditor(HasTraits):
     ui = Instance('VixenUI')
 
     def add_tag(self, name):
+        logger.info('Added tags: %s', name)
         tags = [TagInfo(name=x.strip(), type="string")
                 for x in name.split(',')]
         self.tags.extend(tags)
         self.tag_name = ''
 
     def remove_tag(self, index):
+        logger.info('Removed tag: %s', self.tags[index].name)
         del self.tags[index]
 
     def add_extension(self, name):
+        logger.info('Added extensions: %s', name)
         self.extensions.extend([x.strip().lower() for x in name.split(',')])
         self.ext_name = ''
 
     def remove_extension(self, index):
+        logger.info('Removed extension: %s', self.extensions[index])
         del self.extensions[index]
 
     def add_processor(self, name):
+        logger.info('Adding processor: %s', name)
         procs = {
             'command': CommandFactory,
             'python': PythonFunctionFactory,
@@ -96,6 +105,7 @@ class ProjectEditor(HasTraits):
         self.processors.append(procs[name](dest=self.path))
 
     def remove_processor(self, index):
+        logger.info('Removing processor: %s', self.processors[index].name)
         del self.processors[index]
 
     def select_path(self):
@@ -128,6 +138,7 @@ class ProjectEditor(HasTraits):
         with self.ui.busy():
             cp = self.project
             if cp is not None and self.valid_path:
+                logger.info('Applying changes for project: %s', self.name)
                 cp.name = self.name
                 cp.description = self.description
                 cp.path = self.path
@@ -452,22 +463,27 @@ class VixenUI(HasTraits):
 
     def error(self, msg):
         self.message = msg, "error"
+        logger.info("ERROR: %s", msg)
         self.message = tuple()
 
     def info(self, msg):
         self.message = msg, "info"
+        logger.info("INFO: %s", msg)
         self.message = tuple()
 
     def success(self, msg):
         self.message = msg, "success"
+        logger.info("SUCCESS: %s", msg)
         self.message = tuple()
 
     def edit(self, project):
+        logger.info('Edit project: %s', project.name)
         self.editor.project = project
         self.mode = 'edit'
         self.info('Remember to "Apply changes" if you change anything.')
 
     def view(self, project):
+        logger.info('View project: %s', project.name)
         self.viewer.project = project
         self.mode = 'view'
         self.editor.project = None
@@ -486,6 +502,7 @@ class VixenUI(HasTraits):
         self.info("Remember to save the project once processing completes.")
 
     def remove(self, project):
+        logger.info('Removing project: %s', project.name)
         self.vixen.remove(project)
         self.editor.project = None
 
@@ -495,6 +512,7 @@ class VixenUI(HasTraits):
         p = Project(name=name)
         projects.append(p)
         self.editor.project = p
+        logger.info('Added project %s', name)
 
     def save(self):
         with self.busy():
@@ -508,6 +526,7 @@ class VixenUI(HasTraits):
     def halt(self):
         """Shut down the webserver.
         """
+        logger.info('**** Halting ViXeN ****')
         from tornado.ioloop import IOLoop
         ioloop = IOLoop.instance()
         ioloop.stop()
