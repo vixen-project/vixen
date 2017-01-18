@@ -70,7 +70,7 @@ class TagInfo(HasTraits):
         return map[self.type]
 
 
-def open_file(fname_or_file, mode='r'):
+def open_file(fname_or_file, mode='rb'):
     if hasattr(fname_or_file, 'read'):
         return fname_or_file
     else:
@@ -351,9 +351,9 @@ class Project(HasTraits):
         if fp is None:
             if not exists(self.save_file):
                 return
-            fp = open_file(self.save_file)
+            fp = open_file(self.save_file, 'rb')
         else:
-            fp = open_file(fp)
+            fp = open_file(fp, 'rb')
 
         data = json_tricks.load(
             fp, preserve_order=False, ignore_comments=False
@@ -389,7 +389,7 @@ class Project(HasTraits):
     def save_as(self, fp):
         """Save copy to specified path.
         """
-        fp = open_file(fp, 'w')
+        fp = open_file(fp, 'wb')
         media = [(key, m.to_dict()) for key, m in self.media.items()]
         tags = [(t.name, t.type) for t in self.tags]
         root = self.root.__getstate__()
@@ -399,7 +399,7 @@ class Project(HasTraits):
             description=self.description, tags=tags, media=media,
             root=root, processors=processors
         )
-        json_tricks.dump(data, fp)
+        json_tricks.dump(data, fp, compression=True)
         fp.close()
         logger.info('Saved project: %s', self.name)
 
