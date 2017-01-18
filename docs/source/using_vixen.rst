@@ -40,10 +40,10 @@ project on the right side.  The important fields to fill are:
   you do not need it.
 
 - File extensions to index: this defaults to all extensions, you may specify
-  any extensions you specifically wish to index. For example specifying ".png,
-  .jpg" and clicking on the "Add extension" will index only the png and jpg
-  files. The button, "Find available extensions" will show you a list of all
-  extensions inside the specified path.
+  any extensions you specifically wish to index. For example specifying
+  ``.png, .jpg`` and clicking on the "Add extension" will index only the png
+  and jpg files. The button, "Find available extensions" will show you a list
+  of all extensions inside the specified path.
 
 - Processors: You may add a variety of processors that allow you to either
   convert your media, copy your media, add tags using Python scripts, or use
@@ -55,9 +55,9 @@ quickly scan all the files and make its internal database. Depending on the
 size of your directory, this should take a few seconds. Once this is done, you
 can click on the "View" button on the left pane to view the media.
 
-If you do not want a project, you may simply click on the "Remove" button
-remove the project. This will remove only the internal metadata, your media
-will be untouched.
+If you do not need a project anymore, you may simply click on the "Remove"
+button remove the project. This will remove only the metadata, your media will
+be untouched.
 
 Note that when the files are indexed the following tags are always available:
 
@@ -84,6 +84,12 @@ can render is typically shown currently this works for videos (webm, ogg
 theora video), image files ('.png', '.jpg', '.gif', '.svg' etc.), audio files
 ('.mp3', '.m4a', '.ogg', etc.), HTML, text, and PDF. The rendering is really
 dependent on the browser and your platform.
+
+If the browser does not support the media but your operating system does, you
+can open the file with the system viewer by clicking on the "Name" field of
+the media on the left panel. This is typically shown as a blue link. This will
+open the file using the operating system's registered viewer for the
+particular file.
 
 ViXeN thus makes it easy to view the data on the right and update the metadata
 for each file.
@@ -174,9 +180,89 @@ changes be stored to disk.
 Processing media files
 ----------------------
 
-TBW.
+One can process media files in a variety of ways. When editing a project, one
+can add processors.  The following processors are available.
 
-Advanced scripting
--------------------
+- Command: run a user-defined command on the media files. Useful for format
+  conversions.
+- Tagger: run a user-defined program to tag the media.
+- Python: call a user-defined Python function to do whatever desired.
 
-TBW.
+The processors are described in greater detail below. One can add a processor
+and test it on a single file to see if it works correctly and then process the
+entire set of files. Always remember to save the project after the processing
+has completed and the results are satisfactory.
+
+Note that if you have any search results and then run the processing, it will
+run the processing only on the searched files.
+
+
+The Command processor
+~~~~~~~~~~~~~~~~~~~~~~
+
+This processor allows the user to run an arbitrary command on the media. This
+is typically used to perform file format conversions. For example, if one
+wishes to convert an unsupported video with the extension ``.avi`` file to a
+``.webm`` file, one may use ffmpeg_. To run ``ffmpeg`` on the media, one
+simply adds a command processor and sets the "command" field to: ``ffmpeg -i
+$input $output`` and set the input extension field to ``.avi`` and the output
+extension to ``.webm``. The following important attributes should be set:
+
+- Destination path: One should set the destination path to either the same
+  directory as the source or to any other directory.
+- Mirror tree: This option allows one to mirror the source tree of files
+  into another location. It is best to leave this as the default.
+- Copy timestamps: ensures that the converted file has the same timestamps
+  as the original, this is useful when searching using the dates as this
+  option preserves the original file's timestamps.
+
+
+The Tagger processor
+~~~~~~~~~~~~~~~~~~~~
+
+Allows the user to run an arbitrary program to set the tags of the media. The
+tagger program is passed the full path to the media file. It should print out
+the tag information on standard output. For example, let us say we have a
+program called ``tagger``, when ``tagger`` is supplied a path, it should print
+out the following::
+
+    $ tagger /path/to/image.png
+    fox:1
+    temperature:25
+    completed:True
+    $
+
+Each line should correspond to an existing metadata tag of the project. This
+output is automatically parsed and the media tags are updated with these
+values. The tagger processor in the above case should be configured with the
+``command`` set to ``tagger``. The input file argument is automatically
+passed.
+
+
+The Python processor
+~~~~~~~~~~~~~~~~~~~~
+
+This processor allows the user to run arbitrary Python code to set the media
+tags. This requires knowledge of Python and the ViXeN API but is relatively
+simple. A simple example is provided below to illustrate the ideas. Let us
+assume that the following example code is typed into the text box::
+
+    import os.path
+    def process(relpath, media, dest):
+        media.tags['parent'] = os.path.dirname(media.path)
+        media.tags['comment'] = '%s bytes' % media.size
+        media.tags['completed'] = True
+
+The function is passed three arguments. The ``relpath`` is the relative path
+to the media file. The ``media`` instance is the actual media object
+associated with the media file. The media object has a ``path`` attribute, it
+also has a ``tags`` attribute which is a dictionary with the keys as the tags
+for the media. Thus, ``media.tags['parent']`` is the ``parent`` tag.
+``media.size`` is the size of the file in bytes. The above example is a
+trivial one, one can write arbitrary Python code to process the tags or run
+external programs if desired. This processor does require reasonable knowledge
+of Python programming. What it does do is provide a powerful mechanism for
+scripting the metadata using Python.
+
+
+.. _ffmpeg: http://ffmpeg.org
