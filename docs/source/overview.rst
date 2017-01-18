@@ -11,13 +11,33 @@ One may think of ViXeN as a special, customizable file browser with which one
 may view and edit metadata associated with media files like videos, images,
 and audio.
 
+ViXeN is open source and distributed under the liberal `BSD license
+<https://opensource.org/licenses/BSD-3-Clause>`_.
 
----------
+--------
 Features
----------
+--------
 
-  - User scripts and equations are written in pure Python.
-  - `BSD license <https://opensource.org/licenses/BSD-3-Clause>`_.
+- Works with different types of media, videos, images, audio, text, and PDF.
+- Supports any number of used-defined metadata fields per project.
+- Does not modify the original media but keeps its metadata separately.
+- Powerful searching through metadata.
+- Lightweight and easy to install.  No server setup required.
+- Cross-platform: works on Linux, OS X, and Windows.
+- Simple browser-based UI.
+- Support to export metadata to a CSV file and import tags from a CSV file.
+- Ability to add metadata for media through an external program or a Python
+  script.
+- Support to allow user-defined conversions of media to supported versions.
+- Open source.
+
+ViXeN has currently been tested with about a quarter of a million files in a
+single project. It is designed to work well with around 100k files. It will
+still work for larger projects but will be progressively slower the larger the
+number of files. The speed does not however depend on the nature of the media.
+This restriction with the number of files may be changed later depending on
+the feedback received by users. ViXeN does not currently support multiple
+people working on the same project at the same time.
 
 
 --------
@@ -32,6 +52,17 @@ confronted with the daunting task of viewing and managing such volumes of
 media files, we realized that there was a dearth for tools to aid in the
 processing of such data. There were data managers for images but nothing
 suitable for video (and to a certain extent, audio) files.
+
+-------
+Support
+-------
+
+If you have any questions or are having any problems with ViXeN, please email
+or post your questions on the vixen-users mailing list here:
+https://groups.google.com/forum/#!forum/vixen
+
+The Vixen issue tracker and source code are available
+
 
 --------
 Credits

@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ViXeN'
-copyright = u'2016, Prabhu Ramachandran and Kadambari Devarajan'
+copyright = u'2016-2017, Prabhu Ramachandran and Kadambari Devarajan'
 author = u'Prabhu Ramachandran and Kadambari Devarajan'
 
 # The version info for the project you're documenting, acts as replacement for
