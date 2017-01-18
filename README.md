@@ -39,6 +39,16 @@ the feedback received by users. ViXeN does not currently support multiple
 people working on the same project at the same time.
 
 
+Download
+---------
+
+To try out ViXeN please download a binary installer from here:
+
+  https://github.com/prabhuramachandran/vixen/releases
+
+These are very easy to install, basically just download, unzip, and run.
+
+
 History
 --------
 

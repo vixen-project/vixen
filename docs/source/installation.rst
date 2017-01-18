@@ -57,13 +57,13 @@ Installing ViXeN on GNU/Linux
 On GNU/Linux systems one may install the dependencies by following three very
 simple steps:
 
-- Download the `ViXeN binary`_ for Linux.
+- Download the Linux binary from the `ViXeN releases`_.
 - Unpack the ``vixen*.tgz`` file.
 - Run the application inside the unpacked directory.
 
 More detailed instructions are given below.
 
-.. _ViXeN binary: https://github.com/prabhuramachandran/vixen/releases
+.. _ViXeN releases: https://github.com/prabhuramachandran/vixen/releases
 
 .. _using-nautilus:
 
@@ -111,7 +111,7 @@ Then run the application using::
 Installing ViXeN on Mac OS X
 ------------------------------
 
-1. On OS X, download the ZIP file.
+1. On OS X, download the ZIP file from the `ViXeN releases`_ page.
 2. Unpack it.
 3. Run the resulting ``ViXeN.dmg`` file by double clicking it.
 
@@ -123,7 +123,7 @@ Installing ViXeN on Windows
 ------------------------------
 
 
-1. On Windows, download the ZIP file for your platform.
+1. On Windows, download the ZIP file for your platform from `ViXeN releases`_.
 2. Unpack the ZIP file.
 3. Inside the unpacked directory is a ``vixen.bat`` script or a ``vixen.lnk``
    shortcut that you can use to run the application.
