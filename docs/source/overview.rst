@@ -59,9 +59,10 @@ Support
 
 If you have any questions or are having any problems with ViXeN, please email
 or post your questions on the vixen-users mailing list here:
-https://groups.google.com/forum/#!forum/vixen
+https://groups.google.com/d/forum/vixen
 
-The Vixen issue tracker and source code are available
+The ViXeN issue tracker and source code are available at:
+https://github.com/prabhuramachandran/vixen
 
 
 --------

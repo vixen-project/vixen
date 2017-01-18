@@ -9,7 +9,7 @@ setup(
     name='vixen',
     version=data.get('__version__'),
     author='Prabhu Ramachandran and Kadambari Devarajan',
-    author_email='prabhu@aero.iitb.ac.in',
+    author_email='vixen@googlegroups.com',
     description='View eXtract and aNnotate media',
     url='https://github.com/prabhuramachandran/vixen',
     packages=find_packages(),

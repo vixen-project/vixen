@@ -144,4 +144,4 @@ directory.
 
 Email your log file to the developers or the mailing list.
 
-The ViXeN mailing list is available at https://groups.google.com/forum/#!forum/vixen
+The ViXeN mailing list is available at https://groups.google.com/d/forum/vixen
