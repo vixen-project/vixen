@@ -238,6 +238,48 @@ values. The tagger processor in the above case should be configured with the
 ``command`` set to ``tagger``. The input file argument is automatically
 passed.
 
+As another example of how one can extract EXIF information and populate
+specific tags (on OS X or Linux), one may do the following. First make sure
+Imagemagick_ is installed, specifically the ``identify`` command is working.
+Then create a small script, lets call it ``extract_exif.sh``::
+
+    #!/bin/bash
+    identify -verbose $1 | grep exif | cut -d ':' -f 2-
+
+The second line takes the input file, and selects only the exif information.
+Make sure this script is executable::
+
+    $ chmod a+x extract_exif.sh
+
+When this script is executed as follows, it prints the following::
+
+  $ extract_exif.sh /path/to/image.jpg
+  GPSAltitude: 0/1
+  GPSAltitudeRef: 0
+  GPSDateStamp: 2012:07:27
+  GPSInfo: 356
+  GPSLatitude: 12/1, 56/1, 3333/100
+  GPSLatitudeRef: N
+  GPSLongitude: 77/1, 35/1, 5106/100
+  GPSLongitudeRef: E
+  [...]
+
+One can add a tagger processor and set the command to the full path of this
+script. Now when one runs the processing, if you have defined any of the tags,
+for example if a tag called ``GPSDateStamp``, ``GPSLatitude``, and
+``GPSLongitude``, then those fields will be extracted and saved in your
+metadata. This allows you to save only fields that are relevant to your work.
+
+The tagger can be implemented in R or Python for example. In case this is a
+Python script one may wish to set the command to ``/path/to/python
+script.py``. ViXeN will simply pass the file to this script at the end.
+
+The tagger processor can be more complicated than this and do a lot more but
+this should give you an idea of the power of this approach.
+
+
+.. _Imagemagick: https://www.imagemagick.org/
+
 
 The Python processor
 ~~~~~~~~~~~~~~~~~~~~
