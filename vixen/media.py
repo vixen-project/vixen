@@ -10,7 +10,7 @@ VIDEO = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
 AUDIO = ['.mp3', '.wav', '.ogg', '.m4a']
 HTML = ['.html', '.htm']
 PDF = ['.pdf']
-## Only add the ones that mimetypes does not detect correctly here.
+# Only add the ones that mimetypes does not detect correctly here.
 TEXT = ['.md', '.rst', '.pyx']
 
 
@@ -98,15 +98,20 @@ class Media(HasTraits):
             self.type = "html"
         elif ext in PDF:
             self.type = "pdf"
+        elif ext in TEXT:
+            self.type = "text"
         else:
             type, encoding = guess_type(path)
+            result = "unknown"
             if len(type) > 0:
                 if type.startswith('text'):
-                    self.type = 'text'
+                    result = 'text'
+                elif type.startswith('video'):
+                    result = 'video'
+                elif type.startswith('audio'):
+                    result = 'audio'
+                elif type.startswith('image'):
+                    result = 'image'
                 else:
                     self.type = 'unknown'
-            else:
-                if ext in TEXT:
-                    self.type = 'text'
-                else:
-                    self.type = "unknown"
+            self.type = result
