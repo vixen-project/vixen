@@ -69,13 +69,13 @@ class TestVixenUI(TestProjectBase):
         ui.process(p)
 
         # Then
-        self.assertEqual(p.media['root.txt'].tags['completed'], True)
-        self.assertEqual(p.media['hello.py'].tags['completed'], False)
+        self.assertEqual(p.get('root.txt').tags['completed'], True)
+        self.assertEqual(p.get('hello.py').tags['completed'], False)
 
         # When
         ui.viewer.clear_search()
         ui.process(p)
 
         # Then
-        for m in p.media.values():
-            self.assertEqual(m.tags['completed'], True)
+        for m in p.keys():
+            self.assertEqual(p.get(m).tags['completed'], True)

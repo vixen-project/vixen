@@ -129,12 +129,12 @@ class TestCommandFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = cf.make_jobs(p.media.values(), p)
+        jobs = cf.make_jobs(p.keys(), p)
 
         # Then.
         self.assertEqual(len(jobs), 1)
         job = jobs[0]
-        m = p.media['hello.py']
+        m = p.get('hello.py')
         dest = os.path.join(self.root1, 'hello.rst')
         expect = ('echo %s %s' % (m.path, dest)).replace('\\', '\\\\')
         self.assertEqual(job.args, [expect.split(), m.path, dest])
@@ -152,7 +152,7 @@ class TestCommandFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = cf.make_jobs(p.media.values(), p)
+        jobs = cf.make_jobs(p.keys(), p)
         job = jobs[0]
         job.run()
         job.thread.join()
@@ -161,7 +161,7 @@ class TestCommandFactory(TestFactoryBase):
         self.assertEqual(len(jobs), 1)
         self.assertEqual(job.status, 'success')
 
-        m = p.media['hello.py']
+        m = p.get('hello.py')
         dest = os.path.join(self.root1, 'hello.rst')
         self.assertTrue(os.path.exists(dest))
         self.assertEqual(cf._done[dest], True)
@@ -170,7 +170,7 @@ class TestCommandFactory(TestFactoryBase):
         self.assertEqual(round(s_stat.st_mtime), round(d_stat.st_mtime))
         self.assertEqual(round(s_stat.st_ctime), round(d_stat.st_ctime))
 
-        jobs = cf.make_jobs(p.media.values(), p)
+        jobs = cf.make_jobs(p.keys(), p)
         self.assertEqual(len(jobs), 0)
 
         # When.
@@ -191,7 +191,7 @@ class TestCommandFactory(TestFactoryBase):
         os.remove(os.path.join(self.root, 'hello.py'))
 
         # When
-        jobs = cf.make_jobs(p.media.values(), p)
+        jobs = cf.make_jobs(p.keys(), p)
 
         # Then.
         self.assertEqual(len(jobs), 0)
@@ -213,20 +213,21 @@ class TestPythonFunctionFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = factory.make_jobs(p.media.values(), p)
+        jobs = factory.make_jobs(p.keys(), p)
         for job in jobs:
             job.run()
             job.thread.join()
 
         # Then.
         self.assertEqual(len(jobs), 5)
-        for key, media in p.media.items():
+        for key in p.keys():
+            media = p.get(key)
             self.assertEqual(media.tags['completed'], True)
             expect = "%s %s" % (key, self.root1)
             self.assertEqual(media.tags['args'], expect)
 
         # When
-        jobs = factory.make_jobs(p.media.values(), p)
+        jobs = factory.make_jobs(p.keys(), p)
 
         # Then
         self.assertEqual(len(jobs), 0)
@@ -264,21 +265,22 @@ class TestTaggerFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = factory.make_jobs(p.media.values(), p)
+        jobs = factory.make_jobs(p.keys(), p)
         for job in jobs:
             job.run()
             job.thread.join()
 
         # Then.
         self.assertEqual(len(jobs), 5)
-        for key, media in p.media.items():
+        for key in p.keys():
+            media = p.get(key)
             self.assertEqual(media.tags['completed'], True)
             expect = "%s" % (media.path)
             self.assertEqual(media.tags['args'], expect)
             self.assertEqual(media.tags['length'], 10)
 
         # When
-        jobs = factory.make_jobs(p.media.values(), p)
+        jobs = factory.make_jobs(p.keys(), p)
 
         # Then
         self.assertEqual(len(jobs), 0)
@@ -293,14 +295,15 @@ class TestTaggerFactory(TestFactoryBase):
         p.scan()
 
         # When
-        jobs = factory.make_jobs(p.media.values(), p)
+        jobs = factory.make_jobs(p.keys(), p)
         for job in jobs:
             job.run()
             job.thread.join()
 
         # Then.
         self.assertEqual(len(jobs), 5)
-        for key, media in p.media.items():
+        for key in p.keys():
+            media = p.get(key)
             self.assertTrue('length' not in media.tags)
             self.assertTrue('xxx' not in media.tags)
             self.assertEqual(media.tags['completed'], False)

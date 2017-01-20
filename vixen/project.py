@@ -241,6 +241,15 @@ class Project(HasTraits):
 
         self._query_parser = self._make_query_parser()
 
+    def get(self, relpath):
+        """Given the relative path of some media, return a Media instance.
+        """
+        return self.media[relpath]
+
+    def keys(self):
+        """Return all the keys for the media relative paths."""
+        return self.media.keys()
+
     def export_csv(self, fname, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
         it writes out all the useful metadata.
