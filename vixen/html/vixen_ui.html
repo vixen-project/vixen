@@ -230,9 +230,9 @@
    <label v-on:click="pager.select($index)"
    v-bind:class="{'current-index': pager.rel_index == $index,
                                'selected': pager.selected == media}"
-       title="{{media.path}}"
+       title="{{media[1]}}"
        >
-   {{media.relpath}}
+   {{media[0]}}
    </label>
    </div>
    </div>

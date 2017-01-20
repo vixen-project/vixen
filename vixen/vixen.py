@@ -360,7 +360,11 @@ class ProjectViewer(HasTraits):
             self.current_file = path
 
     def view_search_media(self, media):
-        self.media = media
+        if media is not None:
+            fname, key = media
+            self.media = self.project.get(key)
+        else:
+            self.media = media
 
     def clear_search(self):
         if self.is_searching:
@@ -493,7 +497,7 @@ class VixenUI(HasTraits):
         jobs = []
         for proc in project.processors:
             if self.viewer.is_searching:
-                to_process = [x.relpath for x in self.viewer.search_pager.data]
+                to_process = [x[1] for x in self.viewer.search_pager.data]
             else:
                 to_process = project.keys()
             jobs.extend(proc.make_jobs(to_process, project))

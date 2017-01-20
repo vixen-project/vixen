@@ -319,7 +319,8 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "hello.py")
+        self.assertEqual(result[0][0], "hello.py")
+        self.assertEqual(result[0][1], "hello.py")
 
     def test_logical_operations_in_search(self):
         # Given
@@ -343,7 +344,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 2)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertEqual(names, ["hello.py", "subsub.txt"])
 
         # When
@@ -357,7 +358,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "hello.py")
+        self.assertEqual(result[0][0], "hello.py")
 
     def test_tags_in_search_work_correctly(self):
         # Given
@@ -369,7 +370,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "hello.py")
+        self.assertEqual(result[0][0], "hello.py")
 
         # When
         result = list(p.search("file_name:test"))
@@ -391,21 +392,21 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "root.txt")
+        self.assertEqual(result[0][0], "root.txt")
 
         # When
         result = list(p.search("completed:yes"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "root.txt")
+        self.assertEqual(result[0][0], "root.txt")
 
         # When
         result = list(p.search("completed:0"))
 
         # Then
         self.assertEqual(len(result), 4)
-        self.assertNotIn('root.txt', [x.file_name for x in result])
+        self.assertNotIn('root.txt', [x[0] for x in result])
 
     def test_numeric_tags_and_ranges_are_searchable(self):
         # Given
@@ -422,21 +423,21 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'sub2.txt')
+        self.assertEqual(result[0][0], 'sub2.txt')
 
         # When
         result = list(p.search("fox:>=1"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'sub2.txt')
+        self.assertEqual(result[0][0], 'sub2.txt')
 
         # When
         result = list(p.search("fox:<1"))
 
         # Then
         self.assertEqual(len(result), 4)
-        self.assertNotIn('sub2.txt', [x.file_name for x in result])
+        self.assertNotIn('sub2.txt', [x[0] for x in result])
 
         # When
         p.get('root.txt').tags['age'] = 50.5
@@ -444,14 +445,14 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
         # When
         result = list(p.search("age:>50"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
     def test_date_ranges_are_searchable(self):
         # Given
@@ -464,7 +465,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
         # When
         p.get('hello.py')._mtime = datetime.datetime(2015, 2, 1)
@@ -472,7 +473,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 2)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertEqual(names, ['hello.py', 'root.txt'])
 
         # When
@@ -480,14 +481,14 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
         # When
         result = list(p.search("mtime:[jan 2015 TO feb 2015]"))
 
         # Then
         self.assertEqual(len(result), 2)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertEqual(names, ['hello.py', 'root.txt'])
 
         # When
@@ -495,7 +496,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 3)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertNotIn('hello.py', names)
         self.assertNotIn('root.txt', names)
 
@@ -513,7 +514,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
 
 if __name__ == '__main__':

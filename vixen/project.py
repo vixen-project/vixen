@@ -449,6 +449,9 @@ class Project(HasTraits):
             self.number_of_files = len(self.media)
 
     def search(self, q):
+        """A generator which yields the (filename, relpath) for each file
+        satisfying the search query.
+        """
         logger.info('Searching for %s', q)
         try:
             parsed_q = self._query_parser.parse(q)
@@ -461,7 +464,7 @@ class Project(HasTraits):
         for key in self.media:
             m = self.media[key]
             if _search_media(parsed_q, m):
-                yield m
+                yield basename(key), key
 
     def refresh(self):
         logger.info('Refreshing project: %s', self.name)
