@@ -2,15 +2,12 @@ import os
 
 from traits.api import HasTraits, Instance, List, Property, Str
 
-from .media import Media
 
 class File(HasTraits):
     path = Str
     parent = Instance('Directory')
     name = Property(Str)
     relpath = Property(Str)
-
-    media = Instance(Media)
 
     def __repr__(self):
         return self.name
@@ -51,7 +48,7 @@ class Directory(HasTraits):
         self.directories = dirs
 
     def __repr__(self):
-        return 'Directory(path=%r)'%self.path
+        return 'Directory(path=%r)' % self.path
 
     def refresh(self):
         self._path_changed(self.path)
