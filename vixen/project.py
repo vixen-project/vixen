@@ -197,7 +197,7 @@ class Project(HasTraits):
     root = Instance(Directory)
     tags = List(TagInfo)
 
-    media = Dict(Str, Media)
+    _media = Dict(Str, Media)
 
     extensions = List(Str)
 
@@ -233,7 +233,7 @@ class Project(HasTraits):
                 removed.append(tag)
         self.tags = new_tags
 
-        for m in self.media.values():
+        for m in self._media.values():
             for tag in removed:
                 del m.tags[tag.name]
             for tag in added:
@@ -244,11 +244,11 @@ class Project(HasTraits):
     def get(self, relpath):
         """Given the relative path of some media, return a Media instance.
         """
-        return self.media[relpath]
+        return self._media[relpath]
 
     def keys(self):
         """Return all the keys for the media relative paths."""
-        return self.media.keys()
+        return self._media.keys()
 
     def export_csv(self, fname, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
@@ -264,8 +264,8 @@ class Project(HasTraits):
         lines = []
         data = []
         all_keys = set()
-        for key in sorted(self.media.keys()):
-            item = self.media[key]
+        for key in sorted(self._media.keys()):
+            item = self._media[key]
             d = item.flatten()
             all_keys.update(d.keys())
             data.append(d)
@@ -334,7 +334,7 @@ class Project(HasTraits):
                 total += 1
                 path = record[path_idx]
                 rpath = relpath(path, self.path)
-                media = self.media.get(rpath)
+                media = self._media.get(rpath)
                 if media is not None:
                     count += 1
                     for tag, index in tags.items():
@@ -376,12 +376,12 @@ class Project(HasTraits):
                            for x in data.get('processors', [])]
         media = dict((key, Media(**kw)) for key, kw in data['media'])
         # Don't send object change notifications when this large data changes.
-        self.trait_setq(media=media)
+        self.trait_setq(_media=media)
         root = Directory()
         root.__setstate__(data.get('root'))
         self.extensions = root.extensions
         self.root = root
-        self.number_of_files = len(self.media)
+        self.number_of_files = len(self._media)
         # This is needed as this is what makes the association from the media
         # to the file.
         self.scan()
@@ -399,7 +399,7 @@ class Project(HasTraits):
         """Save copy to specified path.
         """
         fp = open_file(fp, 'wb')
-        media = [(key, m.to_dict()) for key, m in self.media.items()]
+        media = [(key, m.to_dict()) for key, m in self._media.items()]
         tags = [(t.name, t.type) for t in self.tags]
         root = self.root.__getstate__()
         processors = [processor.dump(x) for x in self.processors]
@@ -416,7 +416,7 @@ class Project(HasTraits):
         """Find all the media recursively inside the root directory.
         This will not clobber existing records but will add any new ones.
         """
-        media = self.media
+        media = self._media
         new_media = {}
         self._setup_root()
         default_tags = dict((ti.name, ti.default) for ti in self.tags)
@@ -445,8 +445,8 @@ class Project(HasTraits):
             # and not be able to send the information.
             media_copy = dict(media)
             media_copy.update(new_media)
-            self.trait_setq(media=media_copy)
-            self.number_of_files = len(self.media)
+            self.trait_setq(_media=media_copy)
+            self.number_of_files = len(self._media)
 
     def search(self, q):
         """A generator which yields the (filename, relpath) for each file
@@ -461,8 +461,8 @@ class Project(HasTraits):
             return
         tag_types = self._get_tag_types()
         _cleanup_query(parsed_q, tag_types)
-        for key in self.media:
-            m = self.media[key]
+        for key in self._media:
+            m = self._media[key]
             if _search_media(parsed_q, m):
                 yield basename(key), key
 
