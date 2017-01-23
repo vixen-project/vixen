@@ -1,8 +1,10 @@
 import csv
 import datetime
+import os
 from os.path import basename, join, exists
 import tempfile
 from textwrap import dedent
+import time
 import shutil
 
 import unittest
@@ -105,20 +107,20 @@ class TestProject(TestProjectBase):
         reader = csv.reader(open(out_fname))
         cols = next(reader)
         expected = [
-            'completed', 'ctime', 'mtime', 'path', 'relpath', 'size', 'type'
+            'completed', 'ctime', 'file_name', 'mtime', 'path', 'relpath', 'size', 'type'
         ]
         self.assertEqual(cols, expected)
         row = next(reader)
-        self.assertEqual(basename(row[3]), 'hello.py')
+        self.assertEqual(basename(row[4]), 'hello.py')
         self.assertEqual(row[0], 'False')
         row = next(reader)
-        self.assertEqual(basename(row[3]), 'root.txt')
+        self.assertEqual(basename(row[4]), 'root.txt')
         self.assertEqual(row[0], 'True')
         row = next(reader)
-        self.assertTrue(basename(row[3]).startswith('sub'))
+        self.assertTrue(basename(row[4]).startswith('sub'))
         self.assertEqual(row[0], 'False')
         row = next(reader)
-        self.assertTrue(basename(row[3]).startswith('sub'))
+        self.assertTrue(basename(row[4]).startswith('sub'))
         self.assertEqual(row[0], 'False')
 
     def test_refresh_updates_new_media(self):
@@ -456,9 +458,12 @@ class TestSearchMedia(TestProjectBase):
 
     def test_date_ranges_are_searchable(self):
         # Given
+        fname = join(self.root, 'root.txt')
+        dt = datetime.datetime(2015, 1, 1)
+        ts = time.mktime(dt.timetuple())
+        os.utime(fname, (ts, ts))
         p = Project(name='test', path=self.root)
         p.scan()
-        p.get('root.txt')._mtime = datetime.datetime(2015, 1, 1)
 
         # When
         result = list(p.search("mtime:2015"))
@@ -468,7 +473,12 @@ class TestSearchMedia(TestProjectBase):
         self.assertEqual(result[0][0], 'root.txt')
 
         # When
-        p.get('hello.py')._mtime = datetime.datetime(2015, 2, 1)
+        fname = join(self.root, 'hello.py')
+        dt = datetime.datetime(2015, 2, 1)
+        ts = time.mktime(dt.timetuple())
+        os.utime(fname, (ts, ts))
+        p.refresh()
+
         result = list(p.search("mtime:2015"))
 
         # Then

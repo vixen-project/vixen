@@ -167,8 +167,8 @@ class TestCommandFactory(TestFactoryBase):
         self.assertEqual(cf._done[dest], True)
         s_stat = os.stat(m.path)
         d_stat = os.stat(dest)
-        self.assertEqual(int(s_stat.st_mtime), int(d_stat.st_mtime))
-        self.assertEqual(int(s_stat.st_ctime), int(d_stat.st_ctime))
+        self.assertTrue(abs(s_stat.st_mtime - d_stat.st_mtime) < 2)
+        self.assertTrue(abs(s_stat.st_ctime - d_stat.st_ctime) < 2)
 
         jobs = cf.make_jobs(p.keys(), p)
         self.assertEqual(len(jobs), 0)

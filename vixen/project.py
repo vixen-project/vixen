@@ -13,7 +13,7 @@ from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
                         Str)
 from whoosh import fields, qparser, query
 
-from .media import Media
+from .media import Media, MediaData, get_media_data
 from .directory import Directory
 from . import processor
 
@@ -92,8 +92,8 @@ def get_non_existing_filename(fname):
 
 
 COMMON_TAGS = dict(
-    type='string', file_name='string', path='string',
-    ctime='string', mtime='string', size='int'
+    file_name='string', path='string', relpath='string',
+    ctime='string', mtime='string', size='int', type='string'
 )
 
 
@@ -142,28 +142,27 @@ def _check_date_range(x, term):
     return result
 
 
-def _get_tag(media, attr):
-    if attr in COMMON_TAGS:
-        return getattr(media, attr)
-    else:
-        return media.tags.get(attr)
-
-
-def _search_media(expr, media):
+def _search_media(expr, m_key, get_tag):
+    """Given search expression, index to media, and a getter to get the attribute
+    check if the media matches expression.
+    """
     if expr.is_leaf():
         if isinstance(expr, query.Term):
             attr = expr.fieldname
-            return _check_value(_get_tag(media, attr), expr.text)
+            return _check_value(get_tag(m_key, attr), expr.text)
         elif isinstance(expr, query.Phrase):
             attr = expr.fieldname
             text = " ".join(expr.words)
-            return _check_value(_get_tag(media, attr), text)
+            return _check_value(get_tag(m_key, attr), text)
         elif isinstance(expr, query.DateRange):
-            value = media._ctime if expr.fieldname == 'ctime' else media._mtime
+            if expr.fieldname == 'ctime':
+                value = get_tag(m_key, 'ctime_')
+            elif expr.fieldname == 'mtime':
+                value = get_tag(m_key, 'mtime_')
             return _check_date_range(value, expr)
         elif isinstance(expr, query.NumericRange):
             attr = expr.fieldname
-            return _check_range(_get_tag(media, attr), expr)
+            return _check_range(get_tag(m_key, attr), expr)
         else:
             print("Unsupported term: %r" % expr)
             return False
@@ -171,20 +170,20 @@ def _search_media(expr, media):
         if isinstance(expr, query.And):
             result = True
             for child in expr.children():
-                result &= _search_media(child, media)
+                result &= _search_media(child, m_key, get_tag)
                 if not result:
                     break
             return result
         elif isinstance(expr, query.Or):
             result = False
             for child in expr.children():
-                result |= _search_media(child, media)
+                result |= _search_media(child, m_key, get_tag)
                 if result:
                     break
             return result
         elif isinstance(expr, query.Not):
             subquery = list(expr.children())[0]
-            return not _search_media(subquery, media)
+            return not _search_media(subquery, m_key, get_tag)
         else:
             print("Unsupported term: %r" % expr)
             return False
@@ -210,6 +209,12 @@ class Project(HasTraits):
 
     last_save_time = Str
 
+    _data = Dict
+
+    _tag_data = Dict
+
+    _relpath2index = Dict()
+
     _query_parser = Instance(qparser.QueryParser)
 
     def add_tags(self, tags):
@@ -233,6 +238,14 @@ class Project(HasTraits):
                 removed.append(tag)
         self.tags = new_tags
 
+        for tag in removed:
+            del self._tag_data[tag.name]
+
+        n_entries = len(self._relpath2index)
+        for tag in added:
+            self._tag_data[tag.name] = [tag.default]*n_entries
+
+        # Update the cached media
         for m in self._media.values():
             for tag in removed:
                 del m.tags[tag.name]
@@ -241,14 +254,73 @@ class Project(HasTraits):
 
         self._query_parser = self._make_query_parser()
 
+    # ####  CRUD interface to the data ####
+
+    def update(self, media_data, tags=None):
+        """Create/update the internal data given the media data and tags.
+
+        Parameters
+        ----------
+
+        f: vixen.directory.File instance
+        tags: dict
+        """
+        relpath = media_data.relpath
+        if not self.has_media(relpath):
+            index = len(self._relpath2index)
+            self._relpath2index[relpath] = index
+            for i, key in enumerate(MediaData._fields):
+                self._data[key].append(None)
+            for tag in self.tags:
+                self._tag_data[tag.name].append(tag.default)
+
+        index = self._relpath2index[relpath]
+        for i, key in enumerate(MediaData._fields):
+            self._data[key][index] = media_data[i]
+        if tags:
+            for key, value in tags.items():
+                self._tag_data[key][index] = value
+        media = self._media.get(relpath)
+        if media is not None:
+            media.update(media_data, tags)
+
     def get(self, relpath):
         """Given the relative path of some media, return a Media instance.
         """
-        return self._media[relpath]
+        if relpath in self._media:
+            return self._media[relpath]
+        else:
+            data = {}
+            index = self._relpath2index[relpath]
+            for key in MediaData._fields:
+                data[key] = self._data[key][index]
+            tags = {}
+            for key in self._tag_data:
+                tags[key] = self._tag_data[key][index]
+
+            media = Media.from_data(MediaData(**data), tags)
+            media.on_trait_change(self._media_tag_handler, 'tags_items')
+            self._media[relpath] = media
+            return media
+
+    def has_media(self, relpath):
+        """Returns True if the media data is available.
+        """
+        return relpath in self._relpath2index
 
     def keys(self):
         """Return all the keys for the media relative paths."""
-        return self._media.keys()
+        return self._relpath2index.keys()
+
+    def _get_media_attr(self, index, attr):
+        """Given an index to the media, return its value.
+        """
+        if attr in self._data:
+            return self._data[attr][index]
+        elif attr in self._tag_data:
+            return self._tag_data[attr][index]
+
+    # ####  End of CRUD interface to the data ####
 
     def export_csv(self, fname, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
@@ -261,38 +333,32 @@ class Project(HasTraits):
         cols: sequence: a sequence of columns to write.
         """
         logger.info('Exporting CSV: %s', fname)
-        lines = []
-        data = []
-        all_keys = set()
-        for key in sorted(self._media.keys()):
-            item = self._media[key]
-            d = item.flatten()
-            all_keys.update(d.keys())
-            data.append(d)
-
-        all_keys -= set(('_ctime', '_mtime'))
+        all_keys = ((set(MediaData._fields) | set(self._tag_data.keys()))
+                    - set(('ctime_', 'mtime_')))
         if cols is None:
             cols = all_keys
             cols = list(sorted(cols))
-        # Write the header.
-        lines.append(','.join(cols))
-        # Assemble the lines.
-        for d in data:
-            line = []
-            for key in cols:
-                elem = d[key]
-                if isinstance(elem, str):
-                    elem = '"%s"' % elem
-                else:
-                    elem = str(elem) if elem is not None else ""
-                line.append(elem)
-            lines.append(','.join(line))
 
-        # Write it out.
-        of = open_file(fname, 'w')
-        for line in lines:
-            of.write(line + '\n')
-        of.close()
+        data_cols = set([x for x in cols if x in self._data])
+
+        def _format(elem):
+            if isinstance(elem, str):
+                return '"%s"' % elem
+            else:
+                return str(elem) if elem is not None else ""
+
+        with open_file(fname, 'wb') as of:
+            # Write the header.
+            of.write(','.join(cols) + '\n')
+            for i in range(len(self._relpath2index)):
+                line = []
+                for col in cols:
+                    if col in data_cols:
+                        elem = self._data[col][i]
+                    else:
+                        elem = self._tag_data[col][i]
+                    line.append(_format(elem))
+                of.write(','.join(line) + '\n')
 
     def import_csv(self, fname):
         """Read tag information from given CSV filename.
@@ -334,13 +400,18 @@ class Project(HasTraits):
                 total += 1
                 path = record[path_idx]
                 rpath = relpath(path, self.path)
+                index = self._relpath2index.get(rpath, None)
                 media = self._media.get(rpath)
-                if media is not None:
+                if index is not None:
                     count += 1
                     for tag, index in tags.items():
                         data = record[index]
                         try:
-                            media.tags[tag.name] = type_map[tag.type](data)
+                            value = type_map[tag.type](data)
+                            if media is not None:
+                                media[tag.name] = value
+                            else:
+                                self._tag_data[tag.name][index] = value
                         except ValueError:
                             pass
 
@@ -374,17 +445,45 @@ class Project(HasTraits):
         self.tags = [TagInfo(name=x[0], type=x[1]) for x in data['tags']]
         self.processors = [processor.load(x)
                            for x in data.get('processors', [])]
-        media = dict((key, Media(**kw)) for key, kw in data['media'])
-        # Don't send object change notifications when this large data changes.
-        self.trait_setq(_media=media)
+        version = data.get('version')
+        if version == 1:
+            self._read_version1_media(data['media'])
+        else:
+            self._data = data['media_data']
+            self._tag_data = data['tag_data']
+            self._relpath2index = data['relpath2index']
         root = Directory()
         root.__setstate__(data.get('root'))
         self.extensions = root.extensions
         self.root = root
-        self.number_of_files = len(self._media)
+        self.number_of_files = len(self._relpath2index)
         # This is needed as this is what makes the association from the media
         # to the file.
         self.scan()
+
+    def _read_version1_media(self, media):
+        data = self.__data_default()
+        tag_data = self.__tag_data_default()
+        relpath2index = {}
+        keymap = dict.fromkeys(MediaData._fields)
+        for k in keymap:
+            keymap[k] = k
+        keymap['_ctime'] = 'ctime_'
+        keymap['_mtime'] = 'mtime_'
+
+        for index, (key, m) in enumerate(media):
+            relpath2index[key] = index
+            tags = m.pop('tags')
+            for tname, v in tags.items():
+                tag_data[tname].append(v)
+            for k, v in m.items():
+                data[keymap[k]].append(v)
+            if 'file_name' not in m:
+                data['file_name'].append(basename(key))
+
+        self._data = data
+        self._tag_data = tag_data
+        self._relpath2index = relpath2index
 
     def save(self):
         """Save current media info to a file object
@@ -395,11 +494,11 @@ class Project(HasTraits):
         else:
             raise IOError("No valid save file set.")
 
-    def save_as(self, fp):
+    def save_as_v1(self, fp):
         """Save copy to specified path.
         """
         fp = open_file(fp, 'wb')
-        media = [(key, m.to_dict()) for key, m in self._media.items()]
+        media = [(key, self.get(key).to_dict()) for key in self._relpath2index]
         tags = [(t.name, t.type) for t in self.tags]
         root = self.root.__getstate__()
         processors = [processor.dump(x) for x in self.processors]
@@ -412,23 +511,35 @@ class Project(HasTraits):
         fp.close()
         logger.info('Saved project: %s', self.name)
 
+    def save_as(self, fp):
+        """Save copy to specified path.
+        """
+        fp = open_file(fp, 'wb')
+        tags = [(t.name, t.type) for t in self.tags]
+        root = self.root.__getstate__()
+        processors = [processor.dump(x) for x in self.processors]
+        data = dict(
+            version=2, path=self.path, name=self.name,
+            description=self.description, tags=tags,
+            media_data=self._data, tag_data=self._tag_data,
+            relpath2index=self._relpath2index,
+            root=root, processors=processors
+        )
+        json_tricks.dump(data, fp, compression=True)
+        fp.close()
+        logger.info('Saved project: %s', self.name)
+
     def scan(self, refresh=False):
         """Find all the media recursively inside the root directory.
         This will not clobber existing records but will add any new ones.
         """
-        media = self._media
-        new_media = {}
         self._setup_root()
-        default_tags = dict((ti.name, ti.default) for ti in self.tags)
 
         def _scan(dir):
             for f in dir.files:
-                m = media.get(f.relpath)
-                if m is None:
-                    m = self._create_media(f, default_tags)
-                    new_media[f.relpath] = m
-                if refresh:
-                    m.update()
+                if not self.has_media(f.relpath) or refresh:
+                    data = get_media_data(f.path, f.relpath)
+                    self.update(data)
             for d in dir.directories:
                 if refresh:
                     d.refresh()
@@ -438,15 +549,7 @@ class Project(HasTraits):
             self.root.refresh()
         _scan(self.root)
 
-        if len(new_media) > 0:
-            # This is done because if media is changed, a trait change notify
-            # will be sent to listeners with a very large amount of data
-            # potentially.  The jigna webserver will marshal all the keys
-            # and not be able to send the information.
-            media_copy = dict(media)
-            media_copy.update(new_media)
-            self.trait_setq(_media=media_copy)
-            self.number_of_files = len(self._media)
+        self.number_of_files = len(self._relpath2index)
 
     def search(self, q):
         """A generator which yields the (filename, relpath) for each file
@@ -461,9 +564,8 @@ class Project(HasTraits):
             return
         tag_types = self._get_tag_types()
         _cleanup_query(parsed_q, tag_types)
-        for key in self._media:
-            m = self._media[key]
-            if _search_media(parsed_q, m):
+        for key, index in self._relpath2index.items():
+            if _search_media(parsed_q, index, self._get_media_attr):
                 yield basename(key), key
 
     def refresh(self):
@@ -471,11 +573,6 @@ class Project(HasTraits):
         self.scan(refresh=True)
 
     # #### Private protocol ################################################
-
-    def _create_media(self, f, default_tags):
-        m = Media.from_path(f.path, f.relpath)
-        m.tags = dict(default_tags)
-        return m
 
     def _setup_root(self):
         path = abspath(expanduser(self.path))
@@ -548,3 +645,20 @@ class Project(HasTraits):
 
     def __query_parser_default(self):
         return self._make_query_parser()
+
+    def __data_default(self):
+        data = {}
+        for key in MediaData._fields:
+            data[key] = []
+        return data
+
+    def __tag_data_default(self):
+        tags = {}
+        for key in self.tags:
+            tags[key.name] = []
+        return tags
+
+    def _media_tag_handler(self, obj, tname, old, new):
+        index = self._relpath2index[obj.relpath]
+        for tag in new.changed:
+            self._tag_data[tag][index] = obj.tags[tag]
