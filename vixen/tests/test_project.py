@@ -130,19 +130,23 @@ class TestProject(TestProjectBase):
         reader = csv.reader(open(out_fname))
         cols = next(reader)
         expected = [
-            'completed', 'ctime', 'file_name', 'mtime', 'path', 'relpath', 'size', 'type'
+            'completed', 'ctime', 'file_name', 'mtime', 'path', 'relpath',
+            'size', 'type'
         ]
         self.assertEqual(cols, expected)
-        row = next(reader)
+        expected = {'hello.py': 'False', 'root.txt': 'True'}
+        data = [next(reader), next(reader), next(reader), next(reader)]
+        data = sorted(data, key=lambda x: x[5])
+        row = data[0]
         self.assertEqual(basename(row[4]), 'hello.py')
         self.assertEqual(row[0], 'False')
-        row = next(reader)
+        row = data[1]
         self.assertEqual(basename(row[4]), 'root.txt')
         self.assertEqual(row[0], 'True')
-        row = next(reader)
+        row = data[2]
         self.assertTrue(basename(row[4]).startswith('sub'))
         self.assertEqual(row[0], 'False')
-        row = next(reader)
+        row = data[3]
         self.assertTrue(basename(row[4]).startswith('sub'))
         self.assertEqual(row[0], 'False')
 

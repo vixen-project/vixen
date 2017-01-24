@@ -410,7 +410,7 @@ class Project(HasTraits):
                         try:
                             value = type_map[tag.type](data)
                             if media is not None:
-                                media[tag.name] = value
+                                media.tags[tag.name] = value
                             else:
                                 self._tag_data[tag.name][index] = value
                         except ValueError:
