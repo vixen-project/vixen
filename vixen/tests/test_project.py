@@ -299,11 +299,15 @@ class TestProject(TestProjectBase):
         %s,2,hello
         """ % (join(self.root, 'root.txt')))
         csv = self._write_csv(data)
+        print(join(self.root, 'root.txt'))
 
         # When
         success, err = p.import_csv(csv)
 
         # Then
+        print(success, err)
+        print(p.get('root.txt').tags)
+
         self.assertTrue(success)
         self.assertEqual(p.get('root.txt').tags['fox'], 2)
 
