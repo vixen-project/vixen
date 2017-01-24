@@ -405,8 +405,8 @@ class Project(HasTraits):
                 media = self._media.get(rpath)
                 if index is not None:
                     count += 1
-                    for tag, index in tags.items():
-                        data = record[index]
+                    for tag, header_index in tags.items():
+                        data = record[header_index]
                         try:
                             value = type_map[tag.type](data)
                             if media is not None:

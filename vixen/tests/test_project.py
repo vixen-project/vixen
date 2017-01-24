@@ -297,19 +297,21 @@ class TestProject(TestProjectBase):
         data = dedent("""\
         path,fox,junk
         %s,2,hello
-        """ % (join(self.root, 'root.txt')))
+        %s,1,bye
+        """ % (join(self.root, 'root.txt'), join(self.root, 'hello.py')))
         csv = self._write_csv(data)
-        print(join(self.root, 'root.txt'))
+
+        # Get one of the paths to see if cached media are handled correctly.
+        self.assertEqual(p.get('root.txt').tags['fox'], 0)
 
         # When
         success, err = p.import_csv(csv)
 
         # Then
-        print(success, err)
-        print(p.get('root.txt').tags)
-
         self.assertTrue(success)
         self.assertEqual(p.get('root.txt').tags['fox'], 2)
+        self.assertEqual(p.get('hello.py').tags['fox'], 1)
+
 
 
 class TestSearchMedia(TestProjectBase):
