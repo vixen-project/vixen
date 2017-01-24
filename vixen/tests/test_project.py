@@ -38,6 +38,29 @@ class TestProject(TestProjectBase):
         self.assertEqual(p.tags[0].type, 'bool')
         self.assertEqual(p.number_of_files, 0)
 
+    def test_version_1_loads_correctly(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+        fname = join(self.root, 'test.vxn')
+        p._save_as_v1(fname)
+
+        # When
+        p = Project()
+        p.load(fname)
+
+        # Then
+        self.assertEqual(p.number_of_files, 5)
+        m = p.get('root.txt')
+        self.assertEqual(m.relpath, 'root.txt')
+        self.assertEqual(m.type, 'text')
+        self.assertEqual(len(m.tags), 1)
+        self.assertIn('completed', m.tags)
+        m = p.get(join('sub', 'sub.txt'))
+        self.assertEqual(m.file_name, 'sub.txt')
+        self.assertEqual(len(m.tags), 1)
+        self.assertIn('completed', m.tags)
+
     def test_project_scan_works(self):
         # Given
         p = Project(name='test', path=self.root)
@@ -422,6 +445,22 @@ class TestSearchMedia(TestProjectBase):
 
         # When
         result = list(p.search("fox:1"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 'sub2.txt')
+
+        # When
+        # This is an exclusive range, i.e. only the value 1 is searched.
+        result = list(p.search("fox:{0 TO 2}"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 'sub2.txt')
+
+        # When
+        # Here we have 1 and 2.
+        result = list(p.search("fox:{0 TO 2]"))
 
         # Then
         self.assertEqual(len(result), 1)

@@ -3,7 +3,9 @@ import datetime
 import os
 
 from jigna.core.wsgi import guess_type
-from traits.api import Date, Dict, HasTraits, Int, Property, Str
+from traits.api import Dict, HasTraits, Int, Long, Property, Str
+from whoosh.util.times import datetime_to_long
+
 
 # Some pre-defined file extensions.
 IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
@@ -60,6 +62,8 @@ def get_media_data(path, relpath):
         mtime = _mtime.strftime('%d %b %Y %H:%M:%S')
         ctime = _ctime.strftime('%d %b %Y %H:%M:%S')
         fname = os.path.basename(path)
+        _ctime = datetime_to_long(_ctime)
+        _mtime = datetime_to_long(_mtime)
         type = find_type(path)
         return MediaData(
             path, relpath, fname, size, ctime, _ctime, mtime,
@@ -103,10 +107,10 @@ class Media(HasTraits):
     # The created time of the file. This and the _mtime are private as we
     # cannot send this to the HTML UI as it is not JSON serializable. However
     # they are is useful for searching through the media.
-    _ctime = Date
+    _ctime = Long
 
     # The modified time of the file.
-    _mtime = Date
+    _mtime = Long
 
     @classmethod
     def from_path(cls, path, relpath):

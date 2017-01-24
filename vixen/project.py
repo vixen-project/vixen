@@ -12,6 +12,7 @@ import sys
 from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
                         Str)
 from whoosh import fields, qparser, query
+from whoosh.util.times import datetime_to_long, long_to_datetime
 
 from .media import Media, MediaData, get_media_data
 from .directory import Directory
@@ -136,9 +137,9 @@ def _check_range(x, term):
 def _check_date_range(x, term):
     result = True
     if term.startdate is not None:
-        result &= x >= term.startdate
+        result &= x >= term.start
     if term.enddate is not None and result:
-        result &= x <= term.enddate
+        result &= x <= term.end
     return result
 
 
@@ -457,33 +458,6 @@ class Project(HasTraits):
         self.extensions = root.extensions
         self.root = root
         self.number_of_files = len(self._relpath2index)
-        # This is needed as this is what makes the association from the media
-        # to the file.
-        self.scan()
-
-    def _read_version1_media(self, media):
-        data = self.__data_default()
-        tag_data = self.__tag_data_default()
-        relpath2index = {}
-        keymap = dict.fromkeys(MediaData._fields)
-        for k in keymap:
-            keymap[k] = k
-        keymap['_ctime'] = 'ctime_'
-        keymap['_mtime'] = 'mtime_'
-
-        for index, (key, m) in enumerate(media):
-            relpath2index[key] = index
-            tags = m.pop('tags')
-            for tname, v in tags.items():
-                tag_data[tname].append(v)
-            for k, v in m.items():
-                data[keymap[k]].append(v)
-            if 'file_name' not in m:
-                data['file_name'].append(basename(key))
-
-        self._data = data
-        self._tag_data = tag_data
-        self._relpath2index = relpath2index
 
     def save(self):
         """Save current media info to a file object
@@ -493,23 +467,6 @@ class Project(HasTraits):
             self._update_last_save_time()
         else:
             raise IOError("No valid save file set.")
-
-    def save_as_v1(self, fp):
-        """Save copy to specified path.
-        """
-        fp = open_file(fp, 'wb')
-        media = [(key, self.get(key).to_dict()) for key in self._relpath2index]
-        tags = [(t.name, t.type) for t in self.tags]
-        root = self.root.__getstate__()
-        processors = [processor.dump(x) for x in self.processors]
-        data = dict(
-            version=1, path=self.path, name=self.name,
-            description=self.description, tags=tags, media=media,
-            root=root, processors=processors
-        )
-        json_tricks.dump(data, fp, compression=True)
-        fp.close()
-        logger.info('Saved project: %s', self.name)
 
     def save_as(self, fp):
         """Save copy to specified path.
@@ -662,3 +619,52 @@ class Project(HasTraits):
         index = self._relpath2index[obj.relpath]
         for tag in new.changed:
             self._tag_data[tag][index] = obj.tags[tag]
+
+    def _read_version1_media(self, media):
+        data = self.__data_default()
+        tag_data = self.__tag_data_default()
+        relpath2index = {}
+        keymap = dict.fromkeys(MediaData._fields)
+        for k in keymap:
+            keymap[k] = k
+        keymap['_ctime'] = 'ctime_'
+        keymap['_mtime'] = 'mtime_'
+
+        for index, (key, m) in enumerate(media):
+            relpath2index[key] = index
+            tags = m.pop('tags')
+            for tname, v in tags.items():
+                tag_data[tname].append(v)
+            for k, v in m.items():
+                data[keymap[k]].append(v)
+            if 'file_name' not in m:
+                data['file_name'].append(basename(key))
+
+        data['mtime_'] = [datetime_to_long(x) for x in data['mtime_']]
+        data['ctime_'] = [datetime_to_long(x) for x in data['ctime_']]
+        self._data = data
+        self._tag_data = tag_data
+        self._relpath2index = relpath2index
+
+    def _save_as_v1(self, fp):
+        """Save copy to specified path.
+
+        This mainly exists for testing and making sure we still read the old
+        saved files.
+        """
+        fp = open_file(fp, 'wb')
+        media = [(key, self.get(key).to_dict()) for key in self._relpath2index]
+        tags = [(t.name, t.type) for t in self.tags]
+        root = self.root.__getstate__()
+        processors = [processor.dump(x) for x in self.processors]
+        for k, m in media:
+            m['_ctime'] = long_to_datetime(m['_ctime'])
+            m['_mtime'] = long_to_datetime(m['_mtime'])
+        data = dict(
+            version=1, path=self.path, name=self.name,
+            description=self.description, tags=tags, media=media,
+            root=root, processors=processors
+        )
+        json_tricks.dump(data, fp, compression=True)
+        fp.close()
+        logger.info('Saved project: %s', self.name)
