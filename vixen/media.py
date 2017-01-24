@@ -1,8 +1,11 @@
+from collections import namedtuple
 import datetime
 import os
 
 from jigna.core.wsgi import guess_type
-from traits.api import Date, Dict, HasTraits, Int, Property, Str
+from traits.api import Dict, HasTraits, Int, Long, Property, Str
+from whoosh.util.times import datetime_to_long
+
 
 # Some pre-defined file extensions.
 IMAGE = ['.bmp', '.png', '.gif', '.jpg', '.jpeg', '.svg']
@@ -10,8 +13,64 @@ VIDEO = ['.avi', '.mp4', '.ogv', '.webm', '.flv']
 AUDIO = ['.mp3', '.wav', '.ogg', '.m4a']
 HTML = ['.html', '.htm']
 PDF = ['.pdf']
-## Only add the ones that mimetypes does not detect correctly here.
+# Only add the ones that mimetypes does not detect correctly here.
 TEXT = ['.md', '.rst', '.pyx']
+
+
+MediaData = namedtuple(
+    'MediaData',
+    ['path', 'relpath', 'file_name', 'size', 'ctime', 'ctime_',
+     'mtime', 'mtime_', 'type']
+)
+
+
+def find_type(path):
+    ext = os.path.splitext(path)[1].lower()
+    result = "unknown"
+    if ext in IMAGE:
+        result = "image"
+    elif ext in VIDEO:
+        result = "video"
+    elif ext in AUDIO:
+        result = "audio"
+    elif ext in HTML:
+        result = "html"
+    elif ext in PDF:
+        result = "pdf"
+    elif ext in TEXT:
+        result = "text"
+    else:
+        type, encoding = guess_type(path)
+        if len(type) > 0:
+            if type.startswith('text'):
+                result = 'text'
+            elif type.startswith('video'):
+                result = 'video'
+            elif type.startswith('audio'):
+                result = 'audio'
+            elif type.startswith('image'):
+                result = 'image'
+    return result
+
+
+def get_media_data(path, relpath):
+    if os.path.exists(path):
+        stat = os.stat(path)
+        _mtime = datetime.datetime.fromtimestamp(stat.st_mtime)
+        _ctime = datetime.datetime.fromtimestamp(stat.st_ctime)
+        size = stat.st_size
+        mtime = _mtime.strftime('%d %b %Y %H:%M:%S')
+        ctime = _ctime.strftime('%d %b %Y %H:%M:%S')
+        fname = os.path.basename(path)
+        _ctime = datetime_to_long(_ctime)
+        _mtime = datetime_to_long(_mtime)
+        type = find_type(path)
+        return MediaData(
+            path, relpath, fname, size, ctime, _ctime, mtime,
+            _mtime, type
+        )
+    else:
+        return None
 
 
 class Media(HasTraits):
@@ -48,16 +107,23 @@ class Media(HasTraits):
     # The created time of the file. This and the _mtime are private as we
     # cannot send this to the HTML UI as it is not JSON serializable. However
     # they are is useful for searching through the media.
-    _ctime = Date
+    _ctime = Long
 
     # The modified time of the file.
-    _mtime = Date
+    _mtime = Long
 
     @classmethod
     def from_path(cls, path, relpath):
         obj = cls(path=os.path.abspath(path))
         obj.relpath = relpath
         obj.update()
+        return obj
+
+    @classmethod
+    def from_data(cls, data, tags):
+        obj = cls()
+        obj.update(data)
+        obj.tags.update(tags)
         return obj
 
     def to_dict(self):
@@ -71,42 +137,22 @@ class Media(HasTraits):
         data.update(tags)
         return data
 
-    def update(self):
-        """Update the metadata from the file.
+    def update(self, data=None, tags=None):
+        """Update the metadata from the file or from the data given.
         """
-        path = self.path
-        if os.path.exists(path):
-            stat = os.stat(path)
-            self._mtime = datetime.datetime.fromtimestamp(stat.st_mtime)
-            self._ctime = datetime.datetime.fromtimestamp(stat.st_ctime)
-            self.size = stat.st_size
-            self.mtime = self._mtime.strftime('%d %b %Y %H:%M:%S')
-            self.ctime = self._ctime.strftime('%d %b %Y %H:%M:%S')
+        if data is None:
+            data = get_media_data(self.path, self.relpath)
+        if data is not None:
+            self.path = data.path
+            self._mtime = data.mtime_
+            self.mtime = data.mtime
+            self._ctime = data.ctime_
+            self.ctime = data.ctime
+            self.size = data.size
+            self.relpath = data.relpath
+            self.type = data.type
+        if tags is not None:
+            self.tags.update(tags)
 
     def _get_file_name(self):
         return os.path.basename(self.path)
-
-    def _path_changed(self, path):
-        ext = os.path.splitext(path)[1].lower()
-        if ext in IMAGE:
-            self.type = "image"
-        elif ext in VIDEO:
-            self.type = "video"
-        elif ext in AUDIO:
-            self.type = "audio"
-        elif ext in HTML:
-            self.type = "html"
-        elif ext in PDF:
-            self.type = "pdf"
-        else:
-            type, encoding = guess_type(path)
-            if len(type) > 0:
-                if type.startswith('text'):
-                    self.type = 'text'
-                else:
-                    self.type = 'unknown'
-            else:
-                if ext in TEXT:
-                    self.type = 'text'
-                else:
-                    self.type = "unknown"

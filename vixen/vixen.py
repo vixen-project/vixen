@@ -154,8 +154,8 @@ class ProjectEditor(HasTraits):
         with self.ui.busy():
             proj = self.project
             jobs = []
-            for key in proj.media:
-                test_media = [proj.media[key]]
+            for key in proj.keys():
+                test_media = [key]
                 jobs = proc.make_jobs(test_media, proj)
                 if len(jobs) > 0:
                     break
@@ -179,7 +179,7 @@ class ProjectEditor(HasTraits):
     def _project_changed(self, proj):
         with self.ui.busy():
             if proj is not None:
-                if len(proj.media) == 0:
+                if proj.number_of_files == 0:
                     proj.load()
                 self.name = proj.name
                 self.description = proj.description
@@ -359,8 +359,12 @@ class ProjectViewer(HasTraits):
         else:
             self.current_file = path
 
-    def view_media(self, media):
-        self.media = media
+    def view_search_media(self, media):
+        if media is not None:
+            fname, key = media
+            self.media = self.project.get(key)
+        else:
+            self.media = media
 
     def clear_search(self):
         if self.is_searching:
@@ -397,7 +401,7 @@ class ProjectViewer(HasTraits):
     def _project_changed(self, proj):
         with self.ui.busy():
             if proj is not None:
-                if len(proj.media) == 0:
+                if proj.number_of_files == 0:
                     proj.load()
                 self.name = proj.name
                 self.current_dir = proj.root
@@ -411,7 +415,7 @@ class ProjectViewer(HasTraits):
     def _current_file_changed(self, file):
         if file is None:
             return
-        self.media = file.media
+        self.media = self.project.get(file.relpath)
 
     def _pager_default(self):
         p = Pager(limit=20)
@@ -420,7 +424,7 @@ class ProjectViewer(HasTraits):
 
     def _search_pager_default(self):
         p = Pager(limit=20)
-        p.on_trait_change(self.view_media, 'selected')
+        p.on_trait_change(self.view_search_media, 'selected')
         return p
 
     def _get_is_searching(self):
@@ -493,9 +497,9 @@ class VixenUI(HasTraits):
         jobs = []
         for proc in project.processors:
             if self.viewer.is_searching:
-                to_process = self.viewer.search_pager.data
+                to_process = [x[1] for x in self.viewer.search_pager.data]
             else:
-                to_process = project.media.values()
+                to_process = project.keys()
             jobs.extend(proc.make_jobs(to_process, project))
         self.processor.jobs = jobs
         self.processor.process()

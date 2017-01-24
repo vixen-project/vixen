@@ -154,13 +154,14 @@ class CommandFactory(FactoryBase):
 
     name = 'CommandFactory'
 
-    def make_jobs(self, media_seq, project):
+    def make_jobs(self, media_keys, project):
         jobs = []
         ext = self.output_extension
         if len(ext) > 0:
             ext = ext if '.' in ext else '.' + ext
 
-        for media in media_seq:
+        for key in media_keys:
+            media = project.get(key)
             relpath = media.relpath
             if os.path.splitext(relpath.lower())[1] != self.input_extension:
                 continue
@@ -227,10 +228,11 @@ class PythonFunctionFactory(FactoryBase):
 
     name = 'PythonFunctionFactory'
 
-    def make_jobs(self, media_seq, project):
+    def make_jobs(self, media_keys, project):
         self._setup_func()
         jobs = []
-        for media in media_seq:
+        for key in media_keys:
+            media = project.get(key)
             relpath = media.relpath
             if not self._done.get(media.path, False):
                 info = "Processing %s" % media.path
@@ -262,11 +264,12 @@ class TaggerFactory(FactoryBase):
 
     name = 'TaggerFactory'
 
-    def make_jobs(self, media_seq, project):
+    def make_jobs(self, media_keys, project):
         self._setup_tag_types(project)
         jobs = []
 
-        for media in media_seq:
+        for key in media_keys:
+            media = project.get(key)
             path = media.path
             if not os.path.exists(media.path):
                 continue

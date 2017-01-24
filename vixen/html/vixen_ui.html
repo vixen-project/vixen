@@ -230,9 +230,9 @@
    <label v-on:click="pager.select($index)"
    v-bind:class="{'current-index': pager.rel_index == $index,
                                'selected': pager.selected == media}"
-       title="{{media.path}}"
+       title="{{media[1]}}"
        >
-   {{media.file_name}}
+   {{media[0]}}
    </label>
    </div>
    </div>
@@ -431,7 +431,7 @@
       </div>
     </div>
     <div v-else v-if="job_status">
-      <div v-if="project && project.media.length == 0">
+      <div v-if="project && project.number_of_files == 0">
         You need to apply changes once to scan the project before you
         start processing.  Currently no files are available.
       </div>

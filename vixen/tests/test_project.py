@@ -1,8 +1,10 @@
 import csv
 import datetime
+import os
 from os.path import basename, join, exists
 import tempfile
 from textwrap import dedent
+import time
 import shutil
 
 import unittest
@@ -34,7 +36,30 @@ class TestProject(TestProjectBase):
         self.assertEqual(len(p.tags), 1)
         self.assertEqual(p.tags[0].name, 'completed')
         self.assertEqual(p.tags[0].type, 'bool')
-        self.assertEqual(len(p.media), 0)
+        self.assertEqual(p.number_of_files, 0)
+
+    def test_version_1_loads_correctly(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+        fname = join(self.root, 'test.vxn')
+        p._save_as_v1(fname)
+
+        # When
+        p = Project()
+        p.load(fname)
+
+        # Then
+        self.assertEqual(p.number_of_files, 5)
+        m = p.get('root.txt')
+        self.assertEqual(m.relpath, 'root.txt')
+        self.assertEqual(m.type, 'text')
+        self.assertEqual(len(m.tags), 1)
+        self.assertIn('completed', m.tags)
+        m = p.get(join('sub', 'sub.txt'))
+        self.assertEqual(m.file_name, 'sub.txt')
+        self.assertEqual(len(m.tags), 1)
+        self.assertIn('completed', m.tags)
 
     def test_project_scan_works(self):
         # Given
@@ -42,13 +67,13 @@ class TestProject(TestProjectBase):
         # When
         p.scan()
         # Then
-        self.assertEqual(len(p.media), 5)
-        m = p.media['root.txt']
+        self.assertEqual(p.number_of_files, 5)
+        m = p.get('root.txt')
         self.assertEqual(m.relpath, 'root.txt')
         self.assertEqual(m.type, 'text')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
-        m = p.media[join('sub', 'sub.txt')]
+        m = p.get(join('sub', 'sub.txt'))
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
@@ -75,26 +100,26 @@ class TestProject(TestProjectBase):
         self.assertEqual(p.tags[0].name, 'completed')
         self.assertEqual(p.tags[0].type, 'bool')
 
-        self.assertEqual(len(p.media), 5)
-        m = p.media['root.txt']
+        self.assertEqual(p.number_of_files, 5)
+        m = p.get('root.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
-        m = p.media[join('sub', 'sub.txt')]
+        m = p.get(join('sub', 'sub.txt'))
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
 
         # Ensure that the ctime and mtimes are saved.
-        self.assertEqual(p.media['root.txt']._ctime,
-                         p1.media['root.txt']._ctime)
-        self.assertEqual(p.media['root.txt']._mtime,
-                         p1.media['root.txt']._mtime)
+        self.assertEqual(p.get('root.txt')._ctime,
+                         p1.get('root.txt')._ctime)
+        self.assertEqual(p.get('root.txt')._mtime,
+                         p1.get('root.txt')._mtime)
 
     def test_export_to_csv(self):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
-        m = p.media['root.txt']
+        m = p.get('root.txt')
         m.tags['completed'] = True
         out_fname = tempfile.mktemp(dir=self.root, suffix='.csv')
 
@@ -105,28 +130,32 @@ class TestProject(TestProjectBase):
         reader = csv.reader(open(out_fname))
         cols = next(reader)
         expected = [
-            'completed', 'ctime', 'mtime', 'path', 'relpath', 'size', 'type'
+            'completed', 'ctime', 'file_name', 'mtime', 'path', 'relpath',
+            'size', 'type'
         ]
         self.assertEqual(cols, expected)
-        row = next(reader)
-        self.assertEqual(basename(row[3]), 'hello.py')
+        expected = {'hello.py': 'False', 'root.txt': 'True'}
+        data = [next(reader), next(reader), next(reader), next(reader)]
+        data = sorted(data, key=lambda x: x[5])
+        row = data[0]
+        self.assertEqual(basename(row[4]), 'hello.py')
         self.assertEqual(row[0], 'False')
-        row = next(reader)
-        self.assertEqual(basename(row[3]), 'root.txt')
+        row = data[1]
+        self.assertEqual(basename(row[4]), 'root.txt')
         self.assertEqual(row[0], 'True')
-        row = next(reader)
-        self.assertTrue(basename(row[3]).startswith('sub'))
+        row = data[2]
+        self.assertTrue(basename(row[4]).startswith('sub'))
         self.assertEqual(row[0], 'False')
-        row = next(reader)
-        self.assertTrue(basename(row[3]).startswith('sub'))
+        row = data[3]
+        self.assertTrue(basename(row[4]).startswith('sub'))
         self.assertEqual(row[0], 'False')
 
     def test_refresh_updates_new_media(self):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
-        self.assertEqual(len(p.media), 5)
-        m = p.media['root.txt']
+        self.assertEqual(p.number_of_files, 5)
+        m = p.get('root.txt')
         orig_size = m.size
         # Change this.
         m.tags['completed'] = True
@@ -138,11 +167,11 @@ class TestProject(TestProjectBase):
         p.refresh()
 
         # Then
-        m = p.media['root.txt']
+        m = p.get('root.txt')
         self.assertEqual(m.tags['completed'], True)
-        self.assertEqual(len(p.media), 6)
+        self.assertEqual(p.number_of_files, 6)
         self.assertTrue(m.size > orig_size)
-        m = p.media[join('sub', 'sub1.txt')]
+        m = p.get(join('sub', 'sub1.txt'))
         self.assertEqual(m.tags['completed'], False)
 
     def test_update_tags_updates_existing_media(self):
@@ -157,7 +186,8 @@ class TestProject(TestProjectBase):
 
         # Then
         self.assertEqual(p.tags, new_tags)
-        for m in p.media.values():
+        for key in p.keys():
+            m = p.get(key)
             self.assertEqual(m.tags['foo'], '')
             self.assertTrue('completed' not in m.tags)
 
@@ -168,8 +198,11 @@ class TestProject(TestProjectBase):
 
         p = Project(name='test', path=self.root, tags=tags)
         p.scan()
-        list(p.media.values())[0].tags['completed'] = True
-        list(p.media.values())[0].tags['foo'] = 'hello world'
+        key = 'root.txt'
+        m = p.get(key)
+        m.tags['completed'] = True
+        m.tags['foo'] = 'hello world'
+
         # When
         new_tags = [
             TagInfo(name='foo', type='int'),
@@ -179,9 +212,10 @@ class TestProject(TestProjectBase):
 
         # Then
         self.assertEqual(p.tags, new_tags)
-        self.assertEqual(list(p.media.values())[0].tags['completed'], True)
-        self.assertEqual(list(p.media.values())[0].tags['foo'], 0)
-        for m in p.media.values():
+        self.assertEqual(m.tags['completed'], True)
+        self.assertEqual(m.tags['foo'], 0)
+        for key in p.keys():
+            m = p.get(key)
             self.assertEqual(type(m.tags['completed']), bool)
             self.assertEqual(m.tags['foo'], 0)
 
@@ -218,8 +252,8 @@ class TestProject(TestProjectBase):
         p.scan()
 
         # Then
-        self.assertEqual(len(p.media), 1)
-        self.assertEqual(list(p.media.keys())[0], 'hello.py')
+        self.assertEqual(p.number_of_files, 1)
+        self.assertEqual(list(p.keys())[0], 'hello.py')
 
     def _write_csv(self, data):
         fname = join(self._temp, 'data.csv')
@@ -263,15 +297,21 @@ class TestProject(TestProjectBase):
         data = dedent("""\
         path,fox,junk
         %s,2,hello
-        """ % (join(self.root, 'root.txt')))
+        %s,1,bye
+        """ % (join(self.root, 'root.txt'), join(self.root, 'hello.py')))
         csv = self._write_csv(data)
+
+        # Get one of the paths to see if cached media are handled correctly.
+        self.assertEqual(p.get('root.txt').tags['fox'], 0)
 
         # When
         success, err = p.import_csv(csv)
 
         # Then
         self.assertTrue(success)
-        self.assertEqual(p.media['root.txt'].tags['fox'], 2)
+        self.assertEqual(p.get('root.txt').tags['fox'], 2)
+        self.assertEqual(p.get('hello.py').tags['fox'], 1)
+
 
 
 class TestSearchMedia(TestProjectBase):
@@ -314,7 +354,8 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "hello.py")
+        self.assertEqual(result[0][0], "hello.py")
+        self.assertEqual(result[0][1], "hello.py")
 
     def test_logical_operations_in_search(self):
         # Given
@@ -338,7 +379,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 2)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertEqual(names, ["hello.py", "subsub.txt"])
 
         # When
@@ -352,7 +393,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "hello.py")
+        self.assertEqual(result[0][0], "hello.py")
 
     def test_tags_in_search_work_correctly(self):
         # Given
@@ -364,7 +405,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "hello.py")
+        self.assertEqual(result[0][0], "hello.py")
 
         # When
         result = list(p.search("file_name:test"))
@@ -381,26 +422,26 @@ class TestSearchMedia(TestProjectBase):
         self.assertEqual(len(result), 5)
 
         # When
-        p.media['root.txt'].tags['completed'] = True
+        p.get('root.txt').tags['completed'] = True
         result = list(p.search("completed:1"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "root.txt")
+        self.assertEqual(result[0][0], "root.txt")
 
         # When
         result = list(p.search("completed:yes"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, "root.txt")
+        self.assertEqual(result[0][0], "root.txt")
 
         # When
         result = list(p.search("completed:0"))
 
         # Then
         self.assertEqual(len(result), 4)
-        self.assertNotIn('root.txt', [x.file_name for x in result])
+        self.assertNotIn('root.txt', [x[0] for x in result])
 
     def test_numeric_tags_and_ranges_are_searchable(self):
         # Given
@@ -410,64 +451,88 @@ class TestSearchMedia(TestProjectBase):
         ]
         p = Project(name='test', path=self.root, tags=tags)
         p.scan()
-        p.media[join('sub2', 'sub2.txt')].tags['fox'] = 1
+        p.get(join('sub2', 'sub2.txt')).tags['fox'] = 1
 
         # When
         result = list(p.search("fox:1"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'sub2.txt')
+        self.assertEqual(result[0][0], 'sub2.txt')
+
+        # When
+        # This is an exclusive range, i.e. only the value 1 is searched.
+        result = list(p.search("fox:{0 TO 2}"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 'sub2.txt')
+
+        # When
+        # Here we have 1 and 2.
+        result = list(p.search("fox:{0 TO 2]"))
+
+        # Then
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0][0], 'sub2.txt')
 
         # When
         result = list(p.search("fox:>=1"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'sub2.txt')
+        self.assertEqual(result[0][0], 'sub2.txt')
 
         # When
         result = list(p.search("fox:<1"))
 
         # Then
         self.assertEqual(len(result), 4)
-        self.assertNotIn('sub2.txt', [x.file_name for x in result])
+        self.assertNotIn('sub2.txt', [x[0] for x in result])
 
         # When
-        p.media['root.txt'].tags['age'] = 50.5
+        p.get('root.txt').tags['age'] = 50.5
         result = list(p.search("age:50.5"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
         # When
         result = list(p.search("age:>50"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
     def test_date_ranges_are_searchable(self):
         # Given
+        fname = join(self.root, 'root.txt')
+        dt = datetime.datetime(2015, 1, 1)
+        ts = time.mktime(dt.timetuple())
+        os.utime(fname, (ts, ts))
         p = Project(name='test', path=self.root)
         p.scan()
-        p.media['root.txt']._mtime = datetime.datetime(2015, 1, 1)
 
         # When
         result = list(p.search("mtime:2015"))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
         # When
-        p.media['hello.py']._mtime = datetime.datetime(2015, 2, 1)
+        fname = join(self.root, 'hello.py')
+        dt = datetime.datetime(2015, 2, 1)
+        ts = time.mktime(dt.timetuple())
+        os.utime(fname, (ts, ts))
+        p.refresh()
+
         result = list(p.search("mtime:2015"))
 
         # Then
         self.assertEqual(len(result), 2)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertEqual(names, ['hello.py', 'root.txt'])
 
         # When
@@ -475,14 +540,14 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
         # When
         result = list(p.search("mtime:[jan 2015 TO feb 2015]"))
 
         # Then
         self.assertEqual(len(result), 2)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertEqual(names, ['hello.py', 'root.txt'])
 
         # When
@@ -490,7 +555,7 @@ class TestSearchMedia(TestProjectBase):
 
         # Then
         self.assertEqual(len(result), 3)
-        names = sorted(x.file_name for x in result)
+        names = sorted(x[0] for x in result)
         self.assertNotIn('hello.py', names)
         self.assertNotIn('root.txt', names)
 
@@ -501,14 +566,14 @@ class TestSearchMedia(TestProjectBase):
         ]
         p = Project(name='test', path=self.root, tags=tags)
         p.scan()
-        p.media['root.txt'].tags['comment'] = 'Hola how are you?'
+        p.get('root.txt').tags['comment'] = 'Hola how are you?'
 
         # When
         result = list(p.search('comment:"hola how"'))
 
         # Then
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].file_name, 'root.txt')
+        self.assertEqual(result[0][0], 'root.txt')
 
 
 if __name__ == '__main__':
