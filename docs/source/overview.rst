@@ -70,3 +70,9 @@ Credits
 --------
 
 Designed and developed by Prabhu Ramachandran and Kadambari Devarajan.
+
+---------
+Changelog
+---------
+
+.. include:: ../../CHANGES.rst
