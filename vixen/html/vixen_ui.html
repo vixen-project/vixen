@@ -155,8 +155,13 @@
     <button v-on:click="viewer.clear_search()">Clear</button>
 
     <div v-if="viewer.is_searching">
+        <div v-if="viewer.search_completed">
         <view-search-results :viewer="viewer" :pager="viewer.search_pager">
         </view-search-results>
+        </div>
+        <div v-else>
+            Press the "Search" button or hit "Enter/Return".
+        </div>
     </div>
     <div v-else>
         <view-directory :viewer="viewer" :pager="viewer.pager"
@@ -164,7 +169,7 @@
     </div>
 
 
-    <div v-if="viewer.current_file || (viewer.is_searching && viewer.media)"
+    <div v-if="viewer.current_file || (viewer.search_completed && viewer.media)"
          style="padding:5px;">
         <edit-media :viewer="viewer" :media="viewer.media"></edit-media>
     </div>
@@ -183,7 +188,7 @@
     <section class="sans-third"
              style="background:#f0f0f0;box-shadow:inset 0 0 10px rgba(0,0,0,0.2)">
 
-        <div v-if="viewer.current_file || (viewer.is_searching && viewer.media)"
+        <div v-if="viewer.current_file || (viewer.search_completed && viewer.media)"
              style="padding:5px;">
           <view-media class="viewer" :media="viewer.media"></view-media>
     </div>
@@ -217,21 +222,23 @@
       Page {{pager.page}}
       <input v-show="pager.total_pages > 1" v-model="pager.page"
              type="range" min="1" v-bind:max="pager.total_pages">
-      of {{pager.total_pages}}
+       of {{pager.total_pages}}
+      <button v-on:click="pager.prev_page()"
+              v-bind:disabled="pager.page == 1">Prev</button>
+      <button v-on:click="pager.next_page()"
+              v-bind:disabled="pager.page == pager.total_pages">Next</button>
     </div>
   </script>
 
   <!-- view-search-results template -->
   <script type="text/x-template" id="view-search-template">
    <div>
-   <div style="height:100px; width: 300px;"
-   class="resizable directory-browser">
+   <div style="height:100px; width: 300px;" class="resizable directory-browser">
    <div v-for="media in pager.data | limitBy pager.limit pager.start">
    <label v-on:click="pager.select($index)"
    v-bind:class="{'current-index': pager.rel_index == $index,
-                               'selected': pager.selected == media}"
-       title="{{media[1]}}"
-       >
+                  'selected': pager.selected[1] == media[1]}"
+       title="{{media[1]}}">
    {{media[0]}}
    </label>
    </div>
@@ -241,6 +248,10 @@
    <input v-show="pager.total_pages > 1" v-model="pager.page"
    type="range" min="1" v-bind:max="pager.total_pages">
    of {{pager.total_pages}}
+   <button v-on:click="pager.prev_page()"
+   v-bind:disabled="pager.page == 1">Prev</button>
+   <button v-on:click="pager.next_page()"
+   v-bind:disabled="pager.page == pager.total_pages">Next</button>
    </div>
   </script>
 

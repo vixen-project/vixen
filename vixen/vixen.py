@@ -329,6 +329,8 @@ class ProjectViewer(HasTraits):
 
     is_searching = Property(Bool, depends_on="search")
 
+    search_completed = Bool(False)
+
     type = Enum("unknown", "image", "video", "audio")
 
     def go_to_parent(self):
@@ -379,6 +381,7 @@ class ProjectViewer(HasTraits):
                 self.media = None
                 result = list(self.project.search(self.search))
                 self.search_pager.data = result
+                self.search_completed = True
 
     def rescan(self):
         with self.ui.busy():
@@ -429,6 +432,10 @@ class ProjectViewer(HasTraits):
 
     def _get_is_searching(self):
         return len(self.search) > 0
+
+    def _search_changed(self, s):
+        self.search_completed = False
+        self.current_file = None
 
     def _get_active_pager(self):
         if self.is_searching:

@@ -191,6 +191,34 @@ class TestVixenUI(TestVixenBase):
         # Then
         self.assertEqual(len(vixen.projects), 0)
 
+    def test_search_string_updates_search_completed(self):
+        # Given
+        ui = VixenUI()
+        vixen = ui.vixen
+        ui.add_project()
+        p = vixen.projects[0]
+        p.path = self.root
+        p.scan()
+
+        # When
+        ui.view(p)
+        ui.viewer.search = 'root.txt'
+
+        # Then
+        self.assertEqual(ui.viewer.search_completed, False)
+
+        # When
+        ui.viewer.do_search()
+
+        # Then
+        self.assertEqual(ui.viewer.search_completed, True)
+
+        # When
+        ui.viewer.search = 'xxx'
+
+        # Then
+        self.assertEqual(ui.viewer.search_completed, False)
+
     def test_process_uses_search_results(self):
         # Given
         ui = VixenUI()
