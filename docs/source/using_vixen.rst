@@ -100,6 +100,10 @@ for each file.
    metadata. This can be done by pressing the "Save" button or pressing
    "Command+S" or "Control+S".
 
+
+Keyboard shortcuts for navigation
+----------------------------------
+
 While navigating the directory browser, there are a few useful keyboard
 shortcuts:
 
@@ -108,6 +112,7 @@ shortcuts:
 - "j", "p", or "up" arrow will go to the previous file/directory,
 - "l", "enter", or the right arrow key will either select/view the file or
   navigate into a sub-directory.
+- "Command+s" or "Control+s" will save the project.
 
 
 Searching
