@@ -5,6 +5,9 @@
 * Massive performance improvements (> 10x) for handling many files. This makes
   it possible to comfortably handle many more files than before.
 * Documentation improvements.
+* Small UI improvements for search and navigation.
+* Fix bug when starting vixen for the first time -- if one added a project it
+  would not show correctly until vixen was re-launched.
 
 
 0.9
