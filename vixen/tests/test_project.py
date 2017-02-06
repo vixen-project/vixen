@@ -56,10 +56,14 @@ class TestProject(TestProjectBase):
         self.assertEqual(m.type, 'text')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
-        m = p.get(join('sub', 'sub.txt'))
+        relpath = join('sub', 'sub.txt')
+        m = p.get(relpath)
         self.assertEqual(m.file_name, 'sub.txt')
+        self.assertEqual(m.relpath, relpath)
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
+        d = p.root.directories[0]
+        self.assertEqual(d.relpath, d.name)
 
     def test_project_scan_works(self):
         # Given

@@ -61,8 +61,8 @@ class Directory(HasTraits):
             ]
         else:
             name = basename(path)
-            if self.parent:
-                relpath = join(self.parent.relpath, self.name)
+            if self.parent is not None:
+                relpath = join(self.parent.relpath, name)
             else:
                 relpath = ''
             self.__dict__.update(dict(

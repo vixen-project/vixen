@@ -652,10 +652,19 @@ class Project(HasTraits):
         This mainly exists for testing and making sure we still read the old
         saved files.
         """
+        def _rewrite_dir(state):
+            "Rewrite directories in the old format."
+            state['files'] = [x[0] for x in state['files']]
+            state['directories'] = [_rewrite_dir(d)
+                                    for d in state['directories']]
+            state.pop('relpath')
+            state.pop('name')
+            return state
+
         fp = open_file(fp, 'wb')
         media = [(key, self.get(key).to_dict()) for key in self._relpath2index]
         tags = [(t.name, t.type) for t in self.tags]
-        root = self.root.__getstate__()
+        root = _rewrite_dir(self.root.__getstate__())
         processors = [processor.dump(x) for x in self.processors]
         for k, m in media:
             m['_ctime'] = long_to_datetime(m['_ctime'])
