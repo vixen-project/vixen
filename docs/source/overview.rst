@@ -31,13 +31,12 @@ Features
 - Support to allow user-defined conversions of media to supported versions.
 - Open source.
 
-ViXeN has currently been tested with about a quarter of a million files in a
-single project. It is designed to work well with around 100k files. It will
-still work for larger projects but will be progressively slower the larger the
-number of files. The speed does not however depend on the nature of the media.
-This restriction with the number of files may be changed later depending on
-the feedback received by users. ViXeN does not currently support multiple
-people working on the same project at the same time.
+
+ViXeN has currently been tested with about 350k files in a single project. It
+will work fine for larger projects but will be progressively slower the larger
+the number of files. The speed does not however depend on the nature of the
+media. ViXeN does not currently support multiple people working on the same
+project at the same time.
 
 
 --------
@@ -70,6 +69,8 @@ Credits
 --------
 
 Designed and developed by Prabhu Ramachandran and Kadambari Devarajan.
+
+Thanks to Kamal Morjal for the CSS layout of the UI.
 
 ---------
 Changelog
