@@ -39,6 +39,13 @@ class Vixen(HasTraits):
                 data = json.load(fp)
             self.projects = [Project(name=x['name'], save_file=x['save_file'])
                              for x in data]
+        if len(self.projects) == 0:
+            # FIXME: This seems like a jigna issue. If the projects trait is an
+            # empty list to start with, then the UI does not seem to update
+            # correctly when a new project is added. Adding a hidden project
+            # seems to solve the issue. So this is a temporary workaround
+            # until a better fix is found.
+            self.projects = [Project(name='__hidden__')]
 
     def remove(self, project):
         if exists(project.save_file):
@@ -518,17 +525,16 @@ class VixenUI(HasTraits):
         self.editor.project = None
 
     def add_project(self):
-        projects = self.vixen.projects
-        name = 'Project%d' % (len(projects) + 1)
+        name = 'Project%d' % (len(self.vixen.projects))
         p = Project(name=name)
-        projects.append(p)
+        self.vixen.projects.append(p)
         self.editor.project = p
         logger.info('Added project %s', name)
 
     def save(self):
         with self.busy():
             if self.mode == 'edit':
-                if self.editor and self.editor.project is not None:
+                if self.editor is not None and self.editor.project is not None:
                     self.editor.apply()
             elif self.mode == 'view':
                 if self.viewer.project is not None:

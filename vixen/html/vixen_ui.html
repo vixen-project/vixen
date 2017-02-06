@@ -53,7 +53,7 @@
     <section class='third' style="background:#ffe">
     <h3>Available Projects</h3>
     <ul>
-      <li v-for="project in vixen.projects" >
+      <li v-for="project in ui.vixen.projects" v-if="project.name != '__hidden__'">
         {{project.name}}
         <button v-on:click="busy_call(ui, 'view', project)">View</button>
         <button v-on:click="busy_call(ui, 'edit', project)">Edit</button>
@@ -149,7 +149,7 @@
     <button v-on:click="busy_call(viewer, 'rescan')">Rescan</button>
     <br>
 
-    <input v-model="viewer.search" style="width:75%" placeholder="Search"
+    <input v-model="viewer.search" style="width:60%" placeholder="Search"
            v-on:keyup.enter="busy_call(viewer, 'do_search')">
     <button v-on:click="busy_call(viewer, 'do_search')">Search</button>
     <button v-on:click="viewer.clear_search()">Clear</button>
@@ -576,7 +576,7 @@
       });
 
       // Keybindings using Mousetrap
-      Mousetrap.bind(['command+s', 'control+s'], function(e) {
+      Mousetrap.bind(['command+s', 'ctrl+s'], function(e) {
           jigna.models.ui.save();
           return false;
       });

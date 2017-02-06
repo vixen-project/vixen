@@ -172,14 +172,14 @@ class TestVixenUI(TestVixenBase):
         # Given
         ui = VixenUI()
         vixen = ui.vixen
-        self.assertEqual(len(vixen.projects), 0)
+        self.assertEqual(len(vixen.projects), 1)
 
         # When
         ui.add_project()
 
         # Then
-        self.assertEqual(len(vixen.projects), 1)
-        p = vixen.projects[0]
+        self.assertEqual(len(vixen.projects), 2)
+        p = vixen.projects[-1]
         self.assertEqual(p.name, 'Project1')
         self.assertEqual(
             vixen.save_file, os.path.join(self._temp, 'projects.json')
@@ -189,7 +189,7 @@ class TestVixenUI(TestVixenBase):
         ui.remove(p)
 
         # Then
-        self.assertEqual(len(vixen.projects), 0)
+        self.assertEqual(len(vixen.projects), 1)
 
     def test_search_string_updates_search_completed(self):
         # Given
