@@ -1,9 +1,12 @@
 import os
 import mock
+import unittest
 
+import vixen
 from vixen.processor import PythonFunctionFactory
 from vixen.project import Project
 from vixen.vixen import VixenUI
+from vixen.vixen_ui import get_html, get_html_file
 
 from vixen.tests.test_project import TestProjectBase
 
@@ -168,6 +171,29 @@ class TestProjectEditor(TestVixenBase):
 
 class TestVixenUI(TestVixenBase):
 
+    def test_miscellaneous(self):
+        # Given/When
+        ui = VixenUI()
+
+        # Then
+        self.assertEqual(ui.version, vixen.__version__)
+        fname = ui.docs
+        self.assertEqual('index.html', os.path.basename(fname))
+
+        # When
+        ui.mode = 'view'
+        ui.home()
+
+        # Then
+        self.assertEqual(ui.mode, 'edit')
+
+        # When
+        ctx = ui.get_context()
+
+        # Then
+        self.assertEqual(sorted(ctx.keys()),
+                         ['editor', 'ui', 'viewer', 'vixen'])
+
     def test_add_remove_project_works(self):
         # Given
         ui = VixenUI()
@@ -202,10 +228,12 @@ class TestVixenUI(TestVixenBase):
 
         # When
         ui.view(p)
+        self.assertEqual(ui.viewer.active_pager, ui.viewer.pager)
         ui.viewer.search = 'root.txt'
 
         # Then
         self.assertEqual(ui.viewer.search_completed, False)
+        self.assertEqual(ui.viewer.active_pager, ui.viewer.search_pager)
 
         # When
         ui.viewer.do_search()
@@ -269,3 +297,18 @@ class TestVixenUI(TestVixenBase):
 
         # Then
         self.assertEqual(viewer.current_dir, p.root)
+
+
+class TestVixenUtils(unittest.TestCase):
+    def test_get_html_file(self):
+        r = os.path.abspath(get_html_file())
+        self.assertTrue(os.path.exists(r))
+        self.assertTrue(os.path.isfile(r))
+
+    def test_get_html(self):
+        # Given/When
+        data = get_html(get_html_file())
+
+        # Then.
+        self.assertEqual(data.count('$HTML_ROOT'), 0)
+        self.assertEqual(data.count('$ROOT'), 0)

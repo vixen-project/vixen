@@ -96,6 +96,9 @@ class TestDirectory(unittest.TestCase):
         d.extensions = ['.py']
 
         # Then
+        self._check_py_extensions(d)
+
+    def _check_py_extensions(self, d):
         self.assertEqual(len(d.files), 1)
         self.assertEqual(len(d.directories), 2)
         file_obj = d.files[0]
@@ -130,6 +133,13 @@ class TestDirectory(unittest.TestCase):
         self.assertEqual(len(sub_dir.directories), 1)
         self.assertEqual(len(sub_dir.directories[0].files), 1)
 
+        # When
+        del d.extensions[-1]
+        d.extensions.append('.py')
+
+        # Then
+        self._check_py_extensions(d)
+
     def test_extensions_order_change_does_not_rescan(self):
         # Given.
         d = Directory(path=self.root, extensions=['.py', '.txt'])
@@ -142,6 +152,17 @@ class TestDirectory(unittest.TestCase):
         # Then.
         self.check_root(d)
         self.assertEqual(n_listdir_calls, 0)
+
+    def test_repr_file_dir(self):
+        # Given/When.
+        d = Directory(path=self.root, extensions=['.py', '.txt'])
+        f = d.files[0]
+
+        # Then
+        expect = 'Directory(path=%r)' % self.root
+        self.assertEqual(repr(d), expect)
+        expect = 'File(path=%r)' % f.path
+        self.assertEqual(repr(f), expect)
 
 
 if __name__ == '__main__':

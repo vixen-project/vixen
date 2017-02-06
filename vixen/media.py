@@ -129,14 +129,6 @@ class Media(HasTraits):
     def to_dict(self):
         return self.__dict__
 
-    def flatten(self):
-        """Return a flattened dict of the metadata for processing or dumping.
-        """
-        data = dict(self.to_dict())
-        tags = data.pop('tags', {})
-        data.update(tags)
-        return data
-
     def update(self, data=None, tags=None):
         """Update the metadata from the file or from the data given.
         """

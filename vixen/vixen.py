@@ -423,9 +423,8 @@ class ProjectViewer(HasTraits):
         self.pager.data = d.directories + d.files
 
     def _current_file_changed(self, file):
-        if file is None:
-            return
-        self.media = self.project.get(file.relpath)
+        if file is not None:
+            self.media = self.project.get(file.relpath)
 
     def _pager_default(self):
         p = Pager(limit=20)

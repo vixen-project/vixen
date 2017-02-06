@@ -20,7 +20,7 @@ class File(HasTraits):
             self.relpath = relpath
 
     def __repr__(self):
-        return 'File(path=%s)' % self.path
+        return 'File(path=%r)' % self.path
 
 
 class Directory(HasTraits):
