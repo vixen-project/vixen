@@ -569,8 +569,9 @@
       window.vm = vm;
 
       // Hook up any messages from the UI to display on the view.
-      vm.$watch('ui.message', function(new_val, old_val) {
-          if (new_val.length > 0 && new_val[0].length > 0) {
+       vm.$watch('ui.message', function(new_val, old_val) {
+           if (new_val.length > 0 && new_val[0].length > 0 &&
+               new_val[2] !== old_val[2]) {
               $.notify(new_val[0], new_val[1]);
           }
       });

@@ -470,6 +470,9 @@ class VixenUI(HasTraits):
 
     message = Tuple()
 
+    # Private trait to generate message counts.
+    _message_count = Int
+
     def get_context(self):
         return dict(
             ui=self, vixen=self.vixen, editor=self.editor, viewer=self.viewer
@@ -479,19 +482,19 @@ class VixenUI(HasTraits):
         self.mode = 'edit'
 
     def error(self, msg):
-        self.message = msg, "error"
+        mid = self._get_message_id()
+        self.message = msg, "error", mid
         logger.info("ERROR: %s", msg)
-        self.message = tuple()
 
     def info(self, msg):
-        self.message = msg, "info"
+        mid = self._get_message_id()
+        self.message = msg, "info", mid
         logger.info("INFO: %s", msg)
-        self.message = tuple()
 
     def success(self, msg):
-        self.message = msg, "success"
+        mid = self._get_message_id()
+        self.message = msg, "success", mid
         logger.info("SUCCESS: %s", msg)
-        self.message = tuple()
 
     def edit(self, project):
         logger.info('Edit project: %s', project.name)
@@ -583,3 +586,11 @@ class VixenUI(HasTraits):
     def _version_default(self):
         import vixen
         return vixen.__version__
+
+    def _get_message_id(self):
+        mc = self._message_count
+        mc += 1
+        if mc > 100:
+            mc = 0
+        self._message_count = mc
+        return mc
