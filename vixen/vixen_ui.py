@@ -73,7 +73,7 @@ def main(dev=False, port=None, **context):
     )
     autoreload.watch(html_file)
     app.listen(port)
-    url = 'http://localhost:%d'%port
+    url = 'http://localhost:%d' % port
     if dev:
         print("Point your browser to", url)
     else:

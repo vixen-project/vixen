@@ -25,6 +25,15 @@ def _make_logdir():
     return logdir
 
 
+def log_platform_info():
+    import vixen
+    logger.info('ViXeN version: %s', vixen.__version__)
+    logger.info('Runing from %s',
+                os.path.abspath(os.path.dirname(vixen.__file__)))
+    import platform
+    logger.info(platform.uname())
+
+
 def setup_logger():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
@@ -42,6 +51,7 @@ def setup_logger():
     root_logger.addHandler(handler)
     sys.excepthook = _logging_excepthook
     logger.info('**** Starting ViXeN ****')
+    log_platform_info()
 
 
 def make_ui():
