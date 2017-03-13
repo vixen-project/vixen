@@ -195,6 +195,22 @@ class TestProject(TestProjectBase):
             self.assertEqual(m.tags['foo'], '')
             self.assertTrue('completed' not in m.tags)
 
+    def test_update_tags_works_without_scan(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        # When
+        new_tags = [
+            TagInfo(name='foo', type='string')
+        ]
+        p.update_tags(new_tags)
+
+        # Then
+        self.assertEqual(p.tags, new_tags)
+        self.assertEqual(
+            sorted(x.name for x in new_tags),
+            sorted(p._tag_data.keys())
+        )
+
     def test_update_tags_handles_type_changes_for_existing_tag(self):
         # Given
         tags = [TagInfo(name='completed', type='bool'),
