@@ -12,14 +12,35 @@ the location bar onto a supported browser such as Chrome or Firefox and the UI
 should load correctly.
 
 When you first start you will have a rather empty page with an button on the
-left panel to create a new project.
+left panel to create a new project as seen in the figure below:
+
+.. figure:: images/start.png
+   :align: center
+
+   Start page when ViXeN is started for the first time.
+
+In the figure, on the top right is a button to stop the ViXeN application.
+Clicking on this will close ViXeN and one may safely close the browser tab.
+The top left has two links, "Home" and "Help", the home link brings the user
+to the page where one can edit or view the different projects. The help link
+takes a user to the documentation. If you are using a binary, this will take
+one to a copy of the documentation bundled with the binary.
+
 
 
 Setting up a project
 --------------------
 
 Create a new project by clicking on "New project". Fill in the fields of the
-project on the right side.  The important fields to fill are:
+project on the right side. An example of this can be seen in the figure below.
+
+.. figure:: images/new_project.png
+   :align: center
+
+   Adding a new project and setting it up.
+
+
+The important fields to fill are:
 
 - Name: set this to a suitable name for your project.
 
@@ -72,12 +93,19 @@ Note that when the files are indexed the following tags are always available:
 Viewing media
 --------------
 
-The view interface is very simple and divided into two parts. On the left side
-you will see a simple directory browser. Clicking on a directory (shown
-typically in bold with a trailing '/') will navigate into this directory and
-clicking on a file will display the media on the right side of the page. Below
-the directory browser, the metadata tags of the media file are shown. One may
-edit the tags as one sees fit.
+The view interface is very simple and divided into two parts. An example view
+is provided in the following figure.
+
+.. figure:: images/view_media.jpg
+   :align: center
+
+   Viewing a project on ViXeN.
+
+On the left side you will see a simple directory browser. Clicking on a
+directory (shown typically in bold with a trailing '/') will navigate into
+this directory and clicking on a file will display the media on the right side
+of the page. Below the directory browser, the metadata tags of the media file
+are shown. One may edit the tags as one sees fit.
 
 On the right side, the media file is shown. Any file format that the browser
 can render is typically shown currently this works for videos (webm, ogg
