@@ -136,6 +136,8 @@ metadata tags "fox" (an integer), "jackal" (an integer), and "others"
   ``others:gerbil``.
 - To find all the media where there is a gerbil and a single jackal one types:
   ``jackal:1 AND others:gerbil``
+- To find the occurrence of the text "desert cat" in the "others" tag one
+  types: ``others:'desert cat'``. Note the use of the single quotes.
 
 In addition, one may also search by the time of the media. Each media file's
 creation time (``ctime``) and modified time (``mtime``) are also indexed
@@ -143,7 +145,7 @@ automatically.  One can search for the time as follows:
 
 - for all images modified in 2015: ``mtime:2015``,
 - for all images modified in 2015 January: ``mtime:201501`` or ``mtime:'jan
-  2015'``
+  2015'``.
 
 ViXeN uses whoosh_ to parse the query string. For more details on the query
 language see the `date parsing documentation
