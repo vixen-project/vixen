@@ -3,7 +3,7 @@ import datetime
 import json_tricks
 import logging
 import os
-from os.path import (abspath, basename, dirname, exists, expanduser, isdir,
+from os.path import (abspath, basename, dirname, exists, expanduser,
                      join, realpath, relpath, splitext)
 import re
 import shutil
@@ -14,6 +14,7 @@ from traits.api import (Any, Dict, Enum, HasTraits, Instance, List, Long,
 from whoosh import fields, qparser, query
 from whoosh.util.times import datetime_to_long, long_to_datetime
 
+from .common import get_project_dir
 from .media import Media, MediaData, get_media_data
 from .directory import Directory
 from . import processor
@@ -25,13 +26,6 @@ if sys.version_info[0] > 2:
     unicode = str
 INT = fields.NUMERIC(numtype=int)
 FLOAT = fields.NUMERIC(numtype=float)
-
-
-def get_project_dir():
-    d = expanduser(join('~', '.vixen'))
-    if not isdir(d):
-        os.makedirs(d)
-    return d
 
 
 def get_file_saved_time(path):

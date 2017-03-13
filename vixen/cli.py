@@ -5,8 +5,9 @@ from argparse import ArgumentParser
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-from os.path import expanduser, isdir, join
 import sys
+
+from vixen.common import get_project_dir
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +17,6 @@ def _logging_excepthook(exc_type, value, tb):
         sys.__excepthook__(exc_type, value, tb)
         return
     logger.error('Uncaught exception', exc_info=(exc_type, value, tb))
-
-
-def _make_logdir():
-    logdir = expanduser(join('~', '.vixen'))
-    if not isdir(logdir):
-        os.makedirs(logdir)
-    return logdir
 
 
 def log_platform_info():
@@ -38,8 +32,8 @@ def setup_logger():
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
     logging.captureWarnings(True)
-    logdir = _make_logdir()
-    fname = join(logdir, 'vixen.log')
+    logdir = get_project_dir()
+    fname = os.path.join(logdir, 'vixen.log')
     handler = RotatingFileHandler(
         filename=fname, maxBytes=2**17, backupCount=3
     )
@@ -51,6 +45,7 @@ def setup_logger():
     root_logger.addHandler(handler)
     sys.excepthook = _logging_excepthook
     logger.info('**** Starting ViXeN ****')
+    logger.info('Project root: %s', logdir)
     log_platform_info()
 
 
