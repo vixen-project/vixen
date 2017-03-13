@@ -29,7 +29,7 @@ class Vixen(HasTraits):
 
     def save(self):
         data = [dict(name=p.name, save_file=p.save_file)
-                for p in self.projects]
+                for p in self.projects if p.name != '__hidden__']
         with open(self.save_file, 'w') as fp:
             json.dump(data, fp)
 
@@ -522,9 +522,11 @@ class VixenUI(HasTraits):
         self.info("Remember to save the project once processing completes.")
 
     def remove(self, project):
-        logger.info('Removing project: %s', project.name)
+        name = project.name
+        logger.info('Removing project: %s', name)
         self.vixen.remove(project)
         self.editor.project = None
+        self.info('Removed project: %s' % name)
 
     def add_project(self):
         name = 'Project%d' % (len(self.vixen.projects))

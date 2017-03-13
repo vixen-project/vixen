@@ -231,7 +231,6 @@ class Project(HasTraits):
         for tag in old_tags:
             if tag.name not in new_tag_names:
                 removed.append(tag)
-        self.tags = new_tags
 
         for tag in removed:
             del self._tag_data[tag.name]
@@ -239,6 +238,13 @@ class Project(HasTraits):
         n_entries = len(self._relpath2index)
         for tag in added:
             self._tag_data[tag.name] = [tag.default]*n_entries
+
+        # The above can be the first time when self._tag_data is accessed, when
+        # creating a new project for example. In this case,
+        # self.__tag_data_default is called, so if self.tags is set then the
+        # removed tags will not exist in _tag_data causing an error. So we only
+        # set self.tags below.
+        self.tags = new_tags
 
         # Update the cached media
         for m in self._media.values():
