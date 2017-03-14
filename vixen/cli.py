@@ -64,7 +64,7 @@ def view(dev, port):
     main(dev=dev, port=port, **ui.get_context())
 
 
-def main():
+def main(args=None):
     setup_logger()
     desc = "ViXeN: view, extract and annotate media"
     parser = ArgumentParser(description=desc, prog='vixen')
@@ -80,18 +80,18 @@ def main():
         "--console", default=False, action="store_true",
         help="Start a Python console (useful for direct scripting)."
     )
-    args = parser.parse_args()
+    opts = parser.parse_args(args)
     logger.info('vixen called as: %s', sys.argv)
-    logger.info('Parsed command line args: %s', args)
-    if args.version:
+    logger.info('Parsed command line args: %s', opts)
+    if opts.version:  # pragma: no cover
         import vixen
         print("ViXeN version: %s" % vixen.__version__)
-    elif args.console:
+    elif opts.console:  # pragma: no cover
         ui = make_ui()
         import code
         code.interact(local=locals())
     else:
-        view(dev=args.dev, port=args.port)
+        view(dev=opts.dev, port=opts.port)
 
 
 if __name__ == '__main__':
