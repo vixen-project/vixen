@@ -2,6 +2,9 @@ language: python
 python:
   - 2.7
 
+addons:
+  firefox: latest-esr
+
 install:
   - pip install -r requirements.txt
   - pip install coverage codecov selenium
