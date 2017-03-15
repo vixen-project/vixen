@@ -85,6 +85,9 @@ class TestUI(unittest.TestCase):
         e = Select(browser.find_element_by_id('tag-type-2'))
         e.select_by_visible_text('bool')
 
+        browser.find_element_by_id('new-extension').send_keys('.txt')
+        browser.find_element_by_id('add-extension').click()
+
         # Save changes.
         e = wait.until(EC.presence_of_element_located((By.ID, 'apply')))
         e.click()
@@ -93,6 +96,8 @@ class TestUI(unittest.TestCase):
         # Then
         self.assertEqual(len(ui.vixen.projects), 1)
         p = ui.vixen.projects[0]
+        self._wait_while(lambda: p.tags[1].type != 'int')
+
         self.assertEqual(p.name, 'test1')
         self.assertEqual(p.root.path, data_path)
         self.assertEqual(p.tags[0].name, 'comments')
@@ -100,7 +105,7 @@ class TestUI(unittest.TestCase):
         self.assertEqual(p.tags[2].name, 'processed')
         self.assertEqual(p.tags[1].type, 'int')
         self.assertEqual(p.tags[2].type, 'bool')
-        self.assertEqual(p.number_of_files, 5)
+        self.assertEqual(p.number_of_files, 4)
         m = p.get('root.txt')
         self.assertEqual(m.relpath, 'root.txt')
         self.assertEqual(m.type, 'text')
@@ -140,7 +145,7 @@ class TestUI(unittest.TestCase):
         e = wait.until(EC.presence_of_element_located((By.ID, 'path-2')))
         e.click()
         self._wait_while(lambda: viewer.current_file is None)
-        self.assertEqual(viewer.current_file.name, 'hello.py')
+        self.assertEqual(viewer.current_file.name, 'root.txt')
 
         # Change some tag information and save.
         e = wait.until(EC.presence_of_element_located((By.ID, 'tag-0')))
@@ -153,7 +158,7 @@ class TestUI(unittest.TestCase):
         self._wait_while(lambda: ui.is_busy)
 
         # Then
-        m = p.get('hello.py')
+        m = p.get('root.txt')
         self._wait_while(lambda: m.tags['count'] == 0, 20)
         self.assertEqual(m.tags['comments'], 'test')
         self.assertEqual(m.tags['count'], 1)
@@ -179,13 +184,13 @@ class TestUI(unittest.TestCase):
         e = wait.until(EC.presence_of_element_located((By.ID, 'search-item-0')))
         e.click()
         self._wait_while(lambda: viewer.media is None)
-        self.assertEqual(viewer.media.file_name, 'hello.py')
+        self.assertTrue(viewer.media.file_name, 'root.txt')
         self.assertEqual(ui.viewer.is_searching, True)
         self.assertEqual(ui.viewer.search_completed, True)
 
         browser.find_element_by_id('clear-search').click()
 
-        e = wait.until(EC.presence_of_element_located((By.ID, 'path-3')))
+        e = wait.until(EC.presence_of_element_located((By.ID, 'path-2')))
         self.assertEqual(ui.viewer.is_searching, False)
 
         # When
@@ -219,7 +224,7 @@ class TestUI(unittest.TestCase):
         self._wait_while(lambda: len(ui.vixen.projects) > 0)
         self.assertEqual(len(ui.vixen.projects), 0)
 
-    def _wait_while(self, cond, count=10, sleep=0.05):
+    def _wait_while(self, cond, count=20, sleep=0.05):
         i = 0
         time.sleep(sleep)
         while cond() and i < count:
