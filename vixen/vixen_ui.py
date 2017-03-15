@@ -47,7 +47,7 @@ def get_html(html_file):
     return html
 
 
-def main(dev=False, port=None, **context):
+def main(dev=False, port=None, test=False, **context):
     async = False
 
     base_url = '/'
@@ -78,4 +78,6 @@ def main(dev=False, port=None, **context):
         print("Point your browser to", url)
     else:
         webbrowser.open(url)
-    ioloop.start()
+    if not test:
+        # When running tests, don't start the ioloop.
+        ioloop.start()

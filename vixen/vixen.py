@@ -53,6 +53,13 @@ class Vixen(HasTraits):
         self.projects.remove(project)
         self.save()
 
+    def add(self, project):
+        names = [p.name for p in self.projects]
+        if '__hidden__' in names:
+            idx = names.index('__hidden__')
+            del self.projects[idx]
+        self.projects.append(project)
+
     def _save_file_default(self):
         return join(get_project_dir(), 'projects.json')
 
@@ -531,7 +538,7 @@ class VixenUI(HasTraits):
     def add_project(self):
         name = 'Project%d' % (len(self.vixen.projects))
         p = Project(name=name)
-        self.vixen.projects.append(p)
+        self.vixen.add(p)
         self.editor.project = p
         logger.info('Added project %s', name)
 
@@ -591,8 +598,9 @@ class VixenUI(HasTraits):
 
     def _get_message_id(self):
         mc = self._message_count
+        orig = mc
         mc += 1
         if mc > 100:
             mc = 0
         self._message_count = mc
-        return mc
+        return orig

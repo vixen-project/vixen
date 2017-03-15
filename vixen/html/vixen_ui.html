@@ -26,8 +26,7 @@
   </head>
 
 <body>
-<div>
-
+<div id="app">
     <h2 style="text-align:center; padding: 0px; margin: 0px;">
         Welcome to ViXeN
     </h2>
@@ -45,70 +44,75 @@
       <a href="#">Home</a> <a v-bind:href="ui.docs" target="_blank">Help</a>
   </div>
   <div style="position: absolute; top: 5px; right: 5px;">
-    <button v-on:click="halt()">Stop ViXeN</button>
+    <button v-on:click="halt()" id="halt">Stop ViXeN</button>
   </div>
   <!--  Menu end -->
 
-  <template v-if="ui.mode !== 'view'">
-    <section class='third' style="background:#ffe">
+  <div v-if="ui.mode !== 'view'">
+   <section class='third' style="background:#ffe">
     <h3>Available Projects</h3>
     <ul>
-      <li v-for="project in ui.vixen.projects" v-if="project.name != '__hidden__'">
+      <li v-for="(index, project) in ui.vixen.projects" v-if="project.name != '__hidden__'">
         {{project.name}}
-        <button v-on:click="busy_call(ui, 'view', project)">View</button>
-        <button v-on:click="busy_call(ui, 'edit', project)">Edit</button>
-        <button v-on:click="remove_project(project)">Remove</button>
+          <button v-on:click="busy_call(ui, 'view', project)"
+                  v-bind:id="'view-' + index">View</button>
+          <button v-on:click="busy_call(ui, 'edit', project)"
+                  v-bind:id="'edit-' + index">Edit</button>
+          <button v-on:click="remove_project(project)"
+                  v-bind:id="'remove-' + index">Remove</button>
       </li>
     </ul>
-    <button style="font-size:larger; margin:0.5rem"
+    <button style="font-size:larger; margin:0.5rem" id="new-project"
             v-on:click="ui.add_project()" type="button">New Project</button>
-  </section>
-  </template>
+   </section>
+  </div>
 
-  <template v-if="ui.mode === 'edit' && editor.project">
-
-  <section class="sans-third"
-           style='background:#f0f0f0'>
+  <div v-if="ui.mode === 'edit' && editor.project">
+    <section class="sans-third" style='background:#f0f0f0'>
 
     <h3> Edit Project</h3>
     <div class="tag-editor" style="float:left; padding: 5px">
-      <label> Name: </label> <input v-model="editor.name"><br>
+      <label> Name: </label> <input v-model="editor.name" id="edit-name"><br>
       <label>
-        Description: </label> <input v-model="editor.description"><br>
+        Description: </label> <input v-model="editor.description" id="edit-desc"><br>
       <label> Path: </label>
       <input v-bind:class="editor.valid_path ? 'success' : 'error'"
-             v-model="editor.path" debounce="500">
+             v-model="editor.path" debounce="500" id="edit-path">
       <button v-on:click="editor.select_path()">Browse...</button>
         <br>
       <label> <b>Tags</b> </label> <br>
-      <div v-for="tag in editor.tags">
+      <div v-for="(index, tag) in editor.tags">
         <label>{{tag.name}}</label>
-        <select v-model="tag.type">
+        <select v-model="tag.type" v-bind:id="'tag-type-' + index">
           <option>string</option>
           <option>int</option>
           <option>float</option>
           <option>bool</option>
         </select>
-        <button v-on:click="editor.remove_tag($index)">Remove</button>
+        <button v-on:click="editor.remove_tag(parseInt(index))"
+                v-bind:id="'remove-tag-' + index">Remove</button>
       </div>
       <input v-model="editor.tag_name"
-             title="Enter a new tag. You may separate multiple tags by commas.">
-      <button v-on:click="editor.add_tag(editor.tag_name)">
-        Add tag</button>
+             title="Enter a new tag. You may separate multiple tags by commas."
+             id="new-tag">
+      <button v-on:click="editor.add_tag(editor.tag_name)" id="add-tag">
+          Add tag
+      </button>
       <br>
       <br>
       File extensions to index: <b v-if="editor.extensions.length == 0">All files.</b>
       <ul>
-        <li v-for="ext in editor.extensions">
+        <li v-for="(index, ext) in editor.extensions">
           {{ext}}
-          <button v-on:click="editor.remove_extension($index)">
+          <button v-on:click="editor.remove_extension(parseInt(index))"
+                  v-bind:id="'remove-ext-' + index">
             Remove
           </button>
         </li>
       </ul>
-      <input v-model="editor.ext_name"
+      <input v-model="editor.ext_name" id="new-extension"
              title="Case is not significant, use commas for multiple extensions. Examples: '.jpg' or '.jpg, .png'.">
-      <button v-on:click="editor.add_extension(editor.ext_name)">
+      <button v-on:click="editor.add_extension(editor.ext_name)" id="add-extension">
         Add extension
       </button>
       <br>
@@ -116,7 +120,7 @@
       <div v-if="editor.available_exts">
         Available extensions are: {{editor.available_exts}}
       </div>
-      <button v-on:click="busy_call(editor, 'find_extensions')">
+      <button v-on:click="busy_call(editor, 'find_extensions')" id="find-extensions">
         Find available extensions
       </button>
       <br>
@@ -127,15 +131,16 @@
       <br/>
       <button style="font-size:larger; margin:0.5rem"
               v-bind:disabled="!editor.valid_path"
-              v-on:click="busy_call(editor, 'apply')">Apply changes</button>
+              v-on:click="busy_call(editor, 'apply')" id="apply">
+          Apply changes
+      </button>
 
     </div>
     </section>
-  </template>
+  </div>
 
-  <template v-if="ui.mode === 'view' && viewer.project">
-
-    <section class='third' style='background:#ffe'>
+  <div v-if="ui.mode === 'view' && viewer.project">
+   <section class='third' style='background:#ffe'>
 
     <h3 style="margin: 5px;"> View Project: {{viewer.name}}</h3>
 
@@ -146,13 +151,13 @@
     </div>
 
     This project has {{viewer.project.number_of_files}} files.
-    <button v-on:click="busy_call(viewer, 'rescan')">Rescan</button>
+    <button v-on:click="busy_call(viewer, 'rescan')" id="rescan">Rescan</button>
     <br>
 
     <input v-model="viewer.search" style="width:60%" placeholder="Search"
-           v-on:keyup.enter="busy_call(viewer, 'do_search')">
-    <button v-on:click="busy_call(viewer, 'do_search')">Search</button>
-    <button v-on:click="viewer.clear_search()">Clear</button>
+           v-on:keyup.enter="busy_call(viewer, 'do_search')" id="search-text">
+    <button v-on:click="busy_call(viewer, 'do_search')" id="search">Search</button>
+    <button v-on:click="viewer.clear_search()" id="clear-search">Clear</button>
 
     <div v-if="viewer.is_searching">
         <div v-if="viewer.search_completed">
@@ -176,25 +181,27 @@
     <div style="clear: left; padding: 10px;">
       <hr/>
 
-      <button v-on:click="busy_call(viewer.project, 'save')">Save</button>
-      <button v-on:click="viewer.export_csv()">Export CSV</button>
+      <button v-on:click="busy_call(viewer.project, 'save')" id="save">
+          Save
+      </button>
+      <button v-on:click="viewer.export_csv()" id="export-csv">Export CSV</button>
       <button v-on:click="viewer.import_csv()"
-              title="Import tags from a CSV file">Import CSV</button>
+              title="Import tags from a CSV file" id="import-csv">Import CSV</button>
       <br/>
       Last saved at: {{viewer.last_save_time}}
     </div>
-    </section>
+   </div>
 
-    <section class="sans-third"
-             style="background:#f0f0f0;box-shadow:inset 0 0 10px rgba(0,0,0,0.2)">
+    <div v-if="ui.mode === 'view'" class="sans-third"
+         style="background:#f0f0f0;box-shadow:inset 0 0 10px rgba(0,0,0,0.2)">
 
         <div v-if="viewer.current_file || (viewer.search_completed && viewer.media)"
              style="padding:5px;">
           <view-media class="viewer" :media="viewer.media"></view-media>
+        </div>
     </div>
-    </section>
-  </template>
-</div>
+   </section>
+  </div>
 </body>
 
 <!--  vue.js Components -->
@@ -204,16 +211,20 @@
       Current directory:
       {{viewer.project.root.name}}/{{current_dir.relpath}}
       <br>
-      <button v-on:click="viewer.go_to_parent()">Go to Parent</button>
+      <button v-on:click="viewer.go_to_parent()" id="go-to-parent">
+        Go to Parent
+      </button>
       <div style="height:100px; width: 300px;"
            class="resizable directory-browser">
         <div v-for="path in pager.data | limitBy pager.limit pager.start">
           <label v-if="path.directories" style="font-weight: bold;"
                  v-bind:class="{'current-index': pager.rel_index == $index}"
-                 v-on:click="pager.select($index)">{{path.name}}/</label>
+                 v-on:click="pager.select($index)"
+                 v-bind:id="'path-' + $index">{{path.name}}/</label>
           <label v-else v-on:click="pager.select($index)"
                  v-bind:class="{'current-index': pager.rel_index == $index,
-                               'selected': pager.selected == path}">
+                               'selected': pager.selected == path}"
+                 v-bind:id="'path-' + $index">
             {{path.name}}
           </label>
         </div>
@@ -224,9 +235,9 @@
              type="range" min="1" v-bind:max="pager.total_pages">
        of {{pager.total_pages}}
       <button v-on:click="pager.prev_page()"
-              v-bind:disabled="pager.page == 1">Prev</button>
+              v-bind:disabled="pager.page == 1" id="prev-page">Prev</button>
       <button v-on:click="pager.next_page()"
-              v-bind:disabled="pager.page == pager.total_pages">Next</button>
+              v-bind:disabled="pager.page == pager.total_pages" id="next-page">Next</button>
     </div>
   </script>
 
@@ -236,8 +247,9 @@
    <div style="height:100px; width: 300px;" class="resizable directory-browser">
    <div v-for="media in pager.data | limitBy pager.limit pager.start">
    <label v-on:click="pager.select($index)"
-   v-bind:class="{'current-index': pager.rel_index == $index,
+          v-bind:class="{'current-index': pager.rel_index == $index,
                   'selected': pager.selected[1] == media[1]}"
+          v-bind:id="'search-item-' + $index"
        title="{{media[1]}}">
    {{media[0]}}
    </label>
@@ -249,9 +261,9 @@
    type="range" min="1" v-bind:max="pager.total_pages">
    of {{pager.total_pages}}
    <button v-on:click="pager.prev_page()"
-   v-bind:disabled="pager.page == 1">Prev</button>
+           v-bind:disabled="pager.page == 1" id="prev-page">Prev</button>
    <button v-on:click="pager.next_page()"
-   v-bind:disabled="pager.page == pager.total_pages">Next</button>
+   v-bind:disabled="pager.page == pager.total_pages" id="next-page">Next</button>
    </div>
   </script>
 
@@ -272,11 +284,11 @@
       <div v-for="tag in viewer.project.tags">
         <label>{{tag.name}}</label>
         <input v-if="tag.type == 'bool'" v-model="media.tags[tag.name]"
-               type="checkbox">
+               type="checkbox" v-bind:id="'tag-' + $index">
         <input v-if="tag.type == 'string'"
-               v-model="media.tags[tag.name]">
+               v-model="media.tags[tag.name]" v-bind:id="'tag-' + $index">
         <input v-if="tag.type == 'int' || tag.type == 'float'"
-               v-model="media.tags[tag.name]" number>
+               v-model="media.tags[tag.name]" number v-bind:id="'tag-' + $index">
       </div>
     </div>
   </script>
@@ -336,12 +348,13 @@
   <script type="text/x-template" id="edit-processor-template">
     <div>
       <label> <b>Processors</b></label><br/>
-      <div v-for="proc in editor.processors">
+      <div v-for="(index, proc) in editor.processors">
 
         <!-- Command factory -->
         <div v-if="proc.name === 'CommandFactory'" class="tag-editor">
-          <label>Processor {{$index +1}} </label>
-          <button v-on:click="editor.remove_processor($index)">
+          <label>Processor {{index +1}} </label>
+          <button v-on:click="editor.remove_processor(parseInt(index))"
+                  v-bind:id="'remove-processor-' + index">
             Remove
           </button>
           <br/>
@@ -373,8 +386,9 @@
 
         <!-- Python factory -->
         <div v-if="proc.name === 'PythonFunctionFactory'" class="tag-editor">
-          <label>Processor {{$index +1}} </label>
-          <button v-on:click="editor.remove_processor($index)">
+          <label>Processor {{index +1}} </label>
+          <button v-on:click="editor.remove_processor(parseInt(index))"
+                  v-bind:id="'remove-processor-' + index">
             Remove
           </button>
           <br/>
@@ -396,9 +410,10 @@
 
         <!-- Tagger factory -->
         <div v-if="proc.name === 'TaggerFactory'" class="tag-editor">
-          <label>Processor {{$index +1}} </label>
-          <button v-on:click="editor.remove_processor($index)">
-          Remove
+          <label>Processor {{index +1}} </label>
+          <button v-on:click="editor.remove_processor(parseInt(index))"
+                  v-bind:id="'remove-processor-' + index">
+           Remove
           </button>
           <br/>
           <em>Run tagging command:</em>
@@ -409,22 +424,24 @@
           <br/>
         </div>
 
-        <button v-on:click="editor.check_processor(proc)">Test</button>
-        <button v-on:click="editor.clear_test_info($index)">Clear</button>
-        <view-job :job="editor.test_job[$index]"
-                  :job_status="editor.test_job_status[$index]"
+        <button v-on:click="editor.check_processor(proc)"
+                v-bind:id="'check-proc-' + index">Test</button>
+        <button v-on:click="editor.clear_test_info(parseInt(index))"
+                v-bind:id="'clear-check-proc-' + index">Clear</button>
+        <view-job :job="editor.test_job[parseInt(index)]"
+                  :job_status="editor.test_job_status[parseInt(index)]"
                   :project="editor.project">
         </view-job>
         <!-- End of for proc in processors -->
       </div>
       <br/>
       <label>Add processor of type:</label>
-      <select v-model="editor.processor_type">
+      <select v-model="editor.processor_type" id="select-processor">
         <option selected>command</option>
         <option>tagger</option>
         <option>python</option>
       </select>
-      <button v-on:click="editor.add_processor(editor.processor_type)">
+      <button v-on:click="editor.add_processor(editor.processor_type)" id="add-processor">
         Add</button>
       <br>
     </div>
@@ -462,7 +479,7 @@
       <li v-for="job in processor.running">{{job.info}}</li>
     </ul>
     <button v-on:click="threaded(ui, 'process', project)"
-            v-bind:disabled="processor.status === 'running'">
+            v-bind:disabled="processor.status === 'running'" id="run-processing">
       Run processing</button>
     <div v-if="processor.status === 'error'">
       <label>Errors</label>
@@ -545,7 +562,7 @@
       data.window = window;
 
       var vm = new Vue({
-          el: "body", // Attach to the body tag.
+          el: "#app", // Attach to the div with id="app".
           data: data,
           methods: {
               threaded: threaded,
@@ -605,6 +622,4 @@
   });
 
 </script>
-
-
 </html>

@@ -5,7 +5,7 @@ import unittest
 import vixen
 from vixen.processor import PythonFunctionFactory
 from vixen.project import Project
-from vixen.vixen import VixenUI
+from vixen.vixen import VixenUI, Vixen
 from vixen.vixen_ui import get_html, get_html_file
 
 from vixen.tests.test_project import TestProjectBase
@@ -26,6 +26,54 @@ class TestVixenBase(TestProjectBase):
         )
         patcher1.start()
         self.addCleanup(patcher1.stop)
+
+
+class TestVixen(TestVixenBase):
+
+    def test_load(self):
+        # Given
+        vixen = Vixen()
+
+        # When
+        vixen.load()
+
+        # Then
+        self.assertEqual(len(vixen.projects), 1)
+        self.assertEqual(vixen.projects[0].name, '__hidden__')
+
+        # When
+        p = Project(
+            name='test', path=self.root,
+            description='desc', extensions=['.py', '.txt']
+        )
+        p.scan()
+        p.save()
+        vixen.add(p)
+
+        # Then
+        self.assertEqual(len(vixen.projects), 1)
+        self.assertEqual(vixen.projects[0].name, 'test')
+
+        # Given
+        vixen.save()
+        vixen = Vixen()
+        vixen.load()
+
+        # Then
+        self.assertEqual(len(vixen.projects), 1)
+        p = vixen.projects[0]
+        self.assertEqual(p.name, 'test')
+        self.assertEqual(p.number_of_files, 0)
+
+        # When
+        p.load()
+
+        # Then
+        self.assertEqual(p.number_of_files, 5)
+        m = p.get('root.txt')
+        self.assertEqual(m.relpath, 'root.txt')
+        self.assertEqual(m.type, 'text')
+        self.assertEqual(len(m.tags), 1)
 
 
 class TestProjectEditor(TestVixenBase):
@@ -194,6 +242,28 @@ class TestVixenUI(TestVixenBase):
         self.assertEqual(sorted(ctx.keys()),
                          ['editor', 'ui', 'viewer', 'vixen'])
 
+    def test_messages(self):
+        # Given.
+        ui = VixenUI()
+
+        # When
+        ui.error('ERROR')
+
+        # Then
+        self.assertEqual(ui.message, ('ERROR', 'error', 0))
+
+        # When
+        ui.info('INFO')
+
+        # Then
+        self.assertEqual(ui.message, ('INFO', 'info', 1))
+
+        # When
+        ui.success('SUCCESS')
+
+        # Then
+        self.assertEqual(ui.message, ('SUCCESS', 'success', 2))
+
     def test_add_remove_project_works(self):
         # Given
         ui = VixenUI()
@@ -204,7 +274,7 @@ class TestVixenUI(TestVixenBase):
         ui.add_project()
 
         # Then
-        self.assertEqual(len(vixen.projects), 2)
+        self.assertEqual(len(vixen.projects), 1)
         p = vixen.projects[-1]
         self.assertEqual(p.name, 'Project1')
         self.assertEqual(
@@ -215,7 +285,7 @@ class TestVixenUI(TestVixenBase):
         ui.remove(p)
 
         # Then
-        self.assertEqual(len(vixen.projects), 1)
+        self.assertEqual(len(vixen.projects), 0)
 
     def test_search_string_updates_search_completed(self):
         # Given

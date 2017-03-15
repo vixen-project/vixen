@@ -2,6 +2,7 @@
 branch = True
 source = vixen
 omit = */tests/*
+       */integration_tests/*
 
 [report]
 # Regexes for lines to exclude from consideration

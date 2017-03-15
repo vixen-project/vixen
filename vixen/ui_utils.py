@@ -11,7 +11,7 @@ import sys
 try:
     import Tkinter as tkinter
     import tkFileDialog as FD
-except ImportError:
+except ImportError:  # pragma: no cover
     import tkinter
     import tkinter.filedialog as FD
 
