@@ -64,7 +64,8 @@ class TestUI(unittest.TestCase):
 
         # When
         # Create a new project.
-        browser.find_element_by_id('new-project').click()
+        e = wait.until(EC.presence_of_element_located((By.ID, 'new-project')))
+        e.click()
         # Set the name.
         e = wait.until(EC.presence_of_element_located((By.ID, 'edit-name')))
         e.clear()
