@@ -150,6 +150,7 @@ class TestUI(unittest.TestCase):
 
         # Change some tag information and save.
         e = wait.until(EC.presence_of_element_located((By.ID, 'tag-0')))
+        e.send_keys('')
         e.send_keys('test')
         browser.find_element_by_id('tag-1').clear()
         browser.find_element_by_id('tag-1').send_keys('1')
@@ -161,6 +162,7 @@ class TestUI(unittest.TestCase):
         # Then
         m = p.get('root.txt')
         self._wait_while(lambda: m.tags['count'] == 0, 20)
+        self._wait_while(lambda: m.tags['comments'] != 'test')
         self.assertEqual(m.tags['comments'], 'test')
         self.assertEqual(m.tags['count'], 1)
 
