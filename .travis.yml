@@ -3,7 +3,7 @@ python:
   - 2.7
 
 addons:
-  firefox: latest-esr
+  firefox: latest
 
 install:
   - pip install -r requirements.txt

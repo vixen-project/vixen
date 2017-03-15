@@ -93,6 +93,8 @@ class TestUI(unittest.TestCase):
         # Then
         self.assertEqual(len(ui.vixen.projects), 1)
         p = ui.vixen.projects[0]
+        self._wait_while(lambda: p.tags[1].type != 'int')
+
         self.assertEqual(p.name, 'test1')
         self.assertEqual(p.root.path, data_path)
         self.assertEqual(p.tags[0].name, 'comments')
