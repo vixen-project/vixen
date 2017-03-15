@@ -156,7 +156,9 @@ class TestUI(unittest.TestCase):
         browser.find_element_by_id('tag-1').send_keys('1')
         browser.find_element_by_id('save').send_keys('')
         browser.find_element_by_id('save').click()
+        browser.find_element_by_id('save').click()
 
+        time.sleep(0.25)
         self._wait_while(lambda: ui.is_busy)
 
         # Then
