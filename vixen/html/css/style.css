@@ -118,6 +118,9 @@ p.loading {
 .processed {
     color: green;
 }
+a.menu {
+    margin-right: 10px;
+}
 label {
     line-height: 1.2;
 }

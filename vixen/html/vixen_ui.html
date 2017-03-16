@@ -22,7 +22,7 @@
 
         <link href="$HTML_ROOT/css/style.css" rel="stylesheet">
         <!-- Use an empty icon for now until we have a logo. -->
-        <link rel="icon" href="data:,">
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   </head>
 
 <body>
@@ -40,8 +40,10 @@
   </div>
 
   <!-- Menu on the top -->
-  <div style="position: absolute; top: 5px;" v-on:click="ui.home()">
-      <a href="#">Home</a> <a v-bind:href="ui.docs" target="_blank">Help</a>
+  <div style="position: absolute; top: 5px; margin-left: 5px;">
+      <a href="#" v-on:click="ui.home()" class="menu">Home</a>
+      <a v-bind:href="ui.docs" target="_blank" class="menu">Help</a>
+      <a v-bind:href="$ROOTui.log_file" target="_blank" class="menu">Log</a>
   </div>
   <div style="position: absolute; top: 5px; right: 5px;">
     <button v-on:click="halt()" id="halt">Stop ViXeN</button>

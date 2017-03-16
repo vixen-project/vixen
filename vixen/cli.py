@@ -54,6 +54,7 @@ def make_ui():
     # relative imports in the entry point script.
     from vixen.vixen import VixenUI
     ui = VixenUI()
+    ui.setup_logging_handler()
     ui.vixen.load()
     return ui
 

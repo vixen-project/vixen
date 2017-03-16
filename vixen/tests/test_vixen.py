@@ -1,3 +1,4 @@
+import logging
 import os
 import mock
 import unittest
@@ -5,10 +6,59 @@ import unittest
 import vixen
 from vixen.processor import PythonFunctionFactory
 from vixen.project import Project
-from vixen.vixen import VixenUI, Vixen
+from vixen.vixen import VixenUI, Vixen, UIErrorHandler
 from vixen.vixen_ui import get_html, get_html_file
 
 from vixen.tests.test_project import TestProjectBase
+
+
+class MockRecord():
+    def __init__(self, name, message):
+        self.name = name
+        self.message = message
+
+
+class TestUIErrorHandler(unittest.TestCase):
+    def setUp(self):
+        self.mock_ui = mock.MagicMock()
+        self.h = UIErrorHandler(self.mock_ui)
+
+    def test_emit_catches_general_error(self):
+        # Given
+        record = MockRecord(name='name', message='favicon.ico')
+        # When
+        self.h.emit(record)
+
+        # Then
+        self.assertTrue(self.mock_ui.notify_user.call_count, 1)
+
+    def test_emit_catches_access_error_non_favicon(self):
+        # Given
+        record = MockRecord(name='tornado.access', message='hello')
+        # When
+        self.h.emit(record)
+
+        # Then
+        self.assertTrue(self.mock_ui.notify_user.call_count, 1)
+
+    def test_emit_skips_favicon_errors(self):
+        # Given
+        record = MockRecord(name='tornado.access',
+                            message='hello I have favicon.ico')
+        # When
+        self.h.emit(record)
+
+        # Then
+        self.mock_ui.notify_user.assert_not_called()
+
+        # Given
+        record = MockRecord(name='tornado.application',
+                            message='hello I have favicon.ico')
+        # When
+        self.h.emit(record)
+
+        # Then
+        self.mock_ui.notify_user.assert_not_called()
 
 
 class TestVixenBase(TestProjectBase):
@@ -287,6 +337,24 @@ class TestVixenUI(TestVixenBase):
         # Then
         logger.error.assert_called_with('Unknown message kind: %s', 'blah')
         logger.info.assert_called_with('err')
+
+    def test_logging_handler_is_setup_correctly(self):
+        # Given
+        ui = VixenUI()
+
+        # When
+        m = mock.MagicMock()
+        with mock.patch('vixen.vixen.logging.getLogger', return_value=m) as p:
+            ui.setup_logging_handler()
+
+        # Then
+        p.assert_called_once_with()
+        self.assertEqual(m.addHandler.call_count, 1)
+        args = m.addHandler.call_args[0]
+        obj = args[0]
+        self.assertTrue(isinstance(obj, UIErrorHandler))
+        self.assertEqual(obj.level, logging.ERROR)
+        self.assertEqual(obj.ui, ui)
 
     def test_add_remove_project_works(self):
         # Given

@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import copy
 import json
 import logging
+from logging import Handler
 from os.path import dirname, exists, join, isdir
 import os
 import subprocess
@@ -19,6 +20,25 @@ from .ui_utils import askopenfilename, askdirectory, asksaveasfilename
 
 
 logger = logging.getLogger(__name__)
+
+
+class UIErrorHandler(Handler):
+    """Simple logging handler to let the user know if there was
+    an internal error.
+    """
+    def __init__(self, ui):
+        super(UIErrorHandler, self).__init__()
+        self.ui = ui
+
+    def emit(self, record):
+        """Handle a logging record.
+        """
+        exclude = ('tornado.access', 'tornado.application')
+        if not ((record.name in exclude) and
+                ('favicon.ico' in record.message)):
+            msg = ('An error was encountered, please send the\n'
+                   'log file to the developers.  Thank you!')
+            self.ui.notify_user(msg, 'error')
 
 
 class Vixen(HasTraits):
@@ -473,12 +493,20 @@ class VixenUI(HasTraits):
 
     docs = Property(Str)
 
+    log_file = Str
+
     version = Str
 
     message = Tuple()
 
     # Private trait to generate message counts.
     _message_count = Int
+
+    def setup_logging_handler(self):
+        handler = UIErrorHandler(self)
+        handler.setLevel(logging.ERROR)
+        root = logging.getLogger()
+        root.addHandler(handler)
 
     def get_context(self):
         return dict(
@@ -488,14 +516,18 @@ class VixenUI(HasTraits):
     def home(self):
         self.mode = 'edit'
 
-    def error(self, msg):
+    def notify_user(self, message, kind):
+        """Meant to just notify the user from the Python side.
+        """
         mid = self._get_message_id()
-        self.message = msg, "error", mid
+        self.message = message, kind, mid
+
+    def error(self, msg):
+        self.notify_user(msg, 'error')
         logger.info("ERROR: %s", msg)
 
     def info(self, msg):
-        mid = self._get_message_id()
-        self.message = msg, "info", mid
+        self.notify_user(msg, 'info')
         logger.info("INFO: %s", msg)
 
     def log(self, msg, kind='info'):
@@ -510,8 +542,7 @@ class VixenUI(HasTraits):
             logger.info(msg)
 
     def success(self, msg):
-        mid = self._get_message_id()
-        self.message = msg, "success", mid
+        self.notify_user(msg, 'success')
         logger.info("SUCCESS: %s", msg)
 
     def edit(self, project):
@@ -584,10 +615,16 @@ class VixenUI(HasTraits):
         bundled = join(
             dirname(mydir), 'vixen_data', 'docs', 'html', 'index.html'
         )
+        root = "'/' +" if sys.platform.startswith('win') else ''
         if exists(bundled):
-            return bundled
+            return root + bundled
+        elif exists(build):
+            return root + build
         else:
-            return build
+            return 'http://vixen.readthedocs.io'
+
+    def _log_file_default(self):
+        return join(get_project_dir(), 'vixen.log')
 
     def _vixen_default(self):
         v = Vixen()

@@ -21,10 +21,12 @@ left panel to create a new project as seen in the figure below:
 
 In the figure, on the top right is a button to stop the ViXeN application.
 Clicking on this will close ViXeN and one may safely close the browser tab.
-The top left has two links, "Home" and "Help", the home link brings the user
-to the page where one can edit or view the different projects. The help link
-takes a user to the documentation. If you are using a binary, this will take
-one to a copy of the documentation bundled with the binary.
+The top left has three links, "Home", "Help", and "Log" the home link brings
+the user to the page where one can edit or view the different projects. The
+help link takes a user to the documentation. If you are using a binary, this
+will take one to a copy of the documentation bundled with the binary. The
+"Log" shows the vixen application logs in a separate tab. This is handy if you
+are running into errors and is useful when you are reporting problems.
 
 
 
