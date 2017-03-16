@@ -41,6 +41,7 @@ class TestUI(unittest.TestCase):
 
         browser.implicitly_wait(10)
         browser.get('http://localhost:%d' % port)
+        cls.driver = driver
         cls.browser = browser
         cls.ui = ui
         cls.thread = t
@@ -54,6 +55,9 @@ class TestUI(unittest.TestCase):
         del os.environ['VIXEN_ROOT']
         shutil.rmtree(cls.root)
 
+    def _get(self, name, kind=By.ID):
+        return self.wait.until(EC.presence_of_element_located((kind, name)))
+
     def test_edit_view_project(self):
         # Given
         cls = self.__class__
@@ -61,47 +65,44 @@ class TestUI(unittest.TestCase):
         browser = cls.browser
         ui = cls.ui
         data_path = os.path.join(root, 'test')
-        wait = WebDriverWait(browser, 10)
+        self.wait = WebDriverWait(browser, 10)
 
         # When
         # Create a new project.
-        e = wait.until(EC.presence_of_element_located((By.ID, 'new-project')))
-        e.click()
+        self._get('new-project').click()
 
         # Set the name.
-        e = wait.until(EC.presence_of_element_located((By.ID, 'edit-name')))
+        e = self._get('edit-name')
         e.clear()
         e.send_keys('test1')
         # Set the path.
-        e = browser.find_element_by_id('edit-path')
-        e.send_keys(data_path)
+        self._get('edit-path').send_keys(data_path)
 
         # Setup the tags.
-        e = wait.until(EC.presence_of_element_located((By.ID, 'remove-tag-0')))
-        e.click()
-        e = wait.until(EC.presence_of_element_located((By.ID, 'new-tag')))
+        self._get('remove-tag-0').click()
+        e = self._get('new-tag')
         e.send_keys('comments, count, processed')
-        browser.find_element_by_id('add-tag').click()
+        self._get('add-tag').click()
 
-        e = wait.until(EC.presence_of_element_located((By.ID, 'tag-type-1')))
+        e = self._get('tag-type-1')
         e = Select(e)
         e.select_by_visible_text('int')
         e = Select(browser.find_element_by_id('tag-type-2'))
         e.select_by_visible_text('bool')
 
-        browser.find_element_by_id('new-extension').send_keys('.txt')
-        browser.find_element_by_id('add-extension').click()
+        self._get('new-extension').send_keys('.txt')
+        self._get('add-extension').click()
+
+        self._wait_while(lambda: len(ui.editor.extensions) == 0)
 
         # Save changes.
-        e = wait.until(EC.presence_of_element_located((By.ID, 'apply')))
-        e.click()
-        time.sleep(0.5)
+        self._get('apply').click()
+
+        p = ui.vixen.projects[0]
+        self._wait_while(lambda: len(p.last_save_time) == 0)
 
         # Then
         self.assertEqual(len(ui.vixen.projects), 1)
-        p = ui.vixen.projects[0]
-        self._wait_while(lambda: p.tags[1].type != 'int')
-
         self.assertEqual(p.name, 'test1')
         self.assertEqual(p.root.path, data_path)
         self.assertEqual(p.tags[0].name, 'comments')
@@ -116,100 +117,102 @@ class TestUI(unittest.TestCase):
         self.assertEqual(len(m.tags), 3)
 
         # Test control-s
-        e = browser.find_element_by_id('edit-name')
+        last_save = p.last_save_time
+        e = self._get('edit-name')
         e.clear()
         e.send_keys('Project 1')
         e = browser.find_element_by_id('apply')
         e.send_keys(Keys.CONTROL, "s")
-        self._wait_while(lambda: ui.is_busy)
+        self._wait_while(lambda: p.last_save_time == last_save)
 
         # Then
         self.assertEqual(p.name, 'Project 1')
 
         # When
         # Now view the project.
-        browser.find_element_by_id('view-0').click()
+        self._get('view-0').click()
 
         # Navigate down a directory.
-        e = wait.until(EC.presence_of_element_located((By.ID, 'path-0')))
-        e.click()
+        e = self._get('path-0').click()
         viewer = ui.viewer
         self._wait_while(lambda: viewer.current_dir.name == 'test')
         self.assertEqual(viewer.current_dir.name, 'sub')
         self.assertEqual(ui.mode, 'view')
 
-        e = browser.find_element_by_id('go-to-parent')
+        e = self._get('go-to-parent')
         e.send_keys('')
-        time.sleep(0.25)
+        time.sleep(0.2)
         e.click()
         browser.find_element_by_id('go-to-parent').click()
 
         self._wait_while(lambda: viewer.current_dir.name == 'sub')
         self.assertEqual(viewer.current_dir.name, 'test')
-        e = wait.until(EC.presence_of_element_located((By.ID, 'path-2')))
+        e = self._get('path-2')
         e.click()
         self._wait_while(lambda: viewer.current_file is None)
         self.assertEqual(viewer.current_file.name, 'root.txt')
 
         # Change some tag information and save.
-        e = wait.until(EC.presence_of_element_located((By.ID, 'tag-0')))
+        last_save = p.last_save_time
+        e = self._get('tag-0')
         e.send_keys('')
         e.send_keys('test')
-        browser.find_element_by_id('tag-1').clear()
-        browser.find_element_by_id('tag-1').send_keys('1')
-        browser.find_element_by_id('save').send_keys('')
-        browser.find_element_by_id('save').click()
-        browser.find_element_by_id('save').click()
+        self._get('tag-1').clear()
+        self._get('tag-1').send_keys('1')
+        self._get('save').send_keys('')
+        self._get('save').click()
+        if cls.driver == 'firefox':
+            self._get('save').click()
 
-        time.sleep(0.25)
-        self._wait_while(lambda: ui.is_busy)
+        self._wait_while(lambda: p.last_save_time == last_save)
 
         # Then
         m = p.get('root.txt')
-        self._wait_while(lambda: m.tags['count'] == 0, 20)
-        self._wait_while(lambda: m.tags['comments'] != 'test')
         self.assertEqual(m.tags['comments'], 'test')
         self.assertEqual(m.tags['count'], 1)
 
         # Change some tag information and save using ctrl+s
-        browser.find_element_by_id('tag-0').send_keys('2')
+        last_save = p.last_save_time
+        self._get('tag-0').send_keys('2')
 
-        browser.find_element_by_id('tag-1').send_keys('')
-        browser.find_element_by_id('tag-1').send_keys('2')
-        browser.find_element_by_id('go-to-parent').send_keys(Keys.CONTROL, "s")
+        self._get('tag-1').send_keys('')
+        self._get('tag-1').send_keys('2')
+        self._get('go-to-parent').send_keys(Keys.CONTROL, "s")
 
-        self._wait_while(lambda: ui.is_busy)
+        self._wait_while(lambda: p.last_save_time == last_save)
+
         self.assertEqual(m.tags['comments'], 'test2')
         self.assertEqual(m.tags['count'], 12)
 
         # Now check if search works.
-        browser.find_element_by_id('search-text').send_keys('count:12')
-        browser.find_element_by_id('search').click()
+        self._get('search-text').send_keys('count:12')
+        self._get('search').click()
 
-        self._wait_while(lambda: ui.is_busy)
+        self._wait_while(lambda: not ui.viewer.search_completed)
 
         # Then
-        e = wait.until(EC.presence_of_element_located((By.ID, 'search-item-0')))
+        e = self._get('search-item-0')
         e.click()
         self._wait_while(lambda: viewer.media is None)
         self.assertTrue(viewer.media.file_name, 'root.txt')
         self.assertEqual(ui.viewer.is_searching, True)
         self.assertEqual(ui.viewer.search_completed, True)
 
-        browser.find_element_by_id('clear-search').click()
+        self._get('clear-search').click()
+        self._wait_while(lambda: ui.viewer.search_completed)
 
-        e = wait.until(EC.presence_of_element_located((By.ID, 'path-2')))
+        e = self._get('path-2')
         self.assertEqual(ui.viewer.is_searching, False)
 
         # When
         # Now edit the project.
         browser.find_element_by_link_text('Home').click()
-        e = wait.until(EC.presence_of_element_located((By.ID, 'edit-0')))
+        e = self._get('edit-0')
         e.click()
+        self._wait_while(lambda: ui.editor.project is None)
 
         # Then
         self.assertEqual(ui.mode, 'edit')
-        self._wait_while(lambda: ui.editor.project is None)
         self.assertEqual(ui.editor.project, ui.vixen.projects[-1])
 
         # When
@@ -218,7 +221,7 @@ class TestUI(unittest.TestCase):
         count = 0
         while not done and count < 3:
             try:
-                e = wait.until(EC.presence_of_element_located((By.ID, 'remove-0')))
+                e = self._get('remove-0')
                 e.send_keys('')
                 e.click()
 
@@ -232,12 +235,13 @@ class TestUI(unittest.TestCase):
         self._wait_while(lambda: len(ui.vixen.projects) > 0)
         self.assertEqual(len(ui.vixen.projects), 0)
 
-    def _wait_while(self, cond, count=20, sleep=0.05):
+    def _wait_while(self, cond, count=20, sleep=0.1):
         i = 0
         time.sleep(sleep)
         while cond() and i < count:
             time.sleep(sleep)
             i += 1
+
 
 if __name__ == '__main__':
     unittest.main()

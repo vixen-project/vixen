@@ -554,6 +554,8 @@ class Project(HasTraits):
     def _last_save_time_default(self):
         if exists(self.save_file):
             return get_file_saved_time(self.save_file)
+        else:
+            return ''
 
     def _name_changed(self, name):
         if len(name) > 0:
