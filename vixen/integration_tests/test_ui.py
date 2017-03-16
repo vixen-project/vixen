@@ -66,6 +66,7 @@ class TestUI(unittest.TestCase):
         # Create a new project.
         e = wait.until(EC.presence_of_element_located((By.ID, 'new-project')))
         e.click()
+        time.sleep(0.5)
         # Set the name.
         e = wait.until(EC.presence_of_element_located((By.ID, 'edit-name')))
         e.clear()
@@ -75,7 +76,8 @@ class TestUI(unittest.TestCase):
         e.send_keys(data_path)
 
         # Setup the tags.
-        browser.find_element_by_id('remove-tag-0').click()
+        e = wait.until(EC.presence_of_element_located((By.ID, 'remove-tag-0')))
+        e.click()
         e = wait.until(EC.presence_of_element_located((By.ID, 'new-tag')))
         e.send_keys('comments, count, processed')
         browser.find_element_by_id('add-tag').click()
