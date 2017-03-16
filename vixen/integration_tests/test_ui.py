@@ -39,6 +39,7 @@ class TestUI(unittest.TestCase):
         elif driver == 'chrome':
             browser = webdriver.Chrome()
 
+        browser.implicitly_wait(10)
         browser.get('http://localhost:%d' % port)
         cls.browser = browser
         cls.ui = ui
@@ -60,13 +61,13 @@ class TestUI(unittest.TestCase):
         browser = cls.browser
         ui = cls.ui
         data_path = os.path.join(root, 'test')
-        wait = WebDriverWait(browser, 5)
+        wait = WebDriverWait(browser, 10)
 
         # When
         # Create a new project.
         e = wait.until(EC.presence_of_element_located((By.ID, 'new-project')))
         e.click()
-        time.sleep(0.5)
+
         # Set the name.
         e = wait.until(EC.presence_of_element_located((By.ID, 'edit-name')))
         e.clear()
