@@ -264,6 +264,30 @@ class TestVixenUI(TestVixenBase):
         # Then
         self.assertEqual(ui.message, ('SUCCESS', 'success', 2))
 
+    @mock.patch('vixen.vixen.logger')
+    def test_vixen_ui_log(self, logger):
+        # Given
+        ui = VixenUI()
+
+        # When
+        ui.log('msg', 'info')
+
+        # Then
+        logger.info.assert_called_with('msg')
+
+        # When
+        ui.log('err', 'error')
+
+        # Then
+        logger.error.assert_called_with('err')
+
+        # When
+        ui.log('err', 'blah')
+
+        # Then
+        logger.error.assert_called_with('Unknown message kind: %s', 'blah')
+        logger.info.assert_called_with('err')
+
     def test_add_remove_project_works(self):
         # Given
         ui = VixenUI()

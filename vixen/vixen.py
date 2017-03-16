@@ -498,6 +498,17 @@ class VixenUI(HasTraits):
         self.message = msg, "info", mid
         logger.info("INFO: %s", msg)
 
+    def log(self, msg, kind='info'):
+        """This method is meant to be called from the Javascript side.
+        """
+        if kind == 'info':
+            logger.info(msg)
+        elif kind == 'error':
+            logger.error(msg)
+        else:
+            logger.error('Unknown message kind: %s', kind)
+            logger.info(msg)
+
     def success(self, msg):
         mid = self._get_message_id()
         self.message = msg, "success", mid
