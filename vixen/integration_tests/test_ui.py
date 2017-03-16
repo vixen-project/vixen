@@ -159,6 +159,7 @@ class TestUI(unittest.TestCase):
         e.send_keys('')
         e.send_keys('test')
         self._get('tag-1').clear()
+        self._get('tag-1').clear()
         self._get('tag-1').send_keys('1')
         self._get('save').send_keys('')
         self._get('save').click()
@@ -169,6 +170,7 @@ class TestUI(unittest.TestCase):
 
         # Then
         m = p.get('root.txt')
+        self._wait_while(lambda: m.tags['count'] == 0)
         self.assertEqual(m.tags['comments'], 'test')
         self.assertEqual(m.tags['count'], 1)
 

@@ -276,7 +276,9 @@ class TestVixenUI(TestVixenBase):
         # Then
         self.assertEqual(ui.version, vixen.__version__)
         fname = ui.docs
-        self.assertEqual('index.html', os.path.basename(fname))
+        self.assertTrue(
+            os.path.basename(fname) in ['index.html', 'vixen.readthedocs.io']
+        )
 
         # When
         ui.mode = 'view'
