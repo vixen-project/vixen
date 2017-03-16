@@ -39,8 +39,9 @@ class TestUI(unittest.TestCase):
         elif driver == 'chrome':
             browser = webdriver.Chrome()
 
-        browser.implicitly_wait(10)
+        browser.implicitly_wait(20)
         browser.get('http://localhost:%d' % port)
+        time.sleep(2)
         cls.driver = driver
         cls.browser = browser
         cls.ui = ui
@@ -65,7 +66,7 @@ class TestUI(unittest.TestCase):
         browser = cls.browser
         ui = cls.ui
         data_path = os.path.join(root, 'test')
-        self.wait = WebDriverWait(browser, 10)
+        self.wait = WebDriverWait(browser, 20)
 
         # When
         # Create a new project.
