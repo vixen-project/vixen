@@ -615,7 +615,7 @@ class VixenUI(HasTraits):
         bundled = join(
             dirname(mydir), 'vixen_data', 'docs', 'html', 'index.html'
         )
-        root = "'/' +" if sys.platform.startswith('win') else ''
+        root = '/' if sys.platform.startswith('win') else ''
         if exists(bundled):
             return root + bundled
         elif exists(build):
