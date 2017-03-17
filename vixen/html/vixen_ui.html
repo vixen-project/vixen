@@ -192,18 +192,19 @@
       <br/>
       Last saved at: {{viewer.last_save_time}}
     </div>
-   </div>
+   </section>
 
-    <div v-if="ui.mode === 'view'" class="sans-third"
+    <section class="sans-third"
          style="background:#f0f0f0;box-shadow:inset 0 0 10px rgba(0,0,0,0.2)">
 
         <div v-if="viewer.current_file || (viewer.search_completed && viewer.media)"
              style="padding:5px;">
           <view-media class="viewer" :media="viewer.media"></view-media>
         </div>
-    </div>
-   </section>
+    </section>
+
   </div>
+</div>
 </body>
 
 <!--  vue.js Components -->
