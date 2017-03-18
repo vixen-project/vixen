@@ -56,6 +56,12 @@ def make_bundle():
     if sys.platform.startswith('linux'):
         shutil.copy(os.path.join('installer', 'vixen'), package_dir)
         shutil.copy(os.path.join('installer', 'ViXeN.desktop'), package_dir)
+        ssl_cert = os.path.join(sys.prefix, 'ssl', 'cert.pem')
+        if os.path.exists(ssl_cert):
+            d = os.path.join(package_dir, 'vixen_app', 'ssl')
+            if not os.path.exists(d):
+                os.makedirs(d)
+            shutil.copy(ssl_cert, d)
     elif sys.platform.startswith('win32'):
         shutil.copy(os.path.join('installer', 'vixen.bat'), package_dir)
         shutil.copy(os.path.join('installer', 'vixen.lnk'), package_dir)
