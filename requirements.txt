@@ -1,5 +1,5 @@
 traits
-https://github.com/enthought/jigna/archive/v0.9.9.tar.gz
+jigna
 tornado
 mock
 nose
