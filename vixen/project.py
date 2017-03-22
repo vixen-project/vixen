@@ -350,7 +350,8 @@ class Project(HasTraits):
 
         with open_file(fname, 'wb') as of:
             # Write the header.
-            of.write(','.join(cols) + '\n')
+            s = ','.join(cols) + '\n'
+            of.write(s.encode('utf-8'))
             for i in range(len(self._relpath2index)):
                 line = []
                 for col in cols:
@@ -359,7 +360,7 @@ class Project(HasTraits):
                     else:
                         elem = self._tag_data[col][i]
                     line.append(_format(elem))
-                of.write(','.join(line) + '\n')
+                of.write((','.join(line) + '\n').encode('utf-8'))
 
     def import_csv(self, fname):
         """Read tag information from given CSV filename.

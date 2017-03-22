@@ -256,7 +256,7 @@ class TestProjectEditor(TestVixenBase):
         editor.test_job[0].thread.join()
 
         # Then
-        key = p.keys()[0]
+        key = list(p.keys())[0]
         m = p.get(key)
         self.assertEqual(m.tags['completed'], True)
 

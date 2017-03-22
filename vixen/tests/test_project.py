@@ -87,7 +87,7 @@ class TestProject(TestProjectBase):
         p = Project(name='test', description='Test', path=self.root)
         p.scan()
         out_fname = tempfile.mktemp(dir=self.root)
-        out = open(out_fname, 'w')
+        out = open(out_fname, 'wb')
 
         # When
         p.save_as(out)
@@ -278,7 +278,7 @@ class TestProject(TestProjectBase):
     def _write_csv(self, data):
         fname = join(self._temp, 'data.csv')
         with open(join(self._temp, 'data.csv'), 'wb') as fp:
-            fp.write(data)
+            fp.write(data.encode('utf-8'))
         return fname
 
     def test_import_csv_fails_with_bad_csv_header(self):

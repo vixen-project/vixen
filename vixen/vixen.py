@@ -312,7 +312,7 @@ class Pager(HasTraits):
         idx = min(max(0, index), self.total-1)
         if idx != self._index:
             self._index = idx
-            desired_page = int(idx/self.limit) + 1
+            desired_page = int(idx//self.limit) + 1
             if self.page != desired_page:
                 self.page = desired_page
 
@@ -327,7 +327,7 @@ class Pager(HasTraits):
 
     def _get_total_pages(self):
         size = len(self.data)
-        n = size/self.limit if size > 0 else 1
+        n = size//self.limit if size > 0 else 1
         rem = size % self.limit
         if rem > 0:
             return n + 1
