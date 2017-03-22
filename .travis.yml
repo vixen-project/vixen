@@ -24,7 +24,7 @@ before_script:
 script:
   - coverage erase
   - coverage run -p -m nose.core -v vixen/tests
-  - if [[ ${TRAVIS_PYTHON_VERSION} == "2.7"] ; then coverage run -p -m nose.core -v vixen/integration_tests; fi
+  - if [[ ${TRAVIS_PYTHON_VERSION} == "2.7" ]] ; then coverage run -p -m nose.core -v vixen/integration_tests; fi
   - coverage combine
 
 after_success:
