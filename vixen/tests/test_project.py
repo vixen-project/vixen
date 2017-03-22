@@ -277,8 +277,8 @@ class TestProject(TestProjectBase):
 
     def _write_csv(self, data):
         fname = join(self._temp, 'data.csv')
-        with open(join(self._temp, 'data.csv'), 'wb') as fp:
-            fp.write(data.encode('utf-8'))
+        with open(join(self._temp, 'data.csv'), 'w') as fp:
+            fp.write(data)
         return fname
 
     def test_import_csv_fails_with_bad_csv_header(self):

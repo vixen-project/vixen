@@ -272,6 +272,8 @@ class TestTaggerFactory(TestFactoryBase):
 
         # Then.
         self.assertEqual(len(jobs), 5)
+        for job in jobs:
+            self.assertEqual(job.status, 'success')
         for key in p.keys():
             media = p.get(key)
             self.assertEqual(media.tags['completed'], True)

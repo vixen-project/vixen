@@ -35,7 +35,7 @@ def get_file_saved_time(path):
 
 def _get_sample(fname):
     sample = ''
-    with open(fname, 'rb') as fp:
+    with open(fname, 'r') as fp:
         sample += fp.readline() + fp.readline()
 
     return sample
@@ -46,7 +46,7 @@ def _get_csv_headers(fname):
     sniffer = csv.Sniffer()
     has_header = sniffer.has_header(sample)
     dialect = sniffer.sniff(sample)
-    with open(fname, 'rb') as fp:
+    with open(fname, 'r') as fp:
         reader = csv.reader(fp, dialect)
         header = next(reader)
     return has_header, header, dialect
@@ -96,7 +96,7 @@ def _cleanup_query(q, tag_types):
     type_map = dict(float=FLOAT.from_bytes, int=INT.from_bytes)
     for term in q.leaves():
         if isinstance(term, query.Term):
-            if isinstance(term.text, (str, unicode)):
+            if isinstance(term.text, (str, unicode, bytes)):
                 fieldtype = tag_types[term.fieldname]
                 if fieldtype in type_map:
                     term.text = type_map[fieldtype](term.text)
@@ -348,10 +348,9 @@ class Project(HasTraits):
             else:
                 return str(elem) if elem is not None else ""
 
-        with open_file(fname, 'wb') as of:
+        with open_file(fname, 'w') as of:
             # Write the header.
-            s = ','.join(cols) + '\n'
-            of.write(s.encode('utf-8'))
+            of.write(','.join(cols) + '\n')
             for i in range(len(self._relpath2index)):
                 line = []
                 for col in cols:
@@ -360,7 +359,7 @@ class Project(HasTraits):
                     else:
                         elem = self._tag_data[col][i]
                     line.append(_format(elem))
-                of.write((','.join(line) + '\n').encode('utf-8'))
+                of.write(','.join(line) + '\n')
 
     def import_csv(self, fname):
         """Read tag information from given CSV filename.
@@ -395,7 +394,7 @@ class Project(HasTraits):
 
         count = 0
         total = 0
-        with open(fname, 'rb') as fp:
+        with open(fname, 'r') as fp:
             reader = csv.reader(fp, dialect)
             next(reader)  # Skip header
             for record in reader:

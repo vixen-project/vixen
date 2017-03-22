@@ -290,6 +290,7 @@ class TaggerFactory(FactoryBase):
         if p.returncode == 0:
             tag_types = self._tag_types
             for line in stdout.splitlines():
+                line = line.decode('utf-8')
                 if len(line) == 0:
                     continue
                 try:
