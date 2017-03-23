@@ -18,6 +18,16 @@ from vixen.vixen_ui import main
 from vixen.tests.test_directory import make_data
 
 
+def start_io_loop():
+    ioloop = IOLoop.instance()
+    ioloop.make_current()
+    ioloop.start()
+
+
+def stop_io_loop():
+    IOLoop.instance().stop()
+
+
 class TestUI(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -27,8 +37,7 @@ class TestUI(unittest.TestCase):
         ui = make_ui()
         port = 9876
         main(dev=True, port=port, test=True, **ui.get_context())
-        ioloop = IOLoop.instance()
-        t = Thread(target=ioloop.start)
+        t = Thread(target=start_io_loop)
         t.setDaemon(True)
         t.start()
 
@@ -50,8 +59,11 @@ class TestUI(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.browser.quit()
-        IOLoop.instance().stop()
-        time.sleep(1)
+        IOLoop.instance().add_callback(stop_io_loop)
+        thread = cls.thread
+        count = 0
+        while thread.is_alive() and count < 50:
+            time.sleep(0.1)
         cls.thread.join()
         del os.environ['VIXEN_ROOT']
         shutil.rmtree(cls.root)
