@@ -8,5 +8,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
   - "%PYTHON%\\python.exe setup.py develop"
 
+build: off
+
 test_script:
   - "%PYTHON%\\python.exe -m pytest -v vixen\\tests"
