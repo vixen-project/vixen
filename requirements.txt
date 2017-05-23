@@ -2,6 +2,6 @@ traits
 jigna
 tornado
 mock
-nose
+pytest
 json_tricks>=3.0
 whoosh

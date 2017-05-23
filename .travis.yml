@@ -23,8 +23,8 @@ before_script:
 
 script:
   - coverage erase
-  - coverage run -p -m nose.core -v vixen/tests
-  - coverage run -p -m nose.core -v vixen/integration_tests
+  - coverage run -p -m pytest -v vixen/tests
+  - coverage run -p -m pytest -v vixen/integration_tests
   - coverage combine
 
 after_success:
