@@ -11,7 +11,7 @@ setup(
     author='Prabhu Ramachandran and Kadambari Devarajan',
     author_email='vixen@googlegroups.com',
     description='View eXtract and aNnotate media',
-    url='https://github.com/prabhuramachandran/vixen',
+    url='https://github.com/vixen-project/vixen',
     packages=find_packages(),
     package_dir={'vixen':'vixen'},
     package_data={

@@ -61,7 +61,7 @@ or post your questions on the vixen-users mailing list here:
 https://groups.google.com/d/forum/vixen
 
 The ViXeN issue tracker and source code are available at:
-https://github.com/prabhuramachandran/vixen
+https://github.com/vixen-project/vixen
 
 
 --------

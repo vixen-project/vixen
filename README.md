@@ -1,8 +1,8 @@
 ViXeN: View eXtract and aNnotate media
 =======================================
 
-[![Build Status](https://travis-ci.org/prabhuramachandran/vixen.svg?branch=master)](https://travis-ci.org/prabhuramachandran/vixen)
-[![codecov](https://codecov.io/gh/prabhuramachandran/vixen/branch/master/graph/badge.svg)](https://codecov.io/gh/prabhuramachandran/vixen)
+[![Build Status](https://travis-ci.org/vixen-project/vixen.svg?branch=master)](https://travis-ci.org/vixen-project/vixen)
+[![codecov](https://codecov.io/gh/vixen-project/vixen/branch/master/graph/badge.svg)](https://codecov.io/gh/vixen-project/vixen)
 [![Documentation Status](https://readthedocs.org/projects/vixen/badge/?version=latest)](http://vixen.readthedocs.io/en/latest/?badge=latest)
 
 
@@ -43,7 +43,7 @@ Download
 
 To try out ViXeN please download a binary installer from here:
 
-  https://github.com/prabhuramachandran/vixen/releases
+  https://github.com/vixen-project/vixen/releases
 
 These are very easy to install, basically just download, unzip, and run.
 

@@ -63,7 +63,7 @@ simple steps:
 
 More detailed instructions are given below.
 
-.. _ViXeN releases: https://github.com/prabhuramachandran/vixen/releases
+.. _ViXeN releases: https://github.com/vixen-project/vixen/releases
 
 .. _using-nautilus:
 
