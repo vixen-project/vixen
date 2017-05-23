@@ -19,7 +19,13 @@ class TestCLI(unittest.TestCase):
 
     def tearDown(self):
         del os.environ['VIXEN_ROOT']
-        shutil.rmtree(self.root)
+        if sys.platform.startswith('win'):
+            try:
+                shutil.rmtree(self.root)
+            except WindowsError:
+                pass
+        else:
+            shutil.rmtree(self.root)
         sys.excepthook = self.orig_excepthook
 
     def test_cli_calls_view_correctly(self):
