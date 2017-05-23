@@ -149,7 +149,7 @@ class TestUI(unittest.TestCase):
         e = self._get('path-0').click()
         viewer = ui.viewer
         self._wait_while(lambda: viewer.current_dir.name == 'test')
-        self.assertEqual(viewer.current_dir.name, 'sub')
+        self.assertTrue('sub' in viewer.current_dir.name)
         self.assertEqual(ui.mode, 'view')
 
         e = self._get('go-to-parent')
@@ -190,8 +190,11 @@ class TestUI(unittest.TestCase):
         last_save = p.last_save_time
         self._get('tag-0').send_keys('2')
 
-        self._get('tag-1').send_keys('')
-        self._get('tag-1').send_keys('2')
+        self._get('tag-1').clear()
+        self._get('tag-1').send_keys('12')
+        self._get('tag-1').clear()
+        self._get('tag-1').send_keys('12')
+
         self._get('go-to-parent').send_keys(Keys.CONTROL, "s")
 
         self._wait_while(lambda: p.last_save_time == last_save)
