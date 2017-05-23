@@ -2,6 +2,7 @@ ViXeN: View eXtract and aNnotate media
 =======================================
 
 [![Build Status](https://travis-ci.org/vixen-project/vixen.svg?branch=master)](https://travis-ci.org/vixen-project/vixen)
+[![Build status](https://ci.appveyor.com/api/projects/status/9smsybrpx04bmh22?svg=true)](https://ci.appveyor.com/project/prabhuramachandran/vixen)
 [![codecov](https://codecov.io/gh/vixen-project/vixen/branch/master/graph/badge.svg)](https://codecov.io/gh/vixen-project/vixen)
 [![Documentation Status](https://readthedocs.org/projects/vixen/badge/?version=latest)](http://vixen.readthedocs.io/en/latest/?badge=latest)
 
