@@ -91,12 +91,16 @@
           <option>float</option>
           <option>bool</option>
         </select>
+        <button v-on:click="editor.move_tag_up(parseInt(index))"
+                v-bind:id="'move-tag-up' + index">&uarr;</button>
+        <button v-on:click="editor.move_tag_down(parseInt(index))"
+                v-bind:id="'move-tag-down' + index">&darr;</button>
         <button v-on:click="editor.remove_tag(parseInt(index))"
                 v-bind:id="'remove-tag-' + index">Remove</button>
       </div>
       <input v-model="editor.tag_name"
              title="Enter a new tag. You may separate multiple tags by commas."
-             id="new-tag">
+             id="new-tag" lazy>
       <button v-on:click="editor.add_tag(editor.tag_name)" id="add-tag">
           Add tag
       </button>
@@ -113,7 +117,7 @@
         </li>
       </ul>
       <input v-model="editor.ext_name" id="new-extension"
-             title="Case is not significant, use commas for multiple extensions. Examples: '.jpg' or '.jpg, .png'.">
+             title="Case is not significant, use commas for multiple extensions. Examples: '.jpg' or '.jpg, .png'." lazy>
       <button v-on:click="editor.add_extension(editor.ext_name)" id="add-extension">
         Add extension
       </button>
@@ -157,7 +161,7 @@
     <br>
 
     <input v-model="viewer.search" style="width:60%" placeholder="Search"
-           v-on:keyup.enter="busy_call(viewer, 'do_search')" id="search-text">
+           v-on:keyup.enter="busy_call(viewer, 'do_search')" id="search-text" lazy>
     <button v-on:click="busy_call(viewer, 'do_search')" id="search">Search</button>
     <button v-on:click="viewer.clear_search()" id="clear-search">Clear</button>
 
@@ -289,9 +293,9 @@
         <input v-if="tag.type == 'bool'" v-model="media.tags[tag.name]"
                type="checkbox" v-bind:id="'tag-' + $index">
         <input v-if="tag.type == 'string'"
-               v-model="media.tags[tag.name]" v-bind:id="'tag-' + $index">
+               v-model="media.tags[tag.name]" v-bind:id="'tag-' + $index" lazy>
         <input v-if="tag.type == 'int' || tag.type == 'float'"
-               v-model="media.tags[tag.name]" number v-bind:id="'tag-' + $index">
+               v-model="media.tags[tag.name]" number v-bind:id="'tag-' + $index" lazy>
       </div>
     </div>
   </script>
@@ -383,7 +387,7 @@
           <br/>
           <label>Command:</label>
           <input v-model="proc.command"
-                 title="Use $input for input file and $output for output file">
+                 title="Use $input for input file and $output for output file" lazy>
           <br/>
         </div>
 
