@@ -121,10 +121,14 @@ class TestProject(TestProjectBase):
 
     def test_export_to_csv(self):
         # Given
-        p = Project(name='test', path=self.root)
+        tags = [TagInfo(name='completed', type='bool'),
+                TagInfo(name='comment', type='string')]
+
+        p = Project(name='test', path=self.root, tags=tags)
         p.scan()
         m = p.get('root.txt')
         m.tags['completed'] = True
+        m.tags['comment'] = u'hello, world; foo'
         out_fname = tempfile.mktemp(dir=self.root, suffix='.csv')
 
         # When
@@ -134,25 +138,29 @@ class TestProject(TestProjectBase):
         reader = csv.reader(open(out_fname))
         cols = next(reader)
         expected = [
-            'completed', 'ctime', 'file_name', 'mtime', 'path', 'relpath',
-            'size', 'type'
+            'comment', 'completed', 'ctime', 'file_name', 'mtime', 'path',
+            'relpath', 'size', 'type'
         ]
         self.assertEqual(cols, expected)
         expected = {'hello.py': 'False', 'root.txt': 'True'}
         data = [next(reader), next(reader), next(reader), next(reader)]
-        data = sorted(data, key=lambda x: x[5])
+        data = sorted(data, key=lambda x: x[6])
         row = data[0]
-        self.assertEqual(basename(row[4]), 'hello.py')
-        self.assertEqual(row[0], 'False')
+        self.assertEqual(basename(row[5]), 'hello.py')
+        self.assertEqual(row[1], 'False')
+        self.assertEqual(row[0], '')
         row = data[1]
-        self.assertEqual(basename(row[4]), 'root.txt')
-        self.assertEqual(row[0], 'True')
+        self.assertEqual(basename(row[5]), 'root.txt')
+        self.assertEqual(row[1], 'True')
+        self.assertEqual(row[0], u'hello, world; foo')
         row = data[2]
-        self.assertTrue(basename(row[4]).startswith('sub'))
-        self.assertEqual(row[0], 'False')
+        self.assertTrue(basename(row[5]).startswith('sub'))
+        self.assertEqual(row[1], 'False')
+        self.assertEqual(row[0], '')
         row = data[3]
-        self.assertTrue(basename(row[4]).startswith('sub'))
-        self.assertEqual(row[0], 'False')
+        self.assertTrue(basename(row[5]).startswith('sub'))
+        self.assertEqual(row[1], 'False')
+        self.assertEqual(row[0], '')
 
     def test_refresh_updates_new_media(self):
         # Given
