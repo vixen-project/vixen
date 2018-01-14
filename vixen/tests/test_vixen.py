@@ -176,6 +176,43 @@ class TestProjectEditor(TestVixenBase):
         self.assertEqual(editor.tags[-1].name, 'tag2')
         self.assertEqual(editor.tags[-2].name, 'completed')
 
+    def test_move_tag(self):
+        # Given
+        ui = self.ui
+        editor = ui.editor
+
+        def _get_tags():
+            return [x.name for x in editor.tags]
+
+        ui.edit(self.p)
+        editor.add_tag('tag1, tag2')
+        assert _get_tags() == ['completed', 'tag1', 'tag2']
+
+        # When
+        editor.move_tag_up(0)
+        # Then
+        assert _get_tags() == ['completed', 'tag1', 'tag2']
+        # When
+        editor.move_tag_up(1)
+        # Then
+        assert _get_tags() == ['tag1', 'completed', 'tag2']
+        # When
+        editor.move_tag_up(2)
+        # Then
+        assert _get_tags() == ['tag1', 'tag2', 'completed']
+        # When
+        editor.move_tag_down(2)
+        # Then
+        assert _get_tags() == ['tag1', 'tag2', 'completed']
+        # When
+        editor.move_tag_down(1)
+        # Then
+        assert _get_tags() == ['tag1', 'completed', 'tag2']
+        # When
+        editor.move_tag_down(0)
+        # Then
+        assert _get_tags() == ['completed', 'tag1', 'tag2']
+
     def test_add_remove_extension(self):
         # Given
         ui = self.ui

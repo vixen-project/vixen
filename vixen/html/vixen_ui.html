@@ -91,6 +91,10 @@
           <option>float</option>
           <option>bool</option>
         </select>
+        <button v-on:click="editor.move_tag_up(parseInt(index))"
+                v-bind:id="'move-tag-up' + index">&uarr;</button>
+        <button v-on:click="editor.move_tag_down(parseInt(index))"
+                v-bind:id="'move-tag-down' + index">&darr;</button>
         <button v-on:click="editor.remove_tag(parseInt(index))"
                 v-bind:id="'remove-tag-' + index">Remove</button>
       </div>

@@ -120,6 +120,18 @@ class ProjectEditor(HasTraits):
         logger.info('Removed tag: %s', self.tags[index].name)
         del self.tags[index]
 
+    def move_tag_up(self, index):
+        if index != 0:
+            tags = self.tags
+            logger.info('Moving up tag: %s', tags[index].name)
+            tags[index - 1:index + 1] = tags[index], tags[index-1]
+
+    def move_tag_down(self, index):
+        tags = self.tags
+        if index != len(tags) - 1:
+            logger.info('Moving down tag: %s', tags[index].name)
+            tags[index:index + 2] = tags[index + 1], tags[index]
+
     def add_extension(self, name):
         logger.info('Added extensions: %s', name)
         self.extensions.extend([x.strip().lower() for x in name.split(',')])
