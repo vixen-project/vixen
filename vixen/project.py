@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 if sys.version_info[0] > 2:
     unicode = str
+    string_types = (str,)
+else:
+    string_types = (basestring,)
 INT = fields.NUMERIC(numtype=int)
 FLOAT = fields.NUMERIC(numtype=float)
 
@@ -107,7 +110,7 @@ def _cleanup_query(q, tag_types):
 
 
 def _check_value(value, expr):
-    if isinstance(expr, (str, unicode)):
+    if isinstance(expr, string_types):
         return expr in value.lower()
     else:
         return expr == value
@@ -343,7 +346,7 @@ class Project(HasTraits):
         data_cols = set([x for x in cols if x in self._data])
 
         def _format(elem):
-            if isinstance(elem, str):
+            if isinstance(elem, string_types):
                 return '"%s"' % elem
             else:
                 return str(elem) if elem is not None else ""
