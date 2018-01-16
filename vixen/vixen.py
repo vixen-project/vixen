@@ -31,7 +31,7 @@ def is_valid_tag(tag):
     try:
         Schema(**{tag: TEXT})
     except FieldConfigurationError as e:
-        return False, e.message
+        return False, e.args[0]
     else:
         return True, 'OK'
 
