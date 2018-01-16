@@ -6,10 +6,24 @@ import unittest
 import vixen
 from vixen.processor import PythonFunctionFactory
 from vixen.project import Project
-from vixen.vixen import VixenUI, Vixen, UIErrorHandler
+from vixen.vixen import VixenUI, Vixen, UIErrorHandler, is_valid_tag
 from vixen.vixen_ui import get_html, get_html_file
 
 from vixen.tests.test_project import TestProjectBase
+
+
+def test_is_valid_tag():
+    assert is_valid_tag('hello_world') == (True, 'OK')
+    assert is_valid_tag('for') == (True, 'OK')
+    assert is_valid_tag('hello;world') == (True, 'OK')
+    assert is_valid_tag('hello-world') == (True, 'OK')
+    assert is_valid_tag('hello+world') == (True, 'OK')
+    assert is_valid_tag('hello*world') == (True, 'OK')
+    assert is_valid_tag('hello:world') == (True, 'OK')
+    assert (is_valid_tag('hello world') ==
+            (False, 'Names cannot contain spaces'))
+    assert (is_valid_tag('_world') ==
+            (False, 'Names cannot start with _'))
 
 
 class MockRecord():
@@ -175,6 +189,27 @@ class TestProjectEditor(TestVixenBase):
         editor.remove_tag(nt)
         self.assertEqual(editor.tags[-1].name, 'tag2')
         self.assertEqual(editor.tags[-2].name, 'completed')
+
+    def test_add_bad_tag_shows_error(self):
+        # Given
+        ui = self.ui
+        editor = ui.editor
+
+        # When
+        ui.edit(self.p)
+        nt = len(editor.tags)
+        n_msg = ui.message[-1] if ui.message else 0
+        editor.add_tag('hello world, _hello')
+
+        # Then
+        self.assertEqual(len(editor.tags), nt)
+        msg = ui.message
+        self.assertEqual(msg[1:], ('error', n_msg + 1))
+        self.assertTrue('Error in the following tag names' in msg[0])
+        self.assertTrue('"hello world":' in msg[0])
+        self.assertTrue('"_hello":' in msg[0])
+        self.assertTrue('spaces' in msg[0].lower())
+        self.assertTrue('cannot start with _' in msg[0].lower())
 
     def test_move_tag(self):
         # Given
