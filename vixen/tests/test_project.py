@@ -1,16 +1,23 @@
-import csv
+# -*- coding: utf-8 -*-
 import datetime
+import io
 import os
 from os.path import basename, join, exists
 import tempfile
 from textwrap import dedent
 import time
 import shutil
+import sys
 
 import unittest
 
 from vixen.tests.test_directory import make_data, create_dummy_file
 from vixen.project import Project, TagInfo, get_non_existing_filename, INT
+
+if sys.version_info >= (3, 0):
+    import csv
+else:
+    import backports.csv as csv
 
 
 class TestProjectBase(unittest.TestCase):
@@ -119,7 +126,7 @@ class TestProject(TestProjectBase):
         self.assertEqual(p.get('root.txt')._mtime,
                          p1.get('root.txt')._mtime)
 
-    def test_export_to_csv(self):
+    def test_export_to_csv_with_unicode(self):
         # Given
         tags = [TagInfo(name='completed', type='bool'),
                 TagInfo(name='comment', type='string')]
@@ -128,39 +135,40 @@ class TestProject(TestProjectBase):
         p.scan()
         m = p.get('root.txt')
         m.tags['completed'] = True
-        m.tags['comment'] = u'hello, world; foo'
+        m.tags['comment'] = u'hello, world; न Kévin'
         out_fname = tempfile.mktemp(dir=self.root, suffix='.csv')
 
         # When
         p.export_csv(out_fname)
 
         # Then
-        reader = csv.reader(open(out_fname))
-        cols = next(reader)
-        expected = [
-            'comment', 'completed', 'ctime', 'file_name', 'mtime', 'path',
-            'relpath', 'size', 'type'
-        ]
-        self.assertEqual(cols, expected)
-        expected = {'hello.py': 'False', 'root.txt': 'True'}
-        data = [next(reader), next(reader), next(reader), next(reader)]
-        data = sorted(data, key=lambda x: x[6])
-        row = data[0]
-        self.assertEqual(basename(row[5]), 'hello.py')
-        self.assertEqual(row[1], 'False')
-        self.assertEqual(row[0], '')
-        row = data[1]
-        self.assertEqual(basename(row[5]), 'root.txt')
-        self.assertEqual(row[1], 'True')
-        self.assertEqual(row[0], u'hello, world; foo')
-        row = data[2]
-        self.assertTrue(basename(row[5]).startswith('sub'))
-        self.assertEqual(row[1], 'False')
-        self.assertEqual(row[0], '')
-        row = data[3]
-        self.assertTrue(basename(row[5]).startswith('sub'))
-        self.assertEqual(row[1], 'False')
-        self.assertEqual(row[0], '')
+        with io.open(out_fname, newline='', encoding='utf-8') as fp:
+            reader = csv.reader(fp)
+            cols = next(reader)
+            expected = [
+                'comment', 'completed', 'ctime', 'file_name', 'mtime', 'path',
+                'relpath', 'size', 'type'
+            ]
+            self.assertEqual(cols, expected)
+            expected = {'hello.py': 'False', 'root.txt': 'True'}
+            data = [next(reader), next(reader), next(reader), next(reader)]
+            data = sorted(data, key=lambda x: x[6])
+            row = data[0]
+            self.assertEqual(basename(row[5]), u'hello.py')
+            self.assertEqual(row[1], u'False')
+            self.assertEqual(row[0], u'')
+            row = data[1]
+            self.assertEqual(basename(row[5]), u'root.txt')
+            self.assertEqual(row[1], u'True')
+            self.assertEqual(row[0], u'hello, world; न Kévin')
+            row = data[2]
+            self.assertTrue(basename(row[5]).startswith(u'sub'))
+            self.assertEqual(row[1], u'False')
+            self.assertEqual(row[0], u'')
+            row = data[3]
+            self.assertTrue(basename(row[5]).startswith(u'sub'))
+            self.assertEqual(row[1], u'False')
+            self.assertEqual(row[0], u'')
 
     def test_refresh_updates_new_media(self):
         # Given
@@ -285,7 +293,7 @@ class TestProject(TestProjectBase):
 
     def _write_csv(self, data):
         fname = join(self._temp, 'data.csv')
-        with open(join(self._temp, 'data.csv'), 'w') as fp:
+        with io.open(fname, 'w', encoding='utf-8') as fp:
             fp.write(data)
         return fname
 
@@ -293,7 +301,7 @@ class TestProject(TestProjectBase):
         # Given
         p = Project(name='test', path=self.root)
         p.scan()
-        data = dedent("""\
+        data = dedent(u"""\
         /blah/blah,1
         """)
         csv = self._write_csv(data)
@@ -305,7 +313,7 @@ class TestProject(TestProjectBase):
         self.assertFalse(success)
 
         # Given
-        data = dedent("""\
+        data = dedent(u"""\
         relpath,fox
         root.txt,1
         """)
@@ -322,7 +330,7 @@ class TestProject(TestProjectBase):
         p = Project(name='test', path=self.root)
         p.add_tags([TagInfo(name='fox', type='int')])
         p.scan()
-        data = dedent("""\
+        data = dedent(u"""\
         path,fox,junk
         %s,2,hello
         %s,1,bye
@@ -339,7 +347,6 @@ class TestProject(TestProjectBase):
         self.assertTrue(success)
         self.assertEqual(p.get('root.txt').tags['fox'], 2)
         self.assertEqual(p.get('hello.py').tags['fox'], 1)
-
 
 
 class TestSearchMedia(TestProjectBase):

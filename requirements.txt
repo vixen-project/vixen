@@ -5,3 +5,4 @@ mock
 pytest
 json_tricks>=3.0
 whoosh
+backports.csv
