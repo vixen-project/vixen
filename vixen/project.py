@@ -1,5 +1,5 @@
-import csv
 import datetime
+import io
 import json_tricks
 import logging
 import os
@@ -25,8 +25,10 @@ logger = logging.getLogger(__name__)
 if sys.version_info[0] > 2:
     unicode = str
     string_types = (str,)
+    import csv
 else:
     string_types = (basestring,)
+    import backports.csv as csv
 INT = fields.NUMERIC(numtype=int)
 FLOAT = fields.NUMERIC(numtype=float)
 
@@ -38,7 +40,7 @@ def get_file_saved_time(path):
 
 def _get_sample(fname):
     sample = ''
-    with open(fname, 'r') as fp:
+    with io.open(fname, 'r', newline='', encoding='utf-8') as fp:
         sample += fp.readline() + fp.readline()
 
     return sample
@@ -49,7 +51,7 @@ def _get_csv_headers(fname):
     sniffer = csv.Sniffer()
     has_header = sniffer.has_header(sample)
     dialect = sniffer.sniff(sample)
-    with open(fname, 'r') as fp:
+    with io.open(fname, 'r', newline='', encoding='utf-8') as fp:
         reader = csv.reader(fp, dialect)
         header = next(reader)
     return has_header, header, dialect
@@ -345,15 +347,10 @@ class Project(HasTraits):
 
         data_cols = set([x for x in cols if x in self._data])
 
-        def _format(elem):
-            if isinstance(elem, string_types):
-                return '"%s"' % elem
-            else:
-                return str(elem) if elem is not None else ""
-
-        with open_file(fname, 'w') as of:
+        with io.open(fname, 'w', newline='', encoding='utf-8') as of:
             # Write the header.
-            of.write(','.join(cols) + '\n')
+            writer = csv.writer(of)
+            writer.writerow(cols)
             for i in range(len(self._relpath2index)):
                 line = []
                 for col in cols:
@@ -361,8 +358,8 @@ class Project(HasTraits):
                         elem = self._data[col][i]
                     else:
                         elem = self._tag_data[col][i]
-                    line.append(_format(elem))
-                of.write(','.join(line) + '\n')
+                    line.append(elem)
+                writer.writerow(line)
 
     def import_csv(self, fname):
         """Read tag information from given CSV filename.
@@ -397,7 +394,7 @@ class Project(HasTraits):
 
         count = 0
         total = 0
-        with open(fname, 'r') as fp:
+        with io.open(fname, 'r', newline='', encoding='utf-8') as fp:
             reader = csv.reader(fp, dialect)
             next(reader)  # Skip header
             for record in reader:
