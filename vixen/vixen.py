@@ -10,6 +10,7 @@ import subprocess
 import sys
 from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits,
                         Instance, Int, List, Property, Str, Tuple)
+from whoosh.fields import Schema, TEXT, FieldConfigurationError
 
 from .project import Project, TagInfo, get_project_dir
 from .directory import File, Directory
@@ -20,6 +21,19 @@ from .ui_utils import askopenfilename, askdirectory, asksaveasfilename
 
 
 logger = logging.getLogger(__name__)
+
+
+def is_valid_tag(tag):
+    """Only some tags are acceptable in the whoosh schema, this function checks if
+    the tag is acceptable.
+
+    """
+    try:
+        Schema(**{tag: TEXT})
+    except FieldConfigurationError as e:
+        return False, e.args[0]
+    else:
+        return True, 'OK'
 
 
 class UIErrorHandler(Handler):
@@ -109,12 +123,27 @@ class ProjectEditor(HasTraits):
 
     ui = Instance('VixenUI')
 
+    def _check_tags(self, tags):
+        errors = []
+        for name in tags:
+            valid, err = is_valid_tag(name)
+            if not valid:
+                errors.append('"{0}": {1}.'.format(name, err))
+        if errors:
+            msg = 'Error in the following tag names:\n'
+            msg += '\n'.join(errors)
+            msg += '\nPlease correct and try again.'
+            self.ui.error(msg)
+            return False
+        return True
+
     def add_tag(self, name):
-        logger.info('Added tags: %s', name)
-        tags = [TagInfo(name=x.strip(), type="string")
-                for x in name.split(',')]
-        self.tags.extend(tags)
-        self.tag_name = ''
+        names = [x.strip() for x in name.split(',')]
+        if self._check_tags(names):
+            logger.info('Added tags: %s', name)
+            tags = [TagInfo(name=x, type="string") for x in names]
+            self.tags.extend(tags)
+            self.tag_name = ''
 
     def remove_tag(self, index):
         logger.info('Removed tag: %s', self.tags[index].name)
