@@ -10,6 +10,7 @@ import shutil
 import sys
 
 import unittest
+from whoosh.fields import TEXT
 
 from vixen.tests.test_directory import make_data, create_dummy_file
 from vixen.project import Project, TagInfo, get_non_existing_filename, INT
@@ -378,6 +379,14 @@ class TestSearchMedia(TestProjectBase):
         schema = p._query_parser.schema
         items = schema.items()
         self.assertIn(('new_tag', INT), items)
+
+        # When
+        p.add_tags([TagInfo(name='tag1', type='text')])
+
+        # Then
+        schema = p._query_parser.schema
+        items = schema.items()
+        self.assertIn(('tag1', TEXT()), items)
 
     def test_simple_search_works(self):
         # Given

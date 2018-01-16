@@ -59,14 +59,15 @@ def _get_csv_headers(fname):
 
 class TagInfo(HasTraits):
     name = Str
-    type = Enum("string", "int", "float", "bool")
+    type = Enum("string", "text", "int", "float", "bool")
     default = Any
 
     def __repr__(self):
         return 'TagInfo(%r, %r)' % (self.name, self.type)
 
     def _default_default(self):
-        map = {"string": "", "int": 0, "float": 0.0, "bool": False}
+        map = {"string": "", "text": "", "int": 0, "float": 0.0,
+               "bool": False}
         return map[self.type]
 
 
@@ -388,6 +389,7 @@ class Project(HasTraits):
         type_map = {
             'bool': lambda x: x.lower() in TRUE,
             'string': lambda x: x,
+            'text': lambda x: x,
             'int': int,
             'float': float
         }
@@ -587,7 +589,7 @@ class Project(HasTraits):
             mtime=DATETIME, ctime=DATETIME, size=INT
         )
         type_to_field = dict(
-            string=TEXT, int=INT, float=FLOAT, bool=BOOLEAN
+            string=TEXT, text=TEXT, int=INT, float=FLOAT, bool=BOOLEAN
         )
         for tag in self.tags:
             kw[tag.name] = type_to_field[tag.type]

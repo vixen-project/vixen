@@ -87,6 +87,7 @@
         <label>{{tag.name}}</label>
         <select v-model="tag.type" v-bind:id="'tag-type-' + index">
           <option>string</option>
+          <option>text</option>
           <option>int</option>
           <option>float</option>
           <option>bool</option>
@@ -294,7 +295,9 @@
                type="checkbox" v-bind:id="'tag-' + $index">
         <input v-if="tag.type == 'string'"
                v-model="media.tags[tag.name]" v-bind:id="'tag-' + $index" lazy>
-        <input v-if="tag.type == 'int' || tag.type == 'float'"
+        <textarea v-if="tag.type == 'text'"
+               v-model="media.tags[tag.name]" v-bind:id="'tag-' + $index" lazy></textarea>
+         <input v-if="tag.type == 'int' || tag.type == 'float'"
                v-model="media.tags[tag.name]" number v-bind:id="'tag-' + $index" lazy>
       </div>
     </div>
