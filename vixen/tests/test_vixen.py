@@ -534,6 +534,38 @@ class TestVixenUI(TestVixenBase):
         # Then
         self.assertEqual(viewer.current_dir, p.root)
 
+class TestProjectViewer(TestVixenBase):
+
+    def setUp(self):
+        super(TestProjectViewer, self).setUp()
+        ui = VixenUI()
+        p = Project(
+            name='test', path=self.root,
+            description='desc', extensions=['.py', '.txt']
+        )
+        p.scan()
+        ui.vixen.projects.append(p)
+        self.ui = ui
+        self.p = p
+
+    def test_clean_handles_removed_files(self):
+        # Given
+        ui, p = self.ui, self.p
+        viewer = ui.viewer
+        ui.view(p)
+        self.assertEqual(p.number_of_files, 5)
+        self.assertEqual(len(viewer.pager.data), 4)
+        os.remove(os.path.join(self.root, 'root.txt'))
+
+        # When
+        viewer.clean()
+
+        # Then
+        self.assertEqual(p.number_of_files, 4)
+        self.assertEqual(len(viewer.pager.data), 3)
+        names = [x.name for x in viewer.pager.data]
+        self.assertTrue('root.txt' not in names)
+
 
 class TestVixenUtils(unittest.TestCase):
     def test_get_html_file(self):

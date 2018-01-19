@@ -158,7 +158,10 @@
     </div>
 
     This project has {{viewer.project.number_of_files}} files.
-    <button v-on:click="busy_call(viewer, 'rescan')" id="rescan">Rescan</button>
+    <button v-on:click="busy_call(viewer, 'rescan')" id="rescan"
+            title="Rescan project for new files.">Rescan</button>
+    <button v-on:click="busy_call(viewer, 'clean')" id="clean"
+            title="Clean deleted file entries from project.">Clean</button>
     <br>
 
     <input v-model="viewer.search" style="width:60%" placeholder="Search"

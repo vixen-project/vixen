@@ -127,6 +127,28 @@ class TestProject(TestProjectBase):
         self.assertEqual(p.get('root.txt')._mtime,
                          p1.get('root.txt')._mtime)
 
+    def test_clean_removes_non_existing_file_entries(self):
+        # Given
+        p = Project(name='test', path=self.root)
+        p.scan()
+        # When
+        m = p.get('root.txt')
+        os.remove(m.path)
+        p.clean()
+
+        # Then
+        relpath = 'root.txt'
+        self.assertEqual(p.number_of_files, 4)
+        self.assertFalse(p.has_media(relpath))
+        self.assertFalse(relpath in p._media)
+        self.assertFalse(relpath in p._relpath2index)
+        for key in p._data:
+            self.assertEqual(len(p._data[key]), 4)
+        for key in p._tag_data:
+            self.assertEqual(len(p._tag_data[key]), 4)
+        files = [x.name for x in p.root.files]
+        self.assertTrue('root.txt' not in files)
+
     def test_export_to_csv_with_unicode(self):
         # Given
         tags = [TagInfo(name='completed', type='bool'),
