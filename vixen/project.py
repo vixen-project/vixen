@@ -351,7 +351,7 @@ class Project(HasTraits):
 
         """
         root_path = self.path
-        for rpath in self._relpath2index.keys():
+        for rpath in list(self._relpath2index.keys()):
             fname = os.path.join(root_path, rpath)
             if not os.path.exists(fname):
                 self.remove(rpath)
