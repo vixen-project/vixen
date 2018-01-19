@@ -276,7 +276,7 @@ class Project(HasTraits):
         if not self.has_media(relpath):
             index = len(self._relpath2index)
             self._relpath2index[relpath] = index
-            for i, key in enumerate(MediaData._fields):
+            for key in MediaData._fields:
                 self._data[key].append(None)
             for tag in self.tags:
                 self._tag_data[tag.name].append(tag.default)
@@ -310,6 +310,19 @@ class Project(HasTraits):
             self._media[relpath] = media
             return media
 
+    def remove(self, relpath):
+        """Given the relative path of some media, remove it from the
+        database.
+        """
+        index = self._relpath2index[relpath]
+        for key in MediaData._fields:
+            del self._data[key][index]
+        for key in self._tag_data:
+            del self._tag_data[key][index]
+        if relpath in self._media:
+            del self._media[relpath]
+        del self._relpath2index[relpath]
+
     def has_media(self, relpath):
         """Returns True if the media data is available.
         """
@@ -328,6 +341,22 @@ class Project(HasTraits):
             return self._tag_data[attr][index]
 
     # ####  End of CRUD interface to the data ####
+
+    def clean(self):
+        """Scan the project and remove any dead entries.
+
+        This is useful when you remove or rename files. Rescan by default does
+        not delete any entries for missing files leaving invalid entries in the
+        database.
+
+        """
+        root_path = self.path
+        for rpath in self._relpath2index.keys():
+            fname = os.path.join(root_path, rpath)
+            if not os.path.exists(fname):
+                self.remove(rpath)
+        self.root.refresh()
+        self.number_of_files = len(self._relpath2index)
 
     def export_csv(self, fname, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
