@@ -72,7 +72,7 @@ Using Nautilus
 ^^^^^^^^^^^^^^^^^^^
 
 1. Download the ViXen binary file (say vixen-0.9-linux64.tgz) from
-   `ViXeN binary`_ to your preferred directory.
+   `ViXeN releases`_ to your preferred directory.
 
 2. Right click and select 'Extract Here' or 'Open With Archive Manager'. A
    ViXeN folder will appear in the directory you have selected (in this case
