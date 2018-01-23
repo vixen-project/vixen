@@ -21,8 +21,7 @@
         </script>
 
         <link href="$HTML_ROOT/css/style.css" rel="stylesheet">
-        <!-- Use an empty icon for now until we have a logo. -->
-        <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+        <link rel="icon" href="$HTML_ROOT/images/logo_small.png" type="image/png">
   </head>
 
 <body>
@@ -30,6 +29,12 @@
     <h2 style="text-align:center; padding: 0px; margin: 0px;">
         Welcome to ViXeN
     </h2>
+
+    <div v-if="ui.mode === 'edit' && !editor.project"
+         style="float:right;" class="sans-third">
+        <img src="$HTML_ROOT/images/logo.png" align="center" width="50%" alt="logo"/>
+    </div>
+
     <div style="position: absolute; bottom: 5px; right: 5px">
         <p>Version: {{ui.version}}</p>
     </div>
@@ -41,6 +46,7 @@
 
   <!-- Menu on the top -->
   <div style="position: absolute; top: 5px; margin-left: 5px;">
+      <img src="$HTML_ROOT/images/logo_small.png" height="30px" align="center" alt="logo"/>
       <a href="#" v-on:click="ui.home()" class="menu">Home</a>
       <a v-bind:href="ui.docs" target="_blank" class="menu">Help</a>
       <a v-bind:href="$ROOTui.log_file" target="_blank" class="menu">Log</a>

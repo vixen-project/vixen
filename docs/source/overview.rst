@@ -63,6 +63,16 @@ https://groups.google.com/d/forum/vixen
 The ViXeN issue tracker and source code are available at:
 https://github.com/vixen-project/vixen
 
+-------------
+Citing ViXeN
+-------------
+
+You may use the following article to formally cite ViXeN if you wish:
+
+- Prabhu Ramachandran and Kadambari Devarajan, `ViXeN: An open-source package
+  for managing multimedia data <http://dx.doi.org/10.1111/2041-210X.12892>`_,
+  *Methods in Ecology and Evolution*, 2041-210X, 2017.
+
 
 --------
 Credits
@@ -70,7 +80,8 @@ Credits
 
 Designed and developed by Prabhu Ramachandran and Kadambari Devarajan.
 
-Thanks to Kamal Morjal for the CSS layout of the UI.
+Many thanks to Kamal Morjal for the CSS layout of the UI and to Khushalsingh
+Rajput who created the ViXeN logo based on the creative ideas of Kadambari.
 
 ---------
 Changelog
