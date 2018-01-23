@@ -310,11 +310,31 @@ class Project(HasTraits):
             self._media[relpath] = media
             return media
 
-    def remove(self, relpath):
-        """Given the relative path of some media, remove it from the
+    def remove(self, relpaths):
+        """Given a list of relative path of some media, remove them from the
         database.
         """
-        index = self._relpath2index[relpath]
+        relpath2index = self._relpath2index
+        indices = [(x, relpath2index[x]) for x in relpaths]
+        for relpath, index in sorted(indices, reverse=True):
+            last = len(relpath2index) - 1
+            if index == last:
+                self._delete_record(last, relpath)
+            else:
+                self._replace_with_last_record(index, last)
+                self._delete_record(last, relpath)
+
+    def _replace_with_last_record(self, index, last):
+        _data = self._data
+        _tag_data = self._tag_data
+        for key in MediaData._fields:
+            _data[key][index] = _data[key][last]
+        for key in self._tag_data:
+            _tag_data[key][index] = _tag_data[key][last]
+        last_relpath = _data['relpath'][last]
+        self._relpath2index[last_relpath] = index
+
+    def _delete_record(self, index, relpath):
         for key in MediaData._fields:
             del self._data[key][index]
         for key in self._tag_data:
@@ -345,18 +365,19 @@ class Project(HasTraits):
     def clean(self):
         """Scan the project and remove any dead entries.
 
-        This is useful when you remove or rename files. Rescan by default does
-        not delete any entries for missing files leaving invalid entries in the
-        database.
-
+        This is useful when you remove or rename files. This does not refresh
+        the directory tree or set the number of files. It simply cleans up the
+        db of files that no longer exist.
         """
+        logger.info('Cleaning project: %s', self.name)
         root_path = self.path
-        for rpath in list(self._relpath2index.keys()):
+        to_remove = []
+        relpath2index = self._relpath2index
+        for rpath in list(relpath2index.keys()):
             fname = os.path.join(root_path, rpath)
             if not os.path.exists(fname):
-                self.remove(rpath)
-        self.root.refresh()
-        self.number_of_files = len(self._relpath2index)
+                to_remove.append(rpath)
+        self.remove(to_remove)
 
     def export_csv(self, fname, cols=None):
         """Export metadata to a csv file.  If `cols` are not specified,
@@ -558,6 +579,7 @@ class Project(HasTraits):
 
     def refresh(self):
         logger.info('Refreshing project: %s', self.name)
+        self.clean()
         self.scan(refresh=True)
 
     # #### Private protocol ################################################

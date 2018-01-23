@@ -548,7 +548,7 @@ class TestProjectViewer(TestVixenBase):
         self.ui = ui
         self.p = p
 
-    def test_clean_handles_removed_files(self):
+    def test_rescan_handles_removed_files(self):
         # Given
         ui, p = self.ui, self.p
         viewer = ui.viewer
@@ -558,7 +558,7 @@ class TestProjectViewer(TestVixenBase):
         os.remove(os.path.join(self.root, 'root.txt'))
 
         # When
-        viewer.clean()
+        viewer.rescan()
 
         # Then
         self.assertEqual(p.number_of_files, 4)

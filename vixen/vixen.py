@@ -408,14 +408,6 @@ class ProjectViewer(HasTraits):
 
     type = Enum("unknown", "image", "video", "audio")
 
-    def clean(self):
-        with self.ui.busy():
-            proj = self.project
-            if proj is not None:
-                proj.clean()
-                self.current_dir = proj.root
-                self._current_dir_changed(proj.root)
-
     def go_to_parent(self):
         if self.parent is not None and not self.is_searching:
             self.current_dir = self.parent

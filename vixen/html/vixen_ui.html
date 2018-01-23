@@ -158,10 +158,8 @@
     </div>
 
     This project has {{viewer.project.number_of_files}} files.
-    <button v-on:click="busy_call(viewer, 'rescan')" id="rescan"
+    <button v-on:click="rescan()" id="rescan"
             title="Rescan project for new files.">Rescan</button>
-    <button v-on:click="busy_call(viewer, 'clean')" id="clean"
-            title="Clean deleted file entries from project.">Clean</button>
     <br>
 
     <input v-model="viewer.search" style="width:60%" placeholder="Search"
@@ -584,10 +582,20 @@
               threaded: threaded,
               busy_call: busy_call,
               remove_project: function(project) {
-                  var m = "This will remove all saved information about this project, are "+
-                          "you sure you want to delete it?"
+                  var m = "This will remove all saved information about this "+
+                          "project, are you sure you want to delete it?";
                   if (confirm(m)) {
                       this.ui.remove(project);
+                  }
+              },
+              rescan: function() {
+                  var m = "Warning: this will remove entries for any deleted "+
+                          "or moved files. If you wish to retain those, "+
+                          "please first export the current tags to a CSV "+
+                          "file and then proceed. "+
+                          "Are you sure you want to rescan?";
+                  if (confirm(m)) {
+                      this.busy_call(this.viewer, 'rescan');
                   }
               },
               halt: function() {
