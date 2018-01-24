@@ -625,6 +625,15 @@ class VixenUI(HasTraits):
         self.editor.project = p
         logger.info('Added project %s', name)
 
+    def copy_project(self, project):
+        name = project.name
+        logger.info('Copying project: %s', name)
+        if exists(project.save_file) and project.number_of_files == 0:
+            project.load()
+        p1 = project.copy()
+        self.vixen.add(p1)
+        self.editor.project = p1
+
     def save(self):
         with self.busy():
             if self.mode == 'edit':
