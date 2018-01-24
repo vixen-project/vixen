@@ -5,7 +5,7 @@ import unittest
 
 import vixen
 from vixen.processor import PythonFunctionFactory
-from vixen.project import Project
+from vixen.project import Project, TagInfo
 from vixen.vixen import VixenUI, Vixen, UIErrorHandler, is_valid_tag
 from vixen.vixen_ui import get_html, get_html_file
 
@@ -452,6 +452,40 @@ class TestVixenUI(TestVixenBase):
 
         # Then
         self.assertEqual(len(vixen.projects), 0)
+
+    def test_copy_project_works(self):
+        # Setup
+
+        # Create a new project, scan it, save it and re-load it for the test.
+        ui = VixenUI()
+        vixen = ui.vixen
+        ui.add_project()
+
+        p = vixen.projects[-1]
+        p.add_tags([TagInfo(name='sometag', type='text')])
+        p.path = self.root
+        p.scan()
+        p.save()
+        vixen.save()
+        self.assertEqual(len(vixen.projects), 1)
+
+        # Given
+        ui = VixenUI()
+        vixen = ui.vixen
+        self.assertEqual(len(vixen.projects), 1)
+
+        # When
+        ui.copy_project(vixen.projects[0])
+
+        # Then
+        self.assertEqual(len(vixen.projects), 2)
+        p = vixen.projects[-1]
+        self.assertEqual(p.name, 'Project1 copy')
+        self.assertEqual(len(p.tags), 2)
+        self.assertEqual(p.tags[0].name, 'completed')
+        self.assertEqual(p.tags[0].type, 'bool')
+        self.assertEqual(p.tags[1].name, 'sometag')
+        self.assertEqual(p.tags[1].type, 'text')
 
     def test_search_string_updates_search_completed(self):
         # Given

@@ -14,6 +14,7 @@ from whoosh.fields import TEXT
 
 from vixen.tests.test_directory import make_data, create_dummy_file
 from vixen.project import Project, TagInfo, get_non_existing_filename, INT
+from vixen.processor import CommandFactory
 
 if sys.version_info >= (3, 0):
     import csv
@@ -89,6 +90,43 @@ class TestProject(TestProjectBase):
         self.assertEqual(m.file_name, 'sub.txt')
         self.assertEqual(len(m.tags), 1)
         self.assertIn('completed', m.tags)
+
+    def test_project_copy_does_not_copy_data(self):
+        # Given
+        tags = [TagInfo(name='completed', type='bool'),
+                TagInfo(name='comment', type='string')]
+        p = Project(name='test', path=self.root,
+                    extensions=['.txt', '.py'], tags=tags)
+        cf = CommandFactory(dest=self.root,
+                            input_extension='.py',
+                            output_extension='.rst',
+                            command='echo $input $output')
+        p.processors = [cf]
+        p.scan()
+
+        # When
+        p1 = p.copy()
+
+        # Then
+        self.assertEqual(p.number_of_files, 5)
+        self.assertEqual(p1.number_of_files, 0)
+        self.assertEqual(p1.name, p.name + ' copy')
+        self.assertEqual(p1.path, p.path)
+        tag_info = [(x.name, x.type) for x in p.tags]
+        tag_info1 = [(x.name, x.type) for x in p1.tags]
+        self.assertEqual(tag_info, tag_info1)
+        self.assertEqual(p1.extensions, p.extensions)
+        self.assertEqual(len(p1._relpath2index), 0)
+        self.assertEqual(len(p1.processors), len(p.processors))
+        self.assertEqual(p1.processors[0].trait_get(),
+                         p.processors[0].trait_get())
+
+        # When
+        p.tags[0].type = 'int'
+
+        # Then
+        # This just checks that p1's tags are not a reference to p's.
+        self.assertEqual(p1.tags[0].type, 'bool')
 
     def test_load_should_restore_saved_state(self):
         # Given

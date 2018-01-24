@@ -261,6 +261,16 @@ class Project(HasTraits):
 
         self._query_parser = self._make_query_parser()
 
+    def copy(self):
+        """Make a copy of this project. This does not copy the data but only
+        the tags, extensions and the other settings of the project.
+        """
+        name = self.name + ' copy'
+        p = Project(name=name)
+        traits = ['description', 'extensions', 'path', 'processors', 'tags']
+        p.copy_traits(self, traits, copy='deep')
+        return p
+
     # ####  CRUD interface to the data ####
 
     def update(self, media_data, tags=None):
@@ -323,25 +333,6 @@ class Project(HasTraits):
             else:
                 self._replace_with_last_record(index, last)
                 self._delete_record(last, relpath)
-
-    def _replace_with_last_record(self, index, last):
-        _data = self._data
-        _tag_data = self._tag_data
-        for key in MediaData._fields:
-            _data[key][index] = _data[key][last]
-        for key in self._tag_data:
-            _tag_data[key][index] = _tag_data[key][last]
-        last_relpath = _data['relpath'][last]
-        self._relpath2index[last_relpath] = index
-
-    def _delete_record(self, index, relpath):
-        for key in MediaData._fields:
-            del self._data[key][index]
-        for key in self._tag_data:
-            del self._tag_data[key][index]
-        if relpath in self._media:
-            del self._media[relpath]
-        del self._relpath2index[relpath]
 
     def has_media(self, relpath):
         """Returns True if the media data is available.
@@ -700,6 +691,25 @@ class Project(HasTraits):
         self._data = data
         self._tag_data = tag_data
         self._relpath2index = relpath2index
+
+    def _delete_record(self, index, relpath):
+        for key in MediaData._fields:
+            del self._data[key][index]
+        for key in self._tag_data:
+            del self._tag_data[key][index]
+        if relpath in self._media:
+            del self._media[relpath]
+        del self._relpath2index[relpath]
+
+    def _replace_with_last_record(self, index, last):
+        _data = self._data
+        _tag_data = self._tag_data
+        for key in MediaData._fields:
+            _data[key][index] = _data[key][last]
+        for key in self._tag_data:
+            _tag_data[key][index] = _tag_data[key][last]
+        last_relpath = _data['relpath'][last]
+        self._relpath2index[last_relpath] = index
 
     def _save_as_v1(self, fp):
         """Save copy to specified path.

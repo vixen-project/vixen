@@ -66,6 +66,9 @@
                   v-bind:id="'view-' + index">View</button>
           <button v-on:click="busy_call(ui, 'edit', project)"
                   v-bind:id="'edit-' + index">Edit</button>
+          <button v-on:click="busy_call(ui, 'copy_project', project)"
+                  v-bind:id="'copy-' + index"
+                  title="Copies project config but not the data.">Copy</button>
           <button v-on:click="remove_project(project)"
                   v-bind:id="'remove-' + index">Remove</button>
       </li>
