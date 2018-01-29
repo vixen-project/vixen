@@ -78,10 +78,14 @@ You may use the following article to formally cite ViXeN if you wish:
 Credits
 --------
 
-Designed and developed by Prabhu Ramachandran and Kadambari Devarajan.
+Designed and developed by `Prabhu Ramachandran
+<https://www.aero.iitb.ac.in/~prabhu>`_ and `Kadambari Devarajan
+<http://kadambarid.in/>`_.
 
-Many thanks to Kamal Morjal for the CSS layout of the UI and to Khushalsingh
-Rajput who created the ViXeN logo based on the creative ideas of Kadambari.
+Many thanks to `Kamal Morjal <https://github.com/kamalx>`_ for the CSS layout
+of the UI and Khushalsingh Rajput  who implemented the ViXeN logo based on
+Kadambari's concept and design.
+
 
 ---------
 Changelog
