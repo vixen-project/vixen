@@ -260,7 +260,7 @@ class PythonFunctionFactory(FactoryBase):
 class TaggerFactory(FactoryBase):
     command = Str
 
-    _tag_types = Any
+    _tag_types = Any(transient=True)
 
     name = 'TaggerFactory'
 

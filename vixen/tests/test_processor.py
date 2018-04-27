@@ -287,6 +287,19 @@ class TestTaggerFactory(TestFactoryBase):
         # Then
         self.assertEqual(len(jobs), 0)
 
+        # When.
+        data = dump(factory)
+        f1 = load(data)
+
+        # Then.
+
+        # The _tag_types should not be dumped.
+        self.assertEqual(f1._tag_types, None)
+        self.assertNotIn('_tag_types', data[1])
+        f = factory
+        for attr in ['command', '_done']:
+            self.assertEqual(getattr(f1, attr), getattr(f, attr))
+
     def test_tagger_factory_skips_unknown_tags(self):
         # Given.
         code = 'import sys; print("\nlength:10\nxxx:yes\n")'
