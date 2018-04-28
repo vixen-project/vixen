@@ -58,7 +58,7 @@ def main(dev=False, port=None, test=False, **context):
     html = get_html(html_file)
     template = VueTemplate(html=html, base_url=base_url, async=async)
     silence_tornado_access_log()
-    ioloop = IOLoop.instance()
+    ioloop = IOLoop.current()
     if port is None:
         if dev:
             port = 8000
@@ -81,3 +81,5 @@ def main(dev=False, port=None, test=False, **context):
     if not test:
         # When running tests, don't start the ioloop.
         ioloop.start()
+    else:
+        return ioloop

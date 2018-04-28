@@ -18,12 +18,6 @@ from vixen.vixen_ui import main
 from vixen.tests.test_directory import make_data
 
 
-def start_io_loop():
-    ioloop = IOLoop.instance()
-    ioloop.make_current()
-    ioloop.start()
-
-
 def stop_io_loop():
     IOLoop.instance().stop()
 
@@ -36,8 +30,8 @@ class TestUI(unittest.TestCase):
         make_data(cls.root)
         ui = make_ui()
         port = 9876
-        main(dev=True, port=port, test=True, **ui.get_context())
-        t = Thread(target=start_io_loop)
+        ioloop = main(dev=True, port=port, test=True, **ui.get_context())
+        t = Thread(target=ioloop.start)
         t.setDaemon(True)
         t.start()
 
