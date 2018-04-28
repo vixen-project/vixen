@@ -138,12 +138,13 @@ class ProjectEditor(HasTraits):
         return True
 
     def add_tag(self, name):
-        names = [x.strip() for x in name.split(',')]
-        if self._check_tags(names):
-            logger.info('Added tags: %s', name)
-            tags = [TagInfo(name=x, type="string") for x in names]
-            self.tags.extend(tags)
-            self.tag_name = ''
+        if len(name) > 0:
+            names = [x.strip() for x in name.split(',')]
+            if self._check_tags(names):
+                logger.info('Added tags: %s', name)
+                tags = [TagInfo(name=x, type="string") for x in names]
+                self.tags.extend(tags)
+                self.tag_name = ''
 
     def remove_tag(self, index):
         logger.info('Removed tag: %s', self.tags[index].name)
