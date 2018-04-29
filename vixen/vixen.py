@@ -609,8 +609,20 @@ class VixenUI(HasTraits):
                 to_process = project.keys()
             jobs.extend(proc.make_jobs(to_process, project))
         self.processor.jobs = jobs
-        self.processor.process()
-        self.info("Remember to save the project once processing completes.")
+        njobs = len(jobs)
+        if njobs > 0:
+            logger.info(
+                'Processing project: %s having %d jobs', project.name, njobs
+            )
+            self.processor.process()
+            self.info(
+                "Processing complete. Save the project to persist changes."
+            )
+        else:
+            self.info(
+                'Nothing to process for project: %s.\n'
+                'Processing already completed.' % project.name
+            )
 
     def remove(self, project):
         name = project.name

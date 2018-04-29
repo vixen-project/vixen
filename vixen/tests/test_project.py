@@ -103,6 +103,9 @@ class TestProject(TestProjectBase):
                             command='echo $input $output')
         p.processors = [cf]
         p.scan()
+        # Update the _done trait the processors to check if it is copied.
+        m = p.get('root.txt')
+        cf._done[m.path] = True
 
         # When
         p1 = p.copy()
@@ -118,8 +121,13 @@ class TestProject(TestProjectBase):
         self.assertEqual(p1.extensions, p.extensions)
         self.assertEqual(len(p1._relpath2index), 0)
         self.assertEqual(len(p1.processors), len(p.processors))
-        self.assertEqual(p1.processors[0].trait_get(),
-                         p.processors[0].trait_get())
+        p1_proc_traits = p1.processors[0].trait_get()
+        p1_proc_traits.pop('_done')
+        p_proc_traits = p.processors[0].trait_get()
+        p_proc_traits.pop('_done')
+        self.assertEqual(p1_proc_traits, p_proc_traits)
+        self.assertEqual(len(p.processors[0]._done), 1)
+        self.assertEqual(len(p1.processors[0]._done), 0)
 
         # When
         p.tags[0].type = 'int'

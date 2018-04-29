@@ -1,6 +1,6 @@
 traits
 jigna
-tornado
+tornado<5.0
 mock
 pytest
 json_tricks>=3.0

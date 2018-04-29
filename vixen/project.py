@@ -264,11 +264,17 @@ class Project(HasTraits):
     def copy(self):
         """Make a copy of this project. This does not copy the data but only
         the tags, extensions and the other settings of the project.
+
+        This will not copy any of the processor states but only their settings.
+
         """
         name = self.name + ' copy'
         p = Project(name=name)
         traits = ['description', 'extensions', 'path', 'processors', 'tags']
         p.copy_traits(self, traits, copy='deep')
+        # Clear out the _done information from the processors
+        for proc in p.processors:
+            proc._done.clear()
         return p
 
     # ####  CRUD interface to the data ####

@@ -1,3 +1,4 @@
+import logging
 import multiprocessing
 import os
 import shlex
@@ -9,6 +10,9 @@ from traceback import format_exc
 
 from traits.api import (Any, Bool, Callable, Dict, Enum, HasTraits, Instance,
                         Int, List, Str)
+
+
+logger = logging.getLogger(__name__)
 
 
 class Job(HasTraits):
@@ -39,6 +43,7 @@ class Job(HasTraits):
 
     def _run(self):
         self.status = 'running'
+        logger.info("Running: %s", self.info)
         try:
             self.result = self.func(*self.args, **self.kw)
             self.status = 'success'
@@ -47,6 +52,7 @@ class Job(HasTraits):
                 self.error = 'OUTPUT: %s\n' % e.output
             self.error += format_exc()
             self.status = 'error'
+            logger.info(self.error)
 
     def _thread_default(self):
         t = Thread(target=self._run)
@@ -69,8 +75,11 @@ class Processor(HasTraits):
 
     status = Enum('none', 'running', 'success', 'error')
 
+    interrupt = Enum('', 'pause', 'stop')
+
     def process(self):
         self.running = []
+        self.interrupt = ''
         running = self.running
         error = None
         self.status = 'running'
@@ -89,13 +98,19 @@ class Processor(HasTraits):
                         running.remove(j)
                 time.sleep(0.01)
 
-            if error is None:
-                running.append(job)
-                job.run()
-            else:
+            while self.interrupt == 'pause':
+                time.sleep(0.5)
+
+            if error is not None:
                 self.status = 'error'
                 self.errored_jobs.append(error)
                 break
+
+            if self.interrupt == 'stop':
+                break
+            else:
+                running.append(job)
+                job.run()
 
         # Wait for all remaining jobs to complete.
         for job in running:
@@ -109,6 +124,18 @@ class Processor(HasTraits):
 
         if self.status != 'error':
             self.status = 'success'
+
+    def stop(self):
+        if self.status == 'running':
+            self.interrupt = 'stop'
+
+    def pause(self):
+        if self.status == 'running':
+            self.interrupt = 'pause'
+
+    def resume(self):
+        if self.status == 'running' and self.interrupt == 'pause':
+            self.interrupt = ''
 
     def _reset_errored_jobs(self):
         for job in self.errored_jobs:
@@ -289,6 +316,7 @@ class TaggerFactory(FactoryBase):
         stdout, stderr = p.communicate()
         if p.returncode == 0:
             tag_types = self._tag_types
+            updates = {}
             for line in stdout.splitlines():
                 line = line.decode('utf-8')
                 if len(line) == 0:
@@ -299,8 +327,9 @@ class TaggerFactory(FactoryBase):
                     pass
                 else:
                     if tag in tag_types:
-                        media.tags[tag] = tag_types[tag](value)
+                        updates[tag] = tag_types[tag](value)
 
+            media.tags.update(updates)
             self._done[media.path] = True
 
     def _setup_tag_types(self, project):
