@@ -35,7 +35,7 @@ def setup_logger():
     logdir = get_project_dir()
     fname = os.path.join(logdir, 'vixen.log')
     handler = RotatingFileHandler(
-        filename=fname, maxBytes=2**17, backupCount=3
+        filename=fname, maxBytes=2**18, backupCount=3
     )
     formatter = logging.Formatter(
         '%(levelname)s|%(asctime)s|%(name)s|%(message)s'

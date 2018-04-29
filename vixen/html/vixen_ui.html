@@ -492,12 +492,11 @@
   <!-- view-processor template -->
   <script type="text/x-template" id="view-processor-template">
     <label> Processor status: </label> {{processor.status}}
-    <br/>
+   <br/>
+   <div v-if="processor.status === 'running'">
     Completed {{processor.completed.length}} of
-    {{processor.jobs.length}} jobs
-    <ul>
-      <li v-for="job in processor.running">{{job.info}}</li>
-    </ul>
+    {{processor.jobs.length}} jobs (see log for details)
+   </div>
     <button v-on:click="threaded(ui, 'process', project)"
             v-bind:disabled="processor.status === 'running'" id="run-processing">
       Run processing</button>
