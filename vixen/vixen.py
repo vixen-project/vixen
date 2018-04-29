@@ -616,7 +616,7 @@ class VixenUI(HasTraits):
             )
             self.processor.process()
             self.info(
-                "Remember to save the project once processing completes."
+                "Processing complete. Save the project to persist changes."
             )
         else:
             self.info(

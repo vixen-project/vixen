@@ -2,6 +2,8 @@ import mock
 import os
 import shutil
 import tempfile
+from threading import Thread
+import time
 import unittest
 
 from vixen.processor import Processor, Job, CommandFactory, \
@@ -63,6 +65,78 @@ class TestProcessor(unittest.TestCase):
         self.assertEqual(p.status, 'success')
         self.assertEqual(len(p.completed), 10)
         for i, j in enumerate(jobs):
+            self.assertEqual(j.status, 'success')
+            j.func.assert_called_once_with(i)
+            self.assertEqual(j.result, i)
+
+    def test_processor_pauses_correctly(self):
+        # Given
+        def _sleep(x):
+            time.sleep(0.01)
+            return x
+
+        jobs = [Job(func=mock.Mock(side_effect=_sleep), args=[x])
+                for x in range(10)]
+        p = Processor(jobs=jobs)
+        self.addCleanup(p.stop)
+        self.assertEqual(p.status, 'none')
+
+        # When
+        t = Thread(target=p.process)
+        t.start()
+
+        # Sleep for a tiny bit and pause
+        time.sleep(0.05)
+        p.pause()
+        time.sleep(0.01)
+
+        # Then
+        self.assertEqual(p.status, 'running')
+        self.assertTrue(len(p.completed) < 10)
+
+        # When
+        p.resume()
+        count = 0
+        while p.status == 'running' and count < 10:
+            time.sleep(0.5)
+            count += 1
+
+        self.assertEqual(len(p.completed), 10)
+        self.assertEqual(len(p.running), 0)
+        for i, j in enumerate(jobs):
+            self.assertEqual(j.status, 'success')
+            j.func.assert_called_once_with(i)
+            self.assertEqual(j.result, i)
+
+    def test_processor_stops_correctly(self):
+        # Given
+        def _sleep(x):
+            time.sleep(0.01)
+            return x
+
+        jobs = [Job(func=mock.Mock(side_effect=_sleep), args=[x])
+                for x in range(5)]
+        p = Processor(jobs=jobs)
+        self.addCleanup(p.stop)
+        self.assertEqual(p.status, 'none')
+
+        # When
+        t = Thread(target=p.process)
+        t.start()
+
+        # Sleep for a tiny bit and pause
+        time.sleep(0.05)
+        p.stop()
+        count = 0
+        while p.status == 'running' and count < 10:
+            time.sleep(0.05)
+            count += 1
+
+        # Then
+        self.assertEqual(p.status, 'success')
+        self.assertTrue(len(p.completed) < 5)
+        self.assertEqual(len(p.running), 0)
+        for i, j in enumerate(p.completed):
             self.assertEqual(j.status, 'success')
             j.func.assert_called_once_with(i)
             self.assertEqual(j.result, i)

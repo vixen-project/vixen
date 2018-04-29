@@ -115,6 +115,11 @@ p.loading {
     box-shadow:inset 0 0 10px rgba(0,0,0,0.2);
 }
 
+.view-processor {
+    border: solid;
+    border-width: 1px;
+}
+
 .processed {
     color: green;
 }

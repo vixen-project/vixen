@@ -75,8 +75,11 @@ class Processor(HasTraits):
 
     status = Enum('none', 'running', 'success', 'error')
 
+    interrupt = Enum('', 'pause', 'stop')
+
     def process(self):
         self.running = []
+        self.interrupt = ''
         running = self.running
         error = None
         self.status = 'running'
@@ -95,13 +98,19 @@ class Processor(HasTraits):
                         running.remove(j)
                 time.sleep(0.01)
 
-            if error is None:
-                running.append(job)
-                job.run()
-            else:
+            while self.interrupt == 'pause':
+                time.sleep(0.5)
+
+            if error is not None:
                 self.status = 'error'
                 self.errored_jobs.append(error)
                 break
+
+            if self.interrupt == 'stop':
+                break
+            else:
+                running.append(job)
+                job.run()
 
         # Wait for all remaining jobs to complete.
         for job in running:
@@ -115,6 +124,18 @@ class Processor(HasTraits):
 
         if self.status != 'error':
             self.status = 'success'
+
+    def stop(self):
+        if self.status == 'running':
+            self.interrupt = 'stop'
+
+    def pause(self):
+        if self.status == 'running':
+            self.interrupt = 'pause'
+
+    def resume(self):
+        if self.status == 'running' and self.interrupt == 'pause':
+            self.interrupt = ''
 
     def _reset_errored_jobs(self):
         for job in self.errored_jobs:

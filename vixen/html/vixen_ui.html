@@ -491,15 +491,30 @@
 
   <!-- view-processor template -->
   <script type="text/x-template" id="view-processor-template">
-    <label> Processor status: </label> {{processor.status}}
+    <div class="view-processor">
+    <b> Processor options </b>
    <br/>
    <div v-if="processor.status === 'running'">
     Completed {{processor.completed.length}} of
-    {{processor.jobs.length}} jobs (see log for details)
+       {{processor.jobs.length}} jobs (see log for details)
+
+       <button v-if="processor.interrupt === 'pause'"
+               v-on:click="processor.resume()"
+               id="resume-processing">
+           Resume</button>
+       <button v-else
+               v-on:click="processor.pause()"
+               id="pause-processing">
+           Pause</button>
+       <button v-on:click="processor.stop()"
+               id="stop-processing">
+           Stop</button>
    </div>
-    <button v-on:click="threaded(ui, 'process', project)"
-            v-bind:disabled="processor.status === 'running'" id="run-processing">
-      Run processing</button>
+   <button v-bind:disabled="processor.status === 'running'"
+           v-on:click="threaded(ui, 'process', project)"
+           id="run-processing">
+        Run processing</button>
+
     <div v-if="processor.status === 'error'">
       <label>Errors</label>
       <div v-for="job in processor.errored_jobs"
@@ -508,6 +523,7 @@
       </div>
     </div>
     <br/>
+    </div>
   </script>
 
 
