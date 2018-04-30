@@ -4,8 +4,10 @@
 Installation and getting started
 =================================
 
-To install ViXeN, you first need to know the platform you will be running it on.
-ViXeN is available for Linux (64 bit), Mac (64 bit), and Windows (32 and 64 bit).
+To install ViXeN, you first need to know the platform you will be running it
+on. ViXeN binaries are available for Linux (64 bit), Mac (64 bit), and Windows
+(32 and 64 bit). You can install ViXeN in a Python environment easily too but
+this is not necessary if you do not use Python.
 
 In order to use ViXeN you will need to have a working browser. See the
 :ref:`dependencies` section for more information on the dependencies.
@@ -71,12 +73,12 @@ More detailed instructions are given below.
 Using Nautilus
 ^^^^^^^^^^^^^^^^^^^
 
-1. Download the ViXen binary file (say vixen-0.9-linux64.tgz) from
+1. Download the ViXen binary file (say vixen-1.0-linux64.tgz) from
    `ViXeN releases`_ to your preferred directory.
 
 2. Right click and select 'Extract Here' or 'Open With Archive Manager'. A
    ViXeN folder will appear in the directory you have selected (in this case
-   the folder will be ``vixen-0.5``).
+   the folder will be ``vixen-1.0``).
 
 3. Open the directory and double click the ``ViXeN`` file (the file is
    ``ViXeN.desktop``). The ViXeN application will open on the browser.
@@ -94,13 +96,13 @@ Using the Command Line
 After downloading and unpacking ViXen either :ref:`using-nautilus`, run the
 following commands on the terminal::
 
-	$ cd vixen-0.9
+	$ cd vixen-1.0
 
-Where ``vixen-0.9`` is the extracted ViXeN binary. Suppose you downloaded and
-unpacked the ``vixen-0.9-linux64.tgz`` file in a folder named ``Software`` in
+Where ``vixen-1.0`` is the extracted ViXeN binary. Suppose you downloaded and
+unpacked the ``vixen-1.0-linux64.tgz`` file in a folder named ``Software`` in
 your ``home`` directory, then this command will be::
 
-	$ cd Software/vixen-0.9
+	$ cd Software/vixen-1.0
 
 Then run the application using::
 
@@ -129,6 +131,37 @@ Installing ViXeN on Windows
    shortcut that you can use to run the application.
 
 The application will open in your default browser window.
+
+
+-----------------------
+Installing using `pip`
+-----------------------
+
+If you have no idea what `pip`_ is, then you should look above for suitable
+instructions. If you are familiar with Python and wish to install ViXeN in
+your own Python environment, you can simply run::
+
+  $ pip install vixen
+
+The requirements for ViXeN are fairly modest.
+
+Otherwise, if you wish to install the development version, you can clone the
+ViXeN git repository at https://github.com/vixen-project/vixen and then do the
+following::
+
+  $ cd vixen
+  $ pip install -r requirements.txt
+  $ python setup.py install
+
+If you want to stay up-to-date and not have to re-install each time you update
+the git repository, you could instead do::
+
+  $ python setup.py develop
+
+That's about it.
+
+.. _pip: https://pip.pypa.io/en/stable/
+
 
 -----------------
 Troubleshooting

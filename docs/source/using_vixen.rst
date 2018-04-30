@@ -84,8 +84,8 @@ be untouched.
 
 Note that when the files are indexed the following tags are always available:
 
-- ctime: date: creation date/time of the file.
-- mtime: date: modified date/time of the file.
+- ctime: date: time of most recent metadata change on Unix, or the time of creation on Windows.
+- mtime: date: time of most recent content modification.
 - path: string: the full path of the file.
 - relpath: string: the relative path to the file with respect to the project root.
 - size: int: the file size in bytes.
@@ -233,6 +233,12 @@ has completed and the results are satisfactory.
 Note that if you have any search results and then run the processing, it will
 run the processing only on the searched files.
 
+When running the processing, the UI will present a button to pause the
+execution of the processing or to stop it entirely. Once a file has been
+processed by a particular processor it will not be processed again. If you
+wish to re-do the processing for the already processed files, you will need to
+remove the processor and add it again by editing the project.
+
 
 The Command processor
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -308,12 +314,30 @@ for example if a tag called ``GPSDateStamp``, ``GPSLatitude``, and
 metadata. This allows you to save only fields that are relevant to your work.
 
 The tagger can be implemented in R or Python for example. In case this is a
-Python script one may wish to set the command to ``/path/to/python
-script.py``. ViXeN will simply pass the file to this script at the end.
+Python script one may wish to set the command to ``python
+/path/to/script.py``. If ``python`` is not on the PATH, you can also
+explicitly specify the full path to the Python interpreter. ViXeN will simply
+pass the file to this script at the end.
 
 The tagger processor can be more complicated than this and do a lot more but
 this should give you an idea of the power of this approach.
 
+.. note::
+
+   A word of warning when writing R scripts. When R scripts encounter an
+   error, they usually do not exit with an exit status indicating that an
+   error occurred. ViXeN expects that the script exits with a non-zero exit
+   status to determine if the script was successfully run or not. So if you
+   see strange or incorrect results, just check your script for errors.
+
+
+For EXIF and other metadata information extraction from a variety of media,
+exiftool_ is a very powerful option that can be used for populating the tags.
+It is a lot easier to use than the example above and also supports a wide
+variety of file formats.
+
+
+.. _exiftool: https://www.sno.phy.queensu.ca/~phil/exiftool/
 
 .. _Imagemagick: https://www.imagemagick.org/
 
