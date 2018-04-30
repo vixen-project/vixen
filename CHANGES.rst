@@ -1,3 +1,22 @@
+1.0rc2
+-------
+
+* Release date: Soon to be released.
+* Prepare for release on PyPI.
+* Add pause/stop buttons when processing files and clean up processing UI.
+* Fix bug with saving projects which had tagger processors.
+* Support to copy a project.
+* Awesome new logo for the application and documentation.
+* Improved the rescan functionality to warn users about what it does and
+  remove dead files from the database.
+* Add a new "text" tag type for larger text input.
+* Warn user when they add unsupported tag names (names with spaces or those
+  starting with an _).
+* Add button to re-order the tags.
+* Fix UI slowness when editing a lot of text on firefox.
+* Fix an issue with CSV export with unicode text.
+* Support for Python 3.x.
+
 1.0rc1
 ------
 
