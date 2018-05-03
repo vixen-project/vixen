@@ -11,7 +11,7 @@ def copy_python_on_osx():
     if hasattr(sys, 'base_prefix'):
         dest = os.path.join('dist', 'ViXeN.app', 'Contents', 'MacOS')
         python_lib = os.path.join(sys.base_prefix, 'Python')
-        print("Copying %s -> %s"%(python_lib, dest))
+        print("Copying %s -> %s" % (python_lib, dest))
         shutil.copy(python_lib, dest)
 
 
@@ -62,6 +62,22 @@ def make_bundle():
             if not os.path.exists(d):
                 os.makedirs(d)
             shutil.copy(ssl_cert, d)
+    elif sys.platform.startswith('darwin'):
+        ssl_cert = os.path.join(sys.prefix, 'ssl', 'cert.pem')
+        if os.path.exists(ssl_cert):
+            d = os.path.join(
+                package_dir, 'ViXeN.app', 'Contents', 'Resources', 'ssl'
+            )
+            if not os.path.exists(d):
+                os.makedirs(d)
+            shutil.copy(ssl_cert, d)
+            cwd = os.getcwd()
+            os.chdir(
+                os.path.join(package_dir, 'ViXeN.app', 'Contents', 'MacOS')
+            )
+            os.symlink('../Resources/ssl', 'ssl')
+            os.chdir(cwd)
+
     elif sys.platform.startswith('win32'):
         shutil.copy(os.path.join('installer', 'vixen.bat'), package_dir)
         shutil.copy(os.path.join('installer', 'vixen.lnk'), package_dir)

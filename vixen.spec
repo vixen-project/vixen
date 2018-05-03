@@ -27,14 +27,17 @@ a = Analysis(['vixen/cli.py'],
              cipher=block_cipher)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
-exe = EXE(pyz,
-          a.scripts,
-          exclude_binaries=True,
-          name='vixen',
-          debug=False,
-          strip=False,
-          upx=True,
-          console=False )
+exe = EXE(
+    pyz,
+    a.scripts,
+    exclude_binaries=True,
+    name='vixen',
+    debug=False,
+    strip=False,
+    upx=True,
+    console=False,
+    icon=os.path.join('installer', 'vixen.ico')
+)
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -46,5 +49,5 @@ coll = COLLECT(exe,
 if sys.platform.startswith('darwin'):
     app = BUNDLE(coll,
                  name='ViXeN.app',
-                 icon=None,
+                 icon=os.path.join('installer', 'vixen.icns'),
                  bundle_identifier=None)
