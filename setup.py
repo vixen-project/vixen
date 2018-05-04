@@ -47,6 +47,7 @@ setup(
     author_email='vixen@googlegroups.com',
     description='View eXtract and aNnotate media',
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     url='https://github.com/vixen-project/vixen',
     classifiers=classifiers,
     install_requires=requires,
