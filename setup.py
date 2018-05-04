@@ -46,6 +46,7 @@ setup(
     author='Prabhu Ramachandran and Kadambari Devarajan',
     author_email='vixen@googlegroups.com',
     description='View eXtract and aNnotate media',
+    long_description=open('README.md').read(),
     url='https://github.com/vixen-project/vixen',
     classifiers=classifiers,
     install_requires=requires,

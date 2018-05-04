@@ -1,7 +1,7 @@
 1.0rc2
 -------
 
-* Release date: Soon to be released.
+* Release date: May 4, 2018.
 * Prepare for release on PyPI.
 * Add pause/stop buttons when processing files and clean up processing UI.
 * Fix bug with saving projects which had tagger processors.
