@@ -18,6 +18,9 @@ One may think of ViXeN as a special, customizable file browser with which
 one may view and edit metadata associated with media files like videos, images,
 and audio.
 
+The ViXeN documentation is at http://vixen.rtfd.io
+
+
 Features
 --------
 
@@ -44,11 +47,17 @@ project at the same time.
 Download
 ---------
 
-To try out ViXeN please download a binary installer from here:
+If you are not familiar with Python you can install ViXeN using a very simple
+binary installer on all the major platforms. To try out ViXeN please download
+a binary installer from here:
 
   https://github.com/vixen-project/vixen/releases
 
 These are very easy to install, basically just download, unzip, and run.
+
+If you are familiar with Python packages, you can install ViXeN using the
+standard Python mechanisms of either running `python setup.py install` or with
+[pip](https://pip.pypa.io/) using `pip install vixen`.
 
 
 History

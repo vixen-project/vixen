@@ -5,3 +5,4 @@ Comment=View Extract and Annotate media application
 Exec=bash -c 'cd $(dirname %k) && ./vixen'
 Terminal=false
 Type=Application
+Icon=vixen.png
