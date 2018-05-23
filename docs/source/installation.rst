@@ -158,9 +158,17 @@ the git repository, you could instead do::
 
   $ python setup.py develop
 
-That's about it.
-
 .. _pip: https://pip.pypa.io/en/stable/
+
+Once installed you can start the application by::
+
+  $ vixen
+
+To see any command line options try this::
+
+  $ vixen -h
+
+That's about it.
 
 
 -----------------

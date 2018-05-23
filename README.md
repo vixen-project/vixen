@@ -57,7 +57,8 @@ These are very easy to install, basically just download, unzip, and run.
 
 If you are familiar with Python packages, you can install ViXeN using the
 standard Python mechanisms of either running `python setup.py install` or with
-[pip](https://pip.pypa.io/) using `pip install vixen`.
+[pip](https://pip.pypa.io/) using `pip install vixen`. Once installed, simply
+run `vixen` to start the application.
 
 
 History
