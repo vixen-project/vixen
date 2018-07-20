@@ -9,4 +9,6 @@ dist/
 *.swp
 
 # pytest cache
-.cache
+.*cache
+
+*.log

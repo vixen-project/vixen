@@ -301,7 +301,7 @@ class Pager(HasTraits):
 
     def shuffle_page(self):
         """Shuffle the current page."""
-        pages = self.view.copy()
+        pages = self.view[:]
         shuffle(pages)
         p = self.page - 1
         self.data[p * self.limit:(p + 1) * self.limit] = pages
