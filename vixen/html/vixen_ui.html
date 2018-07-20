@@ -232,6 +232,9 @@
       <button v-on:click="viewer.go_to_parent()" id="go-to-parent">
         Go to Parent
       </button>
+      <button v-on:click="viewer.pager.shuffle_page()" id="shuffle-page">
+        Shuffle Page
+      </button>
       <div style="height:100px; width: 300px;"
            class="resizable directory-browser">
         <div v-for="path in pager.data | limitBy pager.limit pager.start">

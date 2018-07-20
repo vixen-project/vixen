@@ -6,6 +6,7 @@ import logging
 from logging import Handler
 from os.path import dirname, exists, join, isdir
 import os
+from random import shuffle
 import subprocess
 import sys
 from traits.api import (Any, Bool, DelegatesTo, Dict, Enum, HasTraits,
@@ -154,7 +155,7 @@ class ProjectEditor(HasTraits):
         if index != 0:
             tags = self.tags
             logger.info('Moving up tag: %s', tags[index].name)
-            tags[index - 1:index + 1] = tags[index], tags[index-1]
+            tags[index - 1:index + 1] = tags[index], tags[index - 1]
 
     def move_tag_down(self, index):
         tags = self.tags
@@ -298,6 +299,13 @@ class Pager(HasTraits):
     _page = Int
     _index = Int
 
+    def shuffle_page(self):
+        """Shuffle the current page."""
+        pages = self.view.copy()
+        shuffle(pages)
+        p = self.page - 1
+        self.data[p * self.limit:(p + 1) * self.limit] = pages
+
     def select(self, relindex=None):
         if relindex is None:
             index = self.index
@@ -345,7 +353,7 @@ class Pager(HasTraits):
     def _get_view(self):
         p = self.page - 1
         limit = self.limit
-        return self.data[p*limit:(p+1)*limit]
+        return self.data[p * limit:(p + 1) * limit]
 
     def _get_index(self):
         return self._index
