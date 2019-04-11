@@ -1,5 +1,5 @@
 ---
-title: “View eXtract aNnotate (ViXeN) media files: a multimedia project manager”
+title: 'View eXtract aNnotate (ViXeN) media files: a multimedia project manager'
 
 tags:
   - Python
