@@ -1,6 +1,5 @@
 ---
 title: 'View eXtract aNnotate (ViXeN) media files: a multimedia project manager'
-
 tags:
   - Python
   - multimedia
@@ -11,11 +10,11 @@ tags:
   - image
 authors:
   - name: Prabhu Ramachandran
-	orcid: 0000-0001-6337-1720
-	affiliation: 1
+    orcid: 0000-0001-6337-1720
+    affiliation: 1
   - name: Kadambari Devarajan
-	orcid: 0000-0002-9222-5404
-	affiliation: 2
+    orcid: 0000-0002-9222-5404
+    affiliation: 2
 affiliations:
  - name: Department of Aerospace Engineering, Indian Institute of Technology Bombay
    index: 1
