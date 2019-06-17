@@ -19,7 +19,7 @@ Features
 --------
 
 - Works with different types of media, videos, images, audio, text, and PDF.
-- Supports any number of used-defined metadata fields per project.
+- Supports any number of user-defined metadata fields per project.
 - Does not modify the original media but keeps its metadata separately.
 - Powerful searching through metadata.
 - Lightweight and easy to install.  No server setup required.

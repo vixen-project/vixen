@@ -11,7 +11,7 @@ browser. If this is not a supported browser, you can simply copy the URL on
 the location bar onto a supported browser such as Chrome or Firefox and the UI
 should load correctly.
 
-When you first start you will have a rather empty page with an button on the
+When you first start you will have a rather empty page with a button on the
 left panel to create a new project as seen in the figure below:
 
 .. figure:: images/start.png
