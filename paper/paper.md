@@ -37,7 +37,7 @@ portable document format (PDF) files that are part of a literature review or
 meta-analysis. ViXeN offers an unobtrusive and intuitive way of managing such
 metadata for a variety of media. ViXeN is browser-based and hence capable of
 displaying any files that the browser supports. This includes most image
-types, text, html, videos, audio, and PDFs.
+types, text, HTML, videos, audio, and PDFs.
 
 ViXeN allows a user to create an arbitrary number of metadata fields. Each
 field can take the form of a boolean, integer, float, or free form text. These
