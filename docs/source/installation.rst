@@ -170,6 +170,7 @@ To see any command line options try this::
 
 That's about it.
 
+.. _troubleshooting:
 
 -----------------
 Troubleshooting
@@ -183,6 +184,12 @@ directory.
 - On OS X this is in ``/Users/username/.vixen``.
 - On Windows this may be ``C:\Users\username\.vixen``.
 
-Email your log file to the developers or the mailing list.
+The log file should also be accessible once the ViXeN UI launches, it is
+available on the top bar next to the "Home" and "Help" links on the top left.
+
+The log file is a text file and if you see any sensitive information there,
+you can feel free to edit it before you send it.
+
+You may e-mail your log file to the developers or the mailing list.
 
 The ViXeN mailing list is available at https://groups.google.com/d/forum/vixen

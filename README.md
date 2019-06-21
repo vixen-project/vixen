@@ -80,6 +80,21 @@ If you have any questions or are having any problems with ViXeN, please email
 or post your questions on the vixen-users mailing list here:
 https://groups.google.com/d/forum/vixen
 
+If you should have specific problems with ViXeN, you may eitiher email us on
+the list mentioned above or file an issue on github here:
+https://github.com/vixen-project/vixen/issues/new
+
+If you do not mind, you can consider sending along the [vixen log
+file](https://vixen.readthedocs.io/en/latest/installation.html#troubleshooting).
+
+We welcome any contributions to this project. Please submit a pull-request on
+github and we will be happy to consider any suggestions and improvements.
+
+One useful, and perhaps underutilized feature of github is that if you want to
+make a change to the software or documentation, you may do so directly on
+github and submit that as a pull-request for us to consider without having to
+learn git, forking the project, and manually submitting a pull-request.
+
 
 Credits
 -------
