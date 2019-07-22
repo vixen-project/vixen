@@ -86,7 +86,7 @@ HTML UI uses the ``vue.js`` package and custom CSS. A
 displays this locally on the browser. ViXeN works well with Firefox, Chrome,
 and Safari, as well as with IE 9 and above. Thanks to the
 Model-View-Controller based (MVC) design of ViXeN, it has a test coverage of
-88%. The documentation of ViXeN is hosted at https://vixen.rtfd.io. The
+88%. The documentation of ViXeN is hosted at https://vixen.readthedocs.io. The
 documentation is also bundled with the binary installers so users can view the
 documentation even if they do not have internet access.
 
