@@ -18,7 +18,7 @@ One may think of ViXeN as a special, customizable file browser with which
 one may view and edit metadata associated with media files like videos, images,
 and audio.
 
-The ViXeN documentation is at http://vixen.rtfd.io
+The ViXeN documentation is at https://vixen.readthedocs.io
 
 
 Features
