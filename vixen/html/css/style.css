@@ -25,7 +25,11 @@ div, article, section {
 .half {
   width: 50%; }
 .third {
-  width: 33.333%; }
+    width: 33.333%;
+    height: 80%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 .sans-third {
   width: 66.66%; }
 .quarter {
