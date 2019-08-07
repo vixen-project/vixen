@@ -35,6 +35,7 @@ def _make_root():
     root.deiconify()
     root.lift()
     root.focus_force()
+    root.withdraw()
     if sys.platform == 'darwin':
         tmpl = 'tell application "System Events" to set frontmost '\
                'of every process whose unix id is {} to true'
