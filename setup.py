@@ -52,6 +52,7 @@ setup(
     classifiers=classifiers,
     install_requires=requires,
     tests_require=tests_require,
+    python_requires='<3.7',
     packages=find_packages(),
     package_dir={'vixen': 'vixen'},
     package_data={
