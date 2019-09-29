@@ -1,3 +1,14 @@
+1.0rc3
+-------
+
+* Release date: September 29, 2019.
+* Update docs on source installation.
+* Add license and fix FF version for tests.
+* Address issues raised in JOSS paper review.
+* Partial fix for freezes when opening dialog for a file/directory.
+* Fix Python version to 3.6.x for now until jigna fully supports 3.6+.
+* Improve CSS for scrolling behavior of side panel.
+
 1.0rc2
 -------
 
