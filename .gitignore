@@ -4,3 +4,11 @@
 build/
 dist/
 *.egg-info/
+
+# Vim swap files
+*.swp
+
+# pytest cache
+.*cache
+
+*.log

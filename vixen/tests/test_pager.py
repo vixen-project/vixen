@@ -105,6 +105,27 @@ class TestPager(unittest.TestCase):
         self.assertEqual(p.page, 3)
         self.assertEqual(p.selected, 2)
 
+    def test_shuffle_page(self):
+        """Check if shuffling a page works."""
+        p = Pager(limit=5)
+
+        # When
+        p.data = list(range(10))
+        p.shuffle_page()
+
+        # Then, first five elements should be shuffled, rest same
+        self.assertListEqual(p.data[5:], list(range(5, 10)))
+        self.assertNotEqual(p.data[:5], list(range(5)))
+
+        # When
+        p.data = list(range(10))
+        p.next_page()
+        p.shuffle_page()
+
+        # Then, first five elements should be same, rest different
+        self.assertNotEqual(p.data[5:], list(range(5, 10)))
+        self.assertListEqual(p.data[:5], list(range(5)))
+
     def test_prev_page(self):
         # Given
         p = Pager(limit=2)
